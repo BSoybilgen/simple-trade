@@ -1,15 +1,51 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="simple_trading",
+    name="simple_trade",
+    description="Compute technical indicators and build trade strategies in a simple way",
+    license='AGPL-3.0',
     version="0.1.0",
-    description="Download financial data and compute technical indicators.",
-    author="Your Name", # Consider changing this
+    author="Baris Soybilgen", # Consider changing this
     packages=find_packages(),
     install_requires=[
-        "yfinance",
-        "pandas",
-        "numpy"
+        "yfinance>=0.2.40",
+        "pandas>=2.0.0",
+        "numpy>=1.24.0",
+        "joblib>=1.3.0",
+        "matplotlib>=3.7.0"
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.9',
+    keywords=[
+            'algo',
+            'algorithmic',
+            'backtest',
+            'backtesting',
+            'candlestick',
+            'chart',
+            'crypto',
+            'currency',
+            'equity',
+            'exchange',
+            'finance',
+            'financial',
+            'forex',
+            'fx',
+            'indicator',
+            'invest',
+            'investing',
+            'investment',
+            'ohlc',
+            'ohlcv',
+            'order',
+            'price',
+            'profit',
+            'quant',
+            'quantitative',
+            'simulation',
+            'stocks',
+            'strategy',
+            'ticker',
+            'trader',
+            'trading',
+        ],
 )
