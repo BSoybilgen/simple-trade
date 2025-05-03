@@ -3,12 +3,6 @@
 from simple_trade import download_data, compute_indicator
 from simple_trade import CrossTradeBacktester
 from simple_trade import Optimizer
-from joblib import Memory
-
-# Setup caching for data download
-location = './cachedir'
-memory = Memory(location, verbose=0)
-download_data_cached = memory.cache(download_data)
 
 # --- Configuration ---
 ticker = "AAPL"
@@ -19,20 +13,7 @@ commission_fee = 0.001 # 0.1%
 
 # --- Download Data ---
 print(f"Downloading data for {ticker}...")
-data = download_data_cached(ticker, start_date, end_date)
-
-# Ensure column names are properly capitalized for the backtest
-column_map = {
-    'open': 'Open',
-    'high': 'High',
-    'low': 'Low',
-    'close': 'Close',
-    'volume': 'Volume'
-}
-data.rename(columns={k: v for k, v in column_map.items() if k in data.columns}, inplace=True)
-
-# Debug: Print the actual column names to verify
-print(f"Data columns after standardization: {list(data.columns)}")
+data = download_data(ticker, start_date, end_date)
 
 # Define a wrapper function to handle computing indicators and running the backtest
 def run_cross_trade_with_windows(data, short_window, long_window, **kwargs):

@@ -14,9 +14,9 @@ ticker = 'SPY'
 start_date = '2020-01-01'
 end_date = '2024-12-31'
 
+# --- Download Data ---
 print(f"Downloading data for {ticker}...")
 data = download_data(ticker, start_date, end_date)
-print(f"Data columns: {list(data.columns)}")
 
 # --- Optimization Parameters ---
 # Define the parameter grid to search
