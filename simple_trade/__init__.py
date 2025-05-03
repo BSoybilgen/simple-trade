@@ -1,15 +1,43 @@
+# Import from data module
 from .data import download_data, compute_indicator, download_and_compute_indicator
 from .core import INDICATORS
-from .backtesting import Backtester # Import Backtester
-from .plot_ind import IndicatorPlotter # Use new plotting module
 
 # Import all indicators from core
-from .core import sma, ema, wma, hma, rsi, macd, bollinger_bands, adx
+from .core import (
+    # Trend indicators
+    sma, ema, wma, hma, adx, psar, trix, aroon,
+    ichimoku, tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b, chikou_span,
+    
+    # Momentum indicators
+    rsi, macd, stoch, cci, roc,
+    
+    # Volatility indicators
+    bollinger_bands, atr, keltner_channels, donchian_channels, chaikin_volatility,
+    
+    # Volume indicators
+    obv, vma, adline, cmf, vpt
+)
+
+# Import backtesting components
+from .backtesting import Backtester
+from .band_trade import BandTradeBacktester
+from .cross_trade import CrossTradeBacktester
+
+# Import optimizer
+from .optimizer import Optimizer
+
+# Import plotting tools
+from .plot_ind import IndicatorPlotter
+from .plot_test import BacktestPlotter
 
 __all__ = [
     # Main classes
-    "Backtester", # Add Backtester to __all__
-    "IndicatorPlotter", # Use new plotting module
+    "Backtester",
+    "BandTradeBacktester", 
+    "CrossTradeBacktester",
+    "Optimizer",
+    "IndicatorPlotter",
+    "BacktestPlotter",
     
     # Data functions
     "download_data", "compute_indicator", "download_and_compute_indicator",
@@ -17,6 +45,16 @@ __all__ = [
     # Indicators dictionary
     "INDICATORS",
     
-    # Individual indicators
-    "sma", "ema", "wma", "hma", "rsi", "macd", "bollinger_bands", "adx"
+    # Trend indicators
+    "sma", "ema", "wma", "hma", "adx", "psar", "trix", "aroon",
+    "ichimoku", "tenkan_sen", "kijun_sen", "senkou_span_a", "senkou_span_b", "chikou_span",
+    
+    # Momentum indicators
+    "rsi", "macd", "stoch", "cci", "roc",
+    
+    # Volatility indicators
+    "bollinger_bands", "atr", "keltner_channels", "donchian_channels", "chaikin_volatility",
+    
+    # Volume indicators
+    "obv", "vma", "adline", "cmf", "vpt"
 ]

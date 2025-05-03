@@ -141,11 +141,6 @@ def format_trend_indicator_name(indicator, kwargs):
         # For ADX, include the period
         window = kwargs.get('window', 14)
         suffix = f"_{window}"
-    elif indicator == 'strend':
-        # For Supertrend, include period and multiplier
-        period = kwargs.get('period', 10)
-        multiplier = kwargs.get('multiplier', 3.0)
-        suffix = f"_{period}_{multiplier}"
     elif indicator == 'aroon':
         # For Aroon, include the period
         period = kwargs.get('period', 14)
