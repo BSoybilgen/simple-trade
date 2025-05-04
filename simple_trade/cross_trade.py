@@ -55,10 +55,13 @@ class CrossTradeBacktester(Backtester):
             raise TypeError("DataFrame index must be a DatetimeIndex.")
         if price_col not in data.columns:
             raise ValueError(f"Price column '{price_col}' not found in DataFrame.")
+
+        # Explicitly check for short_window_indicator and raise the specific error
         if short_window_indicator not in data.columns:
-            raise ValueError(f"Price column '{short_window_indicator}' not found in DataFrame.")
+            raise ValueError(f"Required column '{short_window_indicator}' for short window indicator is missing from the DataFrame.")
+
         if long_window_indicator not in data.columns:
-            raise ValueError(f"Price column '{long_window_indicator}' not found in DataFrame.")
+            raise ValueError(f"Required column '{long_window_indicator}' for long window indicator is missing from the DataFrame.")
         if not (0.0 <= long_entry_pct_cash <= 1.0):
             raise ValueError("long_entry_pct_cash must be between 0.0 and 1.0")
         if not (0.0 <= short_entry_pct_cash <= 1.0):

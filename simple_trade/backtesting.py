@@ -8,7 +8,7 @@ class Backtester:
     This is the base class with common functionality. Strategy-specific methods are in subclasses.
     """
     def __init__(self, initial_cash: float = 10000.0, commission: float = 0.001, 
-                 short_borrow_fee_inc_rate: float = 0.0, long_borrow_fee_inc_rate: float = 0.0):
+                 short_borrow_fee_inc_rate: float = 0.0, long_borrow_fee_inc_rate: float = 0.0, short_fee_rate: float = 0.0005):
         """
         Initializes the Backtester.
 
@@ -17,11 +17,13 @@ class Backtester:
             commission (float): Commission rate per trade (e.g., 0.001 for 0.1%).
             short_borrow_fee_inc_rate (float): Daily fee rate for holding short positions, applied to the market value of the short position (default: 0.0).
             long_borrow_fee_inc_rate (float): Daily fee rate for holding long positions. Typically only used for ETFs or leveraged positions (default: 0.0).
+            short_fee_rate (float): Annual rate, applied daily later (default: 0.0005).
         """
         self.initial_cash = initial_cash
         self.commission = commission
         self.short_borrow_fee_inc_rate = short_borrow_fee_inc_rate
         self.long_borrow_fee_inc_rate = long_borrow_fee_inc_rate
+        self.short_fee_rate = short_fee_rate
         
     def compute_benchmark_return(self, data: pd.DataFrame, price_col: str = 'Close') -> dict:
         """
@@ -105,7 +107,12 @@ class Backtester:
         # Sharpe Ratio
         daily_risk_free = ((1 + risk_free_rate) ** (1/252)) - 1
         excess_return = portfolio_df['daily_return'] - daily_risk_free
-        sharpe_ratio = excess_return.mean() / portfolio_df['daily_return'].std() * np.sqrt(252)
+        # Handle zero or NaN volatility case for Sharpe Ratio
+        if daily_volatility > 1e-10 and not np.isnan(daily_volatility):  # Use a small threshold and check for NaN
+            sharpe_ratio = excess_return.mean() / daily_volatility * np.sqrt(252)
+        else:
+            # Assign NaN if volatility is essentially zero or NaN (Sharpe is undefined with zero risk)
+            sharpe_ratio = np.nan 
         
         # Sortino Ratio (uses downside deviation instead of total volatility)
         negative_returns = portfolio_df['daily_return'][portfolio_df['daily_return'] < 0]
