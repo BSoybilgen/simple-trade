@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.patches import Rectangle
 from typing import List, Optional, Union, Literal
+import logging
 
 class IndicatorPlotter:
     """Handles plotting financial data and technical indicators."""
@@ -49,33 +50,37 @@ class IndicatorPlotter:
             # Filter to include only columns that exist in the DataFrame
             indicator_cols = [col for col in column_names if col in df.columns]
             if not indicator_cols:
-                print(f"Warning: None of the specified columns {column_names} exist in DataFrame. Plotting price only.")
+                logging.warning(f"None of the specified columns {column_names} exist in DataFrame. Plotting price only.")
         else:
-            print("No indicator columns specified. Plotting price only.")
+            logging.warning("No indicator columns specified. Plotting price only.")
         
         # Create Figure and Axes with adjusted size
-        if plot_on_subplot and indicator_cols: # Ensure indicators exist for subplot
-            # Use plt.subplots to create figure and axes together
-            fig, axes = plt.subplots(2, 1, sharex=True, figsize=(16, 8), # Set figsize here
-                                   gridspec_kw={'height_ratios': [3, 1]})
-            ax_price = axes[0]     # Price on top
-            ax_indicator = axes[1] # Indicator on bottom
-            # Set the ylabel based on column names
-            if len(indicator_cols) == 1:
-                ax_indicator.set_ylabel(indicator_cols[0], fontweight='bold', fontsize=12)
-            else:
-                ax_indicator.set_ylabel('Indicators', fontweight='bold', fontsize=12)
-            ax_indicator.grid(True, linestyle='--', alpha=0.6) # Grid for indicator subplot
+        column_names = [] if column_names is None else column_names
+        columns_to_plot = [col for col in column_names if col in df.columns]
+        missing_cols = [col for col in column_names if col not in df.columns]
+        if missing_cols:
+            logging.warning(f"Columns {missing_cols} specified but not found in DataFrame.")
+        if not columns_to_plot:
+            logging.warning("No valid indicator columns specified or found. Plotting price only.")
+
+        # Determine layout based on plot_on_subplot
+        if plot_on_subplot and columns_to_plot:
+            fig, axes = plt.subplots(2, 1, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
+            ax_price, ax_ind = axes
         else:
-            # If not plotting on subplot, create a single plot
-            fig, ax_price = plt.subplots(figsize=(16, 8)) # Set figsize here
-            ax_indicator = ax_price # Plot indicators on the same axes as price
+            # Always create 1x1 subplot even for overlay to maintain consistency
+            fig, ax = plt.subplots(1, 1, figsize=(16, 8))
+            ax_price = ax # Price axis is the only axis
+            ax_ind = ax   # Indicators will plot on the same axis
+
+        # Apply dark theme
+        plt.style.use('dark_background')
 
         # Plot Price based on plot_type
         if plot_type == 'line':
             # Plot as a line with increased thickness and darker color
             ax_price.plot(df.index, df[price_col], label=price_col, color='#0343df', linewidth=2.5)
-        else:  # candlestick
+        elif plot_type == 'candlestick':
             # Convert datetime index to matplotlib dates for proper candlestick rendering
             dates = mdates.date2num(df.index.to_numpy())
             
@@ -122,7 +127,10 @@ class IndicatorPlotter:
             
             # Create a custom legend entry for candlesticks
             ax_price.plot([], [], label='Candlestick', color='gray', linewidth=0)  # Invisible line for legend
-                
+        else:
+            # Raise error for invalid plot_type if it's not 'line' or 'candlestick'
+            raise ValueError(f"Invalid plot_type: {plot_type}. Choose 'line' or 'candlestick'.")
+
         ax_price.set_ylabel('Price', fontweight='bold', fontsize=12)
         ax_price.grid(True, linestyle='--', alpha=0.7, color='#303030')
         
@@ -131,7 +139,7 @@ class IndicatorPlotter:
             plot_hist = False
             hist_col_name = ''
             # Special handling for MACD Histogram
-            hist_col_name = next((col for col in indicator_cols if 'Hist' in col), None)
+            hist_col_name = next((col for col in indicator_cols if 'hist' in col), None)
             if hist_col_name:
                 plot_hist = True
                 indicator_cols.remove(hist_col_name)
@@ -142,7 +150,7 @@ class IndicatorPlotter:
             # Handle Ichimoku Cloud shading if both spans are present
             if 'Ichimoku_senkou_span_a' in indicator_cols and 'Ichimoku_senkou_span_b' in indicator_cols:
                 # Fill bullish regions (green) - when Senkou A is above Senkou B
-                ax_indicator.fill_between(
+                ax_ind.fill_between(
                     df.index, df['Ichimoku_senkou_span_a'], df['Ichimoku_senkou_span_b'],
                     where=df['Ichimoku_senkou_span_a'] >= df['Ichimoku_senkou_span_b'],
                     color='#27ae60',  # Green
@@ -152,7 +160,7 @@ class IndicatorPlotter:
                 )
                 
                 # Fill bearish regions (red) - when Senkou B is above Senkou A
-                ax_indicator.fill_between(
+                ax_ind.fill_between(
                     df.index, df['Ichimoku_senkou_span_a'], df['Ichimoku_senkou_span_b'],
                     where=df['Ichimoku_senkou_span_a'] < df['Ichimoku_senkou_span_b'],
                     color='#e74c3c',  # Red
@@ -163,13 +171,13 @@ class IndicatorPlotter:
             
             for i, col in enumerate(indicator_cols):
                 # Special handling for PSAR - display as dots instead of lines
-                if col == 'PSAR' or col.__contains__("SUPERTREND"):
+                if col == 'PSAR':
                     # Determine whether dots should be above or below the price (above in downtrend, below in uptrend)
                     # PSAR dots are above price in a downtrend (bearish) and below price in an uptrend (bullish)
                     above_price = df[col] > df[price_col]
                     
                     # Use different colors for bullish vs bearish indicators
-                    ax_indicator.scatter(
+                    ax_ind.scatter(
                         df.index[above_price], df[col][above_price],
                         label=f'{col} (Bearish)',
                         color='#e50000',  # Red for bearish
@@ -178,7 +186,7 @@ class IndicatorPlotter:
                         alpha=0.8
                     )
                     
-                    ax_indicator.scatter(
+                    ax_ind.scatter(
                         df.index[~above_price], df[col][~above_price],
                         label=f'{col} (Bullish)',
                         color='#00b300',  # Green for bullish
@@ -187,31 +195,31 @@ class IndicatorPlotter:
                         alpha=0.8
                     )
                 elif col == 'Ichimoku_tenkan_sen':
-                    ax_indicator.plot(df.index, df[col], 
+                    ax_ind.plot(df.index, df[col], 
                                label='Tenkan-sen (Conversion Line)', 
                                color='#3498db',  # Blue
                                linewidth=1.5, 
                                alpha=1.0)
                 elif col == 'Ichimoku_kijun_sen':
-                    ax_indicator.plot(df.index, df[col], 
+                    ax_ind.plot(df.index, df[col], 
                                label='Kijun-sen (Base Line)', 
                                color='#9b59b6',  # Purple
                                linewidth=1.5, 
                                alpha=1.0)
                 elif col == 'Ichimoku_senkou_span_a':
-                    ax_indicator.plot(df.index, df[col], 
+                    ax_ind.plot(df.index, df[col], 
                                label='Senkou Span A (Leading Span A)', 
                                color='#e74c3c',  # Red
                                linewidth=1.5, 
                                alpha=0.8)
                 elif col == 'Ichimoku_senkou_span_b':
-                    ax_indicator.plot(df.index, df[col], 
+                    ax_ind.plot(df.index, df[col], 
                                label='Senkou Span B (Leading Span B)', 
                                color='#27ae60',  # Green
                                linewidth=1.5, 
                                alpha=0.8)
                 elif col == 'Ichimoku_chikou_span':
-                    ax_indicator.plot(df.index, df[col], 
+                    ax_ind.plot(df.index, df[col], 
                                label='Chikou Span (Lagging Span)', 
                                color='#d4cd11',  # Yellow
                                linewidth=1.5, 
@@ -220,7 +228,7 @@ class IndicatorPlotter:
                     # Use the correct axes with a rotating color scheme for other indicators
                     color_idx = i % len(contrast_colors)
                     
-                    ax_indicator.plot(df.index, df[col], 
+                    ax_ind.plot(df.index, df[col], 
                                label=col, 
                                color=contrast_colors[color_idx],
                                linewidth=2.0, 
@@ -229,7 +237,7 @@ class IndicatorPlotter:
             # Plot MACD Histogram if applicable with more vivid colors
             if plot_hist:
                  colors = ['#00cc00' if x >= 0 else '#e60000' for x in df[hist_col_name]]
-                 ax_indicator.bar(df.index, df[hist_col_name], label=hist_col_name, color=colors, alpha=0.8, width=0.7)
+                 ax_ind.bar(df.index, df[hist_col_name], label=hist_col_name, color=colors, alpha=0.8, width=0.7)
 
         # Final Touches
         if title:
@@ -242,9 +250,11 @@ class IndicatorPlotter:
 
         ax_price.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         if plot_on_subplot:
-            ax_indicator.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            ax_indicator.grid(True, linestyle='--', alpha=0.7, color='#303030')
+            ax_ind.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         
+        # Apply grid to the indicator axis regardless of subplot mode
+        ax_ind.grid(True, linestyle='--', alpha=0.7, color='#303030')
+
         plt.tight_layout(rect=[0, 0, 0.85, 1]) # Adjust layout to prevent title overlap
         # Return the figure object instead of showing it directly
         # This allows the caller to control when and how to display the plot
