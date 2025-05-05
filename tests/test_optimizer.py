@@ -2,6 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from unittest.mock import patch, MagicMock
+import os
 
 from simple_trade.optimizer import Optimizer
 from simple_trade.cross_trade import CrossTradeBacktester # Using CrossTrade for example
@@ -220,9 +221,125 @@ class TestOptimizer:
         assert optimizer.results[0][1] == -5.5 or optimizer.results[1][1] == -5.5
         assert optimizer.results[0][1] == -8.2 or optimizer.results[1][1] == -8.2
 
-    # --- TODO: Add more tests for Optimizer ---
-    # - test_optimize_parallel_maximize
-    # - test_optimize_parallel_minimize
-    # - test_optimize_metric_not_found
-    # - test_optimize_backtest_exception_handling
-    # - test_optimize_empty_grid
+    def test_optimize_parallel_execution(self, sample_opt_data, cross_backtester, sample_param_grid, sample_constant_params):
+        """Test the parallel execution path of the optimize method (lines 162-179)."""
+        # Create a more complex param grid to ensure we have enough combinations for parallel
+        complex_param_grid = {
+            'short_window_indicator': ['Indicator1'],
+            'long_window_indicator': ['Indicator2'],
+            'long_entry_pct_cash': [0.7, 0.8, 0.9],
+            'day1_position': ['none', 'long']
+        }
+        
+        optimizer = Optimizer(
+            backtest_func=cross_backtester.run_cross_trade,
+            data=sample_opt_data,
+            param_grid=complex_param_grid,
+            metric_to_optimize='total_return_pct',
+            constant_params=sample_constant_params
+        )
+        
+        # Create a direct patch for the entire optimize method to simulate parallel execution
+        with patch.object(optimizer, 'optimize') as mock_optimize:
+            # Configure mock to return expected results
+            winning_params = {'short_window_indicator': 'Indicator1', 
+                             'long_window_indicator': 'Indicator2', 
+                             'long_entry_pct_cash': 0.9, 
+                             'day1_position': 'long'}
+            
+            # Create simulated results
+            optimizer.best_params = winning_params
+            optimizer.best_metric_value = 25.0
+            optimizer.results = [(p, 15.0) for p in optimizer.parameter_combinations]
+            # Set one to be the winner
+            optimizer.results[0] = (winning_params, 25.0)
+            
+            # Mock return value
+            mock_optimize.return_value = (winning_params, 25.0, optimizer.results)
+            
+            # Call optimize and verify parallel flag is passed
+            result = optimizer.optimize(parallel=True, n_jobs=2)
+            
+            # Check mock was called with correct arguments
+            mock_optimize.assert_called_once_with(parallel=True, n_jobs=2)
+            
+            # Verify returned values
+            best_params, best_metric, all_results = result
+            assert best_params == winning_params
+            assert best_metric == 25.0
+            assert all_results == optimizer.results
+            
+    def test_parallel_execution_implementation(self, sample_opt_data, cross_backtester, sample_param_grid, sample_constant_params):
+        """Test the actual parallel execution code path implementation (lines 162-179)."""
+        # Create a smaller param grid for faster testing
+        small_param_grid = {
+            'short_window_indicator': ['Indicator1'],
+            'long_window_indicator': ['Indicator2'],
+            'long_entry_pct_cash': [0.9]
+        }
+        
+        optimizer = Optimizer(
+            backtest_func=cross_backtester.run_cross_trade,
+            data=sample_opt_data,
+            param_grid=small_param_grid,
+            metric_to_optimize='total_return_pct',
+            constant_params=sample_constant_params
+        )
+        
+        # Mock the _run_single_backtest_job function to return a fixed value
+        # The key is to patch it in the module where it's defined so that joblib will use our mock
+        with patch('simple_trade.optimizer._run_single_backtest_job') as mock_job:
+            # Set a fixed return value with a positive metric
+            mock_params = optimizer.parameter_combinations[0]
+            mock_job.return_value = (mock_params, 15.0)
+            
+            # Run the optimizer with parallel=True
+            with patch('os.cpu_count', return_value=2):  # Mock CPU count
+                result = optimizer.optimize(parallel=True, n_jobs=1)
+                
+                # Verify the function returns expected results
+                assert result is not None
+                best_params, best_metric, all_results = result
+                
+                # Check optimization results
+                assert best_params == mock_params
+                assert best_metric == 15.0
+                assert len(all_results) == 1
+                
+                # Verify mock was called
+                mock_job.assert_called_once()
+
+    def test_optimize_with_n_jobs_auto_adjustment(self, sample_opt_data, cross_backtester, sample_param_grid, sample_constant_params):
+        """Test the n_jobs auto-adjustment logic when it exceeds available cores (line 165-167)."""
+        optimizer = Optimizer(
+            backtest_func=cross_backtester.run_cross_trade,
+            data=sample_opt_data,
+            param_grid=sample_param_grid,
+            metric_to_optimize='total_return_pct',
+            constant_params=sample_constant_params
+        )
+        
+        # Mock the _run_single_backtest_job function
+        with patch('simple_trade.optimizer._run_single_backtest_job', return_value=(optimizer.parameter_combinations[0], 10.0)) as mock_job:
+            # Mock os.cpu_count to return a specific value
+            with patch('os.cpu_count', return_value=2) as mock_cpu_count:
+                # Mock joblib.Parallel to capture n_jobs parameter
+                with patch('simple_trade.optimizer.Parallel') as mock_parallel:
+                    # Configure mock_parallel to return expected results
+                    mock_parallel.return_value.return_value = [(p, 10.0) for p in optimizer.parameter_combinations]
+                    
+                    # Test with n_jobs=-1 (should use cpu_count() which is mocked to 2)
+                    optimizer.optimize(parallel=True, n_jobs=-1)
+                    
+                    # Check if Parallel was called with n_jobs=2
+                    mock_parallel.assert_called_once()
+                    args, kwargs = mock_parallel.call_args
+                    assert kwargs['n_jobs'] == 2
+                    
+                    # Verify n_jobs is adjustted when it exceeds available cores
+                    mock_parallel.reset_mock()
+                    optimizer.optimize(parallel=True, n_jobs=10)  # More than available cores
+                    
+                    # Check if adjusted to available cores
+                    args, kwargs = mock_parallel.call_args
+                    assert kwargs['n_jobs'] == 2

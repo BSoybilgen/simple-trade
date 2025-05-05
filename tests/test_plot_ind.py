@@ -564,6 +564,3 @@ def test_plot_ichimoku_cloud_overlay(sample_ichimoku_data, mock_plotting_fixture
     # Verify colors
     assert bullish_fill.kwargs.get('color') == '#27ae60' # Green
     assert bearish_fill.kwargs.get('color') == '#e74c3c' # Red
-
-
-# TODO: Add tests for specific indicator plotting (Ichimoku lines)

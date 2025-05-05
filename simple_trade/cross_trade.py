@@ -5,6 +5,10 @@ from .backtesting import Backtester
 class CrossTradeBacktester(Backtester):
     """Backtester extension for Cross Trade strategies."""
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.log = None
+        
     def run_cross_trade(self, data: pd.DataFrame, short_window_indicator: str, 
                          long_window_indicator: str, price_col: str = 'Close', 
                          trading_type: str = 'long', long_entry_pct_cash: float = 0.9, 
@@ -48,6 +52,9 @@ class CrossTradeBacktester(Backtester):
                 - dict: Dictionary with backtest summary results (final value, return, trades).
                 - pd.DataFrame: DataFrame tracking daily portfolio evolution (cash, position, value, signals, actions).
         """
+        # Initialize portfolio log list for storing daily state
+        self.portfolio_log = []
+        
         # Validate inputs
         if not isinstance(data, pd.DataFrame):
             raise TypeError("data must be a pandas DataFrame.")
@@ -98,24 +105,29 @@ class CrossTradeBacktester(Backtester):
         df['sell_signal'] = (prev_short < prev_long) & (prev_prev_short >= prev_prev_long)
 
         # Drop NaNs created by shifts
-        df.dropna(inplace=True)
-        if df.empty:
-            print("Warning: DataFrame empty after generating signals and dropping NaNs. No trades possible.")
-            strategy_name = f"Cross Trade ({short_window_indicator}/{long_window_indicator}){' [Shorts Allowed]' if trading_type in ['short', 'mixed'] else ''}"
-            return { # Return empty results
-                "strategy": strategy_name,
-                "initial_cash": self.initial_cash, 
-                "final_value": self.initial_cash,
-                "total_return_pct": 0.0, 
-                "num_trades": 0
-            }, pd.DataFrame()
+        df = df.dropna(how='any') # Explicitly use how='any'
 
-        # --- Initialize Portfolio State ---
+        # --- Check if DataFrame is empty AFTER potential drops ---
+        if df.empty:
+            self.log.warning(f"DataFrame is empty after generating signals and dropping NaNs for indicators '{short_window_indicator}' and '{long_window_indicator}'. No trades executed.")
+            # Return minimal results, NO performance metrics calculated
+            strategy_name_early = f"Cross Trade ({short_window_indicator}/{long_window_indicator}){' [Shorts Allowed]' if trading_type in ['short', 'mixed'] else ''}{' [Day1 ' + day1_position.capitalize() + ']' if day1_position != 'none' else ''}"
+            early_results = {
+                "strategy": strategy_name_early,
+                "short_window_indicator": short_window_indicator,
+                "long_window_indicator": long_window_indicator,
+                "initial_cash": self.initial_cash,
+                "final_value": self.initial_cash, # No trades, value is initial cash
+                "total_return_pct": 0.0,
+                "num_trades": 0,
+            }
+            return early_results, pd.DataFrame() # Return empty DataFrame
+
+        # --- Initialize State --- Only run if df was not empty ---
         cash = self.initial_cash
         position_size = 0 # Shares held (negative for short positions)
         position_cost_basis = 0 # Weighted average cost of current position
-        portfolio_log = []
-        num_trades = 0
+        self.num_trades = 0 # Use instance variable and initialize
         
         # Initialize variable to track if we're on the first day
         first_day = True
@@ -180,7 +192,7 @@ class CrossTradeBacktester(Backtester):
                         cash -= (position_size * trade_price + commission_cost)
                         position_cost_basis = trade_price
                         commission_paid = commission_cost
-                        num_trades += 1
+                        self.num_trades += 1
                     else:
                         action_taken = "INSUFFICIENT_CASH"
                         
@@ -196,7 +208,7 @@ class CrossTradeBacktester(Backtester):
                     
                     position_size = 0
                     position_cost_basis = 0
-                    num_trades += 1
+                    self.num_trades += 1
 
             elif trading_type == 'short': # SHORT-ONLY strategy
                 if position_size == 0 and sell_signal: # We're flat and have a sell signal
@@ -215,7 +227,7 @@ class CrossTradeBacktester(Backtester):
                         cash += (abs(position_size) * trade_price - commission_cost)
                         position_cost_basis = trade_price
                         commission_paid = commission_cost
-                        num_trades += 1
+                        self.num_trades += 1
                     else:
                         action_taken = "INSUFFICIENT_CASH"
                         
@@ -232,7 +244,7 @@ class CrossTradeBacktester(Backtester):
                     
                     position_size = 0
                     position_cost_basis = 0
-                    num_trades += 1
+                    self.num_trades += 1
 
             else: # MIXED strategy (both long and short with possible direct transitions)
                 if position_size == 0: # Flat position
@@ -248,7 +260,7 @@ class CrossTradeBacktester(Backtester):
                             cash -= (position_size * trade_price + commission_cost)
                             position_cost_basis = trade_price
                             commission_paid = commission_cost
-                            num_trades += 1
+                            self.num_trades += 1
                         else:
                             action_taken = "INSUFFICIENT_CASH"
                             
@@ -265,7 +277,7 @@ class CrossTradeBacktester(Backtester):
                             cash += (abs(position_size) * trade_price - commission_cost)
                             position_cost_basis = trade_price
                             commission_paid = commission_cost
-                            num_trades += 1
+                            self.num_trades += 1
                         else:
                             action_taken = "INSUFFICIENT_CASH"
                 
@@ -297,10 +309,10 @@ class CrossTradeBacktester(Backtester):
                                 cash += (abs(position_size) * trade_price - commission_cost)
                                 commission_paid += commission_cost  # Add to existing commission
                                 position_cost_basis = trade_price
-                                num_trades += 2  # Count as two trades (sell and short)
+                                self.num_trades += 2  # Count as two trades (sell and short)
                             else:
                                 action_taken = "SELL" # Just sell if can't short
-                                num_trades += 1
+                                self.num_trades += 1
                 
                 elif position_size < 0: # Short position
                     if buy_signal: # Have buy signal while short
@@ -329,61 +341,66 @@ class CrossTradeBacktester(Backtester):
                                 cash -= (position_size * trade_price + commission_cost)
                                 commission_paid += commission_cost  # Add to existing commission
                                 position_cost_basis = trade_price
-                                num_trades += 2  # Count as two trades (cover and buy)
+                                self.num_trades += 2  # Count as two trades (cover and buy)
                             else:
                                 action_taken = "COVER" # Just cover if can't buy
-                                num_trades += 1
+                                self.num_trades += 1
                 
-            # --- Log Daily State ---
-            portfolio_log.append({
+            # --- Log Daily State (using self.portfolio_log) ---
+            log_entry = {
                 'Date': idx,
-                'Price': trade_price,
                 'Cash': cash,
                 'PositionSize': position_size,
+                'PositionCostBasis': position_cost_basis,
                 'PortfolioValue': portfolio_value,
-                'Signal': signal_generated,
-                'Action': action_taken,
-                'TradePrice': trade_price if action_taken != 'HOLD' else np.nan,
+                'SignalGenerated': signal_generated, 
+                'ActionTaken': action_taken, 
+                'TradePrice': trade_price,
                 'CommissionPaid': commission_paid,
                 'ShortFeePaid': short_fee_paid
-            })
+            }
+            # --------------------------------------------------
+            self.portfolio_log.append(log_entry)
 
-        # --- Final Portfolio Value ---
-        final_price = df[price_col].iloc[-1]
-        if position_size > 0: # Holding long position
-            # Include value of holdings minus commission if we were to sell
-            final_portfolio_value = cash + (position_size * final_price * (1 - self.commission))
-        elif position_size < 0: # Holding short position
-            # Include cost to buy back shorted shares (negative position_size)
-            final_portfolio_value = cash + (position_size * final_price * (1 + self.commission))
-        else: # Flat
-            final_portfolio_value = cash
+        # --- Final Calculations and DataFrame Creation ---
+        # Create portfolio DataFrame from log
+        portfolio_df = pd.DataFrame(self.portfolio_log)
+        
+        if not self.portfolio_log: # Check if the log itself is empty first
+             portfolio_df = pd.DataFrame() # Ensure df is truly empty
+        else:
+            portfolio_df.set_index('Date', inplace=True)
+            # Ensure index is a DatetimeIndex if conversion happened
+            if not isinstance(portfolio_df.index, pd.DatetimeIndex):
+                 portfolio_df.index = pd.to_datetime(portfolio_df.index)
 
-        # --- Results ---
-        total_return_pct = ((final_portfolio_value - self.initial_cash) / self.initial_cash) * 100
+        # --- Calculate Final Value and Basic Results ---
+        final_value = portfolio_df['PortfolioValue'].iloc[-1] if not portfolio_df.empty else self.initial_cash
+        total_return_pct = ((final_value / self.initial_cash) - 1) * 100 if self.initial_cash else 0
+
         strategy_name = f"Cross Trade ({short_window_indicator}/{long_window_indicator}){' [Shorts Allowed]' if trading_type in ['short', 'mixed'] else ''}{' [Day1 ' + day1_position.capitalize() + ']' if day1_position != 'none' else ''}"
-
         results = {
             "strategy": strategy_name,
-            "short_indicator_col": short_window_indicator,  # Add these for plotting
-            "long_indicator_col": long_window_indicator,     # Add these for plotting
+            "short_window_indicator": short_window_indicator,
+            "long_window_indicator": long_window_indicator,
             "initial_cash": self.initial_cash,
-            "final_value": round(final_portfolio_value, 2),
-            "total_return_pct": round(total_return_pct, 2),
-            "num_trades": num_trades,
+            "final_value": final_value,
+            "total_return_pct": total_return_pct,
+            "num_trades": self.num_trades,
         }
 
-        portfolio_df = pd.DataFrame(portfolio_log).set_index('Date')
-        portfolio_df = portfolio_df.drop(columns=['Cash']) # Drop the cash column
+        # --- Calculate Benchmark and Performance Metrics using Base Class Methods ---
+        # The earlier 'if df.empty:' check ensures we don't reach here with an effectively empty trading period.
+        # The portfolio_df created from the log will have at least the initial state row.
+        benchmark_results = self.compute_benchmark_return(data, price_col=price_col) # Use original data for benchmark
+        performance_metrics = self.calculate_performance_metrics(portfolio_df.copy(), risk_free_rate) # Pass a copy to avoid inplace modification issues
 
-        # Calculate benchmark and improved results
-        benchmark_results = self.compute_benchmark_return(data, price_col=price_col)
-        improved_results = self.calculate_performance_metrics(portfolio_df, risk_free_rate)
-
-        # Merge all benchmark results
+        # Update the main results dictionary
         results.update(benchmark_results)
-        results.update(improved_results)
-        
+        results.update(performance_metrics)
+
+        # Return the combined results and the portfolio DataFrame
+        # Note: We passed a copy to metrics, so return the original portfolio_df
         return results, portfolio_df
         
     def print_results(self, results: dict, detailed: bool = True):
