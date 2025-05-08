@@ -4,17 +4,32 @@ setup(
     name="simple_trade",
     description="Compute technical indicators and build trade strategies in a simple way",
     license='AGPL-3.0',
-    version="0.1.0",
-    author="Baris Soybilgen", # Consider changing this
+    version="0.1.1",
+    author="Baris Soybilgen",
     packages=find_packages(),
+    project_urls={
+        'Source': 'https://github.com/BSoybilgen/simple-trade/',
+    },
+    long_description=open(os.path.join(os.path.dirname(__file__), 'README.md'),
+                              encoding='utf-8').read(),
+    long_description_content_type='text/markdown',
     install_requires=[
         "yfinance>=0.2.40",
-        "pandas>=2.0.0",
-        "numpy>=1.24.0",
-        "joblib>=1.3.0",
-        "matplotlib>=3.7.0"
+        "pandas>=1.3.0",
+        "numpy>=1.17.3",
+        "joblib>=1.1.0",
+        "matplotlib>=3.5.0"
     ],
-    python_requires='>=3.9',
+    python_requires='>=3.8',
+    classifiers=[
+        'Intended Audience :: Financial and Insurance Industry',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3 :: Only',
+        'Topic :: Office/Business :: Financial :: Investment',
+        'Topic :: Scientific/Engineering :: Visualization',
+        ],
     keywords=[
             'algo',
             'algorithmic',
