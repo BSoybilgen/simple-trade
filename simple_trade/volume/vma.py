@@ -2,15 +2,16 @@ import pandas as pd
 import numpy as np
 
 
-def vma(close: pd.Series, volume: pd.Series, window: int = 14) -> pd.Series:
+def vma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close', volume_col: str = 'Volume') -> pd.Series:
     """
     Calculates the Volume Moving Average (VMA), which is a weighted moving average
     that uses volume as the weighting factor.
     
     Args:
-        close (pd.Series): The closing prices of the period.
-        volume (pd.Series): The volume traded of the period.
+        df (pd.DataFrame): The DataFrame containing the data.
         window (int): The lookback period for calculation. Default is 14.
+        close_col (str): The column name for closing prices. Default is 'Close'.
+        volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
         pd.Series: The Volume Moving Average values.
@@ -34,9 +35,8 @@ def vma(close: pd.Series, volume: pd.Series, window: int = 14) -> pd.Series:
     - Divergence analysis: Comparing VMA to other moving averages can highlight periods
       where price moves are or aren't supported by volume.
     """
-    # Ensure both series have the same index
-    close = close.copy()
-    volume = volume.copy()
+    close = df[close_col]
+    volume = df[volume_col]
     
     # Calculate the volume-weighted price
     weighted_price = close * volume
@@ -44,5 +44,6 @@ def vma(close: pd.Series, volume: pd.Series, window: int = 14) -> pd.Series:
     # Calculate the VMA using rolling windows
     # For each window, sum(price * volume) / sum(volume)
     vma_values = weighted_price.rolling(window=window).sum() / volume.rolling(window=window).sum()
+    vma_values.name = f'VMA_{window}'
     
     return vma_values

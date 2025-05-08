@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def psar(high: pd.Series, low: pd.Series, close: pd.Series = None, af_initial=0.02, af_step=0.02, af_max=0.2) -> pd.DataFrame:
+def psar(df: pd.DataFrame, af_initial=0.02, af_step=0.02, af_max=0.2, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close') -> pd.DataFrame:
     """
     Calculates Parabolic SAR (PSAR).
 
@@ -10,13 +10,13 @@ def psar(high: pd.Series, low: pd.Series, close: pd.Series = None, af_initial=0.
     placed either above or below the price, depending on the trend direction.
 
     Args:
-        high (pd.Series): Series of high prices.
-        low (pd.Series): Series of low prices.
-        close (pd.Series, optional): Series of close prices, used for replacing NaN values.
-            If not provided, will use the average of high and low.
+        df (pd.DataFrame): The dataframe containing price data. Must have high, low, and close columns.
         af_initial (float): Initial acceleration factor. Default is 0.02.
         af_step (float): Acceleration factor step increment. Default is 0.02.
         af_max (float): Maximum acceleration factor. Default is 0.2.
+        high_col (str): The name of the high price column (default: 'High').
+        low_col (str): The name of the low price column (default: 'Low').
+        close_col (str): The name of the close price column (default: 'Close').
 
     Returns:
         pd.DataFrame: DataFrame containing three columns:
@@ -61,6 +61,10 @@ def psar(high: pd.Series, low: pd.Series, close: pd.Series = None, af_initial=0.
     - Volatility adaptation: Since the acceleration factor increases as the trend develops, 
       the indicator adapts to changes in market volatility.
     """
+    high = df[high_col]
+    low = df[low_col]
+    close = df[close_col]
+    
     length = len(high)
     if length < 2: # Need at least 2 points
         # Return empty DataFrame with all NaN values
@@ -73,10 +77,6 @@ def psar(high: pd.Series, low: pd.Series, close: pd.Series = None, af_initial=0.
             index=high.index
         )
         return result
-    
-    # If close is not provided, use average of high and low
-    if close is None:
-        close = (high + low) / 2
 
     psar_values = np.zeros(length)
     psar_bullish = np.full(length, np.nan)  # Initialize with NaN
@@ -155,15 +155,15 @@ def psar(high: pd.Series, low: pd.Series, close: pd.Series = None, af_initial=0.
     # Create a DataFrame with the base PSAR values
     result = pd.DataFrame(
         {
-            'PSAR': psar_values,
-            'PSAR_Bullish': psar_bullish,
-            'PSAR_Bearish': psar_bearish
+            f'PSAR_{af_initial}_{af_step}_{af_max}': psar_values,
+            f'PSAR_Bullish_{af_initial}_{af_step}_{af_max}': psar_bullish,
+            f'PSAR_Bearish_{af_initial}_{af_step}_{af_max}': psar_bearish
         }, 
         index=high.index
     )
     
     # Replace NaN values in PSAR_Bullish with half the price and PSAR_Bearish with 1.5x price
-    result['PSAR_Bullish'] = result['PSAR_Bullish'].fillna(close * 1.5)
-    result['PSAR_Bearish'] = result['PSAR_Bearish'].fillna(close * 0.5)
+    result[f'PSAR_Bullish_{af_initial}_{af_step}_{af_max}'] = result[f'PSAR_Bullish_{af_initial}_{af_step}_{af_max}'].fillna(close * 1.5)
+    result[f'PSAR_Bearish_{af_initial}_{af_step}_{af_max}'] = result[f'PSAR_Bearish_{af_initial}_{af_step}_{af_max}'].fillna(close * 0.5)
     
     return result

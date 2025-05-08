@@ -2,17 +2,18 @@ import pandas as pd
 import numpy as np
 
 
-def cmf(high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series, period: int = 20) -> pd.Series:
+def cmf(df: pd.DataFrame, period: int = 20, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close', volume_col: str = 'Volume') -> pd.Series:
     """
     Calculates the Chaikin Money Flow (CMF), a volume-based indicator that measures
     the amount of Money Flow Volume over a specific period.
     
     Args:
-        high (pd.Series): The high prices of the period.
-        low (pd.Series): The low prices of the period.
-        close (pd.Series): The closing prices of the period.
-        volume (pd.Series): The volume traded of the period.
+        df (pd.DataFrame): The DataFrame containing the data.
         period (int): The lookback period for calculation. Default is 20.
+        high_col (str): The column name for high prices. Default is 'High'.
+        low_col (str): The column name for low prices. Default is 'Low'.
+        close_col (str): The column name for closing prices. Default is 'Close'.
+        volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
         pd.Series: The Chaikin Money Flow values.
@@ -48,11 +49,10 @@ def cmf(high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series, pe
     - Overbought/oversold identification: Extreme CMF values may indicate potential
       reversal points.
     """
-    # Ensure all series have the same index
-    high = high.copy()
-    low = low.copy()
-    close = close.copy()
-    volume = volume.copy()
+    high = df[high_col]
+    low = df[low_col]
+    close = df[close_col]
+    volume = df[volume_col]
     
     # Handle division by zero - if high and low are the same,
     # money flow multiplier is zero (neutral)
@@ -69,5 +69,6 @@ def cmf(high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series, pe
     
     # Calculate CMF as sum(MFV)/sum(Volume) over the period
     cmf_values = mfv.rolling(window=period).sum() / volume.rolling(window=period).sum()
-    
+    cmf_values.name = f'CMF_{period}'
+
     return cmf_values

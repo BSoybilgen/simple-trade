@@ -2,14 +2,15 @@ import pandas as pd
 import numpy as np
 
 
-def obv(close: pd.Series, volume: pd.Series) -> pd.Series:
+def obv(df: pd.DataFrame, close_col: str = 'Close', volume_col: str = 'Volume') -> pd.Series:
     """
     Calculates the On-Balance Volume (OBV), a volume-based momentum indicator that 
     relates volume flow to price changes.
     
     Args:
-        close (pd.Series): The closing prices of the period.
-        volume (pd.Series): The volume traded of the period.
+        df (pd.DataFrame): The DataFrame containing the data.
+        close_col (str): The column name for closing prices. Default is 'Close'.
+        volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
         pd.Series: The On-Balance Volume values.
@@ -39,10 +40,9 @@ def obv(close: pd.Series, volume: pd.Series) -> pd.Series:
     - Accumulation/distribution identification: Increasing OBV during sideways price 
       movement may indicate accumulation.
     """
-    # Ensure both series have the same index
-    close = close.copy()
-    volume = volume.copy()
-    
+    close = df[close_col]
+    volume = df[volume_col]
+
     # Calculate the daily price change direction
     # 1 for price up, -1 for price down, 0 for unchanged
     price_direction = close.diff().apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
@@ -55,4 +55,5 @@ def obv(close: pd.Series, volume: pd.Series) -> pd.Series:
     for i in range(1, len(close)):
         obv_values.iloc[i] = obv_values.iloc[i-1] + (volume.iloc[i] * price_direction.iloc[i])
     
+    obv_values.name = 'OBV'
     return obv_values

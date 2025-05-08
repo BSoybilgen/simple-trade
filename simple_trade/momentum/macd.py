@@ -1,16 +1,17 @@
 import pandas as pd
 
-def macd(series: pd.Series, window_slow: int = 26, window_fast: int = 12, window_signal: int = 9) -> pd.DataFrame:
+def macd(df: pd.DataFrame, window_slow: int = 26, window_fast: int = 12, window_signal: int = 9, close_col: str = 'Close') -> pd.DataFrame:
     """
     Calculates the Moving Average Convergence Divergence (MACD), Signal Line, and Histogram.
 
     The MACD is a popular momentum indicator used in technical analysis that shows the relationship between two exponential moving averages (EMAs) of a security's price.
 
     Args:
-        series (pd.Series): The input series.
+        df (pd.DataFrame): The input DataFrame.
         window_slow (int): The window size for the slower EMA.
         window_fast (int): The window size for the faster EMA.
         window_signal (int): The window size for the signal line EMA.
+        close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.DataFrame: A DataFrame containing the MACD line, signal line, and histogram.
@@ -29,6 +30,7 @@ def macd(series: pd.Series, window_slow: int = 26, window_fast: int = 12, window
     - Identifying potential buy and sell signals: Crossovers of the MACD line and signal line can be used to generate buy and sell signals.
     - Identifying overbought and oversold conditions: The MACD histogram can be used to identify overbought and oversold conditions.
     """
+    series = df[close_col]
     ema_fast = series.ewm(span=window_fast, adjust=False).mean()
     ema_slow = series.ewm(span=window_slow, adjust=False).mean()
     macd_line = ema_fast - ema_slow

@@ -6,19 +6,15 @@ import pandas as pd
 from ..core import INDICATORS
 from .trend_handlers import (
     handle_strend, handle_adx, handle_psar, handle_ichimoku, handle_aroon,
-    format_trend_indicator_name
 )
 from .momentum_handlers import (
     handle_stochastic, handle_cci, handle_roc, handle_macd, handle_rsi,
-    format_momentum_indicator_name
 )
 from .volatility_handlers import (
     handle_bollin, handle_atr, handle_kelt, handle_donch, handle_chaik,
-    format_volatility_indicator_name
 )
 from .volume_handlers import (
     handle_obv, handle_vma, handle_adline, handle_cmf, handle_vpt,
-    format_volume_indicator_name
 )
 
 
@@ -76,11 +72,8 @@ def _calculate_indicator(df, indicator, indicator_func, **indicator_kwargs):
     elif indicator == 'aroon':
         return handle_aroon(df, indicator_func, **indicator_kwargs)
     elif indicator in ['sma', 'ema', 'wma', 'hma', 'trix']:
-        # Simple close price based trend indicators
-        if 'Close' not in df.columns:
-            raise ValueError(f"DataFrame must contain a 'Close' column for {indicator.upper()} calculation.")
-        return indicator_func(df['Close'], **indicator_kwargs)
-    elif indicator in ['ichimoku', 'tenkan_sen', 'kijun_sen', 'senkou_span_a', 'senkou_span_b', 'chikou_span']:
+        return indicator_func(df, **indicator_kwargs)
+    elif indicator in ['ichimoku']:
         return handle_ichimoku(df, indicator_func, indicator, **indicator_kwargs)
     
     # Momentum indicators
@@ -129,66 +122,15 @@ def _calculate_indicator(df, indicator, indicator_func, **indicator_kwargs):
 def _add_indicator_to_dataframe(df, indicator, indicator_result, indicator_kwargs):
     """Add the calculated indicator to the DataFrame with appropriate naming."""
     if isinstance(indicator_result, pd.Series):
-        # Format the indicator name based on its type
-        window_str = _format_indicator_name(indicator, indicator_kwargs)
-        indicator_name = f"{indicator.upper()}{window_str}"
-        df[indicator_name] = indicator_result
+        df[indicator_result.name] = indicator_result
         
     elif isinstance(indicator_result, pd.DataFrame):
-        # For indicators like MACD, Bollinger Bands that return multiple columns
         df = df.join(indicator_result)
-        
-    elif indicator == 'ichimoku':
-        # Special case for full Ichimoku Cloud
-        # Add all the components to the DataFrame with appropriate naming
-        if isinstance(indicator_result, dict):
-            # Add each component of the Ichimoku Cloud
-            for component, values in indicator_result.items():
-                # Convert component name to proper format (e.g., tenkan_sen -> Ichimoku_tenkan_sen)
-                component_name = f"Ichimoku_{component}"
-                df[component_name] = values
-        else:
-            print(f"Warning: Ichimoku indicator returned an unexpected type: {type(indicator_result)}")
-            return indicator_result  # Return as-is if not a dict
-        
-    elif isinstance(indicator_result, tuple) and len(indicator_result) == 3 and indicator == 'aroon':
-        # Handle Aroon indicator (returns aroon_up, aroon_down, aroon_oscillator)
-        aroon_up, aroon_down, aroon_oscillator = indicator_result
-        
-        # Format the indicator name based on its parameters
-        window_str = _format_indicator_name(indicator, indicator_kwargs)
-        
-        # Add each component with a proper name
-        df[f"AROON_UP{window_str}"] = aroon_up
-        df[f"AROON_DOWN{window_str}"] = aroon_down
-        df[f"AROON_OSC{window_str}"] = aroon_oscillator
         
     else:
         print(f"Warning: Indicator function for '{indicator}' returned an unexpected type: {type(indicator_result)}")
     
     return df
-
-
-def _format_indicator_name(indicator, kwargs):
-    """Format the indicator name based on its type and parameters."""
-    # Trend indicators
-    if indicator in ['strend', 'sma', 'ema', 'wma', 'hma', 'adx', 'trix']:
-        return format_trend_indicator_name(indicator, kwargs)
-    
-    # Momentum indicators
-    elif indicator in ['rsi', 'macd', 'stoch', 'cci', 'roc']:
-        return format_momentum_indicator_name(indicator, kwargs)
-    
-    # Volatility indicators
-    elif indicator in ['bollin', 'atr', 'kelt', 'donch', 'chaik']:
-        return format_volatility_indicator_name(indicator, kwargs)
-        
-    # Volume indicators
-    elif indicator in ['obv', 'vma', 'adline', 'cmf', 'vpt']:
-        return format_volume_indicator_name(indicator, kwargs)
-    
-    # Default
-    return ""
 
 
 def download_data(symbol: str, start_date: str, end_date: str = None, interval: str = '1d') -> pd.DataFrame:
@@ -226,15 +168,3 @@ def download_data(symbol: str, start_date: str, end_date: str = None, interval: 
     df.attrs['symbol'] = symbol
 
     return df
-
-
-def download_and_compute_indicator(
-    symbol: str, 
-    start_date: str, 
-    indicator: str,
-    end_date: str = None, 
-    **indicator_kwargs
-) -> pd.DataFrame:
-    """Download historical price data for a given symbol and compute a specified technical indicator."""
-    df = download_data(symbol, start_date, end_date)
-    return compute_indicator(df, indicator, **indicator_kwargs)

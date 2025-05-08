@@ -3,17 +3,18 @@ import numpy as np
 from ..trend.ema import ema
 
 
-def chaikin_volatility(high: pd.Series, low: pd.Series, ema_window: int = 10, 
-                       roc_window: int = 10) -> pd.Series:
+def chaikin_volatility(df: pd.DataFrame, ema_window: int = 10, 
+                       roc_window: int = 10, high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
     """
     Calculates the Chaikin Volatility (CV) indicator, which measures volatility by 
     calculating the rate of change of the high-low price range.
     
     Args:
-        high (pd.Series): The high prices of the period.
-        low (pd.Series): The low prices of the period.
+        df (pd.DataFrame): The input DataFrame.
         ema_window (int): The window for calculating the EMA of the high-low range. Default is 10.
         roc_window (int): The window for calculating the rate of change. Default is 10.
+        high_col (str): The column name for high prices. Default is 'High'.
+        low_col (str): The column name for low prices. Default is 'Low'.
     
     Returns:
         pd.Series: A Series containing the Chaikin Volatility values.
@@ -36,18 +37,19 @@ def chaikin_volatility(high: pd.Series, low: pd.Series, ema_window: int = 10,
     - Breakout confirmation: Sharp increases in volatility can confirm breakout movements.
     - Risk management: Adjust position sizing based on current volatility conditions.
     """
-    # Make sure inputs have the same index
-    high = high.copy()
-    low = low.copy()
+    high = df[high_col]
+    low = df[low_col]
     
     # Calculate the daily high-low range
     hl_range = high - low
-    
+    df = pd.DataFrame(hl_range, columns=['Close'])
+
     # Calculate the EMA of the high-low range
-    range_ema = ema(hl_range, window=ema_window)
+    range_ema = ema(df, window=ema_window, close_col='Close')
     
     # Calculate the percentage rate of change over roc_window days
     # (Current EMA - EMA roc_window days ago) / (EMA roc_window days ago) * 100
     roc = ((range_ema - range_ema.shift(roc_window)) / range_ema.shift(roc_window)) * 100
-    
+    roc.name = f'CHAIK_{ema_window}_{roc_window}'
+
     return roc

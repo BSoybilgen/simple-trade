@@ -1,6 +1,6 @@
 import pandas as pd
 
-def sma(series: pd.Series, window: int = 14) -> pd.Series:
+def sma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Series:
     """
     Calculates the Simple Moving Average (SMA) of a series.
 
@@ -8,8 +8,9 @@ def sma(series: pd.Series, window: int = 14) -> pd.Series:
     mean of a given set of values over a specified period.
 
     Args:
-        series (pd.Series): The input series.
+        df (pd.DataFrame): The dataframe containing price data. Must have close column.
         window (int): The window size for the SMA.
+        close_col (str): The name of the close price column (default: 'Close').
 
     Returns:
         pd.Series: The SMA of the series.
@@ -32,5 +33,8 @@ def sma(series: pd.Series, window: int = 14) -> pd.Series:
     - Generating buy and sell signals: The SMA can be used in crossover systems
       to generate buy and sell signals.
     """
-    # Return the raw Series
-    return series.rolling(window=window).mean()
+    series = df[close_col]
+    series =series.rolling(window=window).mean()
+    series.name = f'SMA_{window}'
+
+    return series

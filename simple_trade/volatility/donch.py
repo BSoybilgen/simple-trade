@@ -2,15 +2,16 @@ import pandas as pd
 import numpy as np
 
 
-def donchian_channels(high: pd.Series, low: pd.Series, window: int = 20) -> pd.DataFrame:
+def donchian_channels(df: pd.DataFrame, window: int = 20, high_col: str = 'High', low_col: str = 'Low') -> pd.DataFrame:
     """
     Calculates Donchian Channels, a volatility indicator that plots the highest high and lowest low
     over a specified period.
     
     Args:
-        high (pd.Series): The high prices of the period.
-        low (pd.Series): The low prices of the period.
+        df (pd.DataFrame): The input DataFrame.
         window (int): The lookback period for the calculation. Default is 20.
+        high_col (str): The column name for high prices. Default is 'High'.
+        low_col (str): The column name for low prices. Default is 'Low'.
     
     Returns:
         pd.DataFrame: A DataFrame containing the upper band (highest high), middle band (mean of upper and lower),
@@ -33,9 +34,8 @@ def donchian_channels(high: pd.Series, low: pd.Series, window: int = 20) -> pd.D
     Notably, Donchian Channels are a key component of the original "Turtle Trading" system, a trend-following
     strategy developed by Richard Dennis and William Eckhardt in the 1980s.
     """
-    # Make sure inputs have the same index
-    high = high.copy()
-    low = low.copy()
+    high = df[high_col]
+    low = df[low_col]
     
     # Calculate the upper and lower bands
     upper_band = high.rolling(window=window).max()

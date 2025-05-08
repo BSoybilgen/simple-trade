@@ -4,19 +4,22 @@ from ..trend.ema import ema
 from .atr import atr
 
 
-def keltner_channels(high: pd.Series, low: pd.Series, close: pd.Series, 
+def keltner_channels(df: pd.DataFrame, 
                      ema_window: int = 20, atr_window: int = 10, 
-                     atr_multiplier: float = 2.0) -> pd.DataFrame:
+                     atr_multiplier: float = 2.0,
+                     high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close'
+                     ) -> pd.DataFrame:
     """
     Calculates Keltner Channels, a volatility-based envelope set above and below an exponential moving average.
     
     Args:
-        high (pd.Series): The high prices of the period.
-        low (pd.Series): The low prices of the period.
-        close (pd.Series): The closing prices of the period.
+        df (pd.DataFrame): The input DataFrame.
         ema_window (int): The window for the EMA calculation (middle line). Default is 20.
         atr_window (int): The window for the ATR calculation. Default is 10.
         atr_multiplier (float): Multiplier for the ATR to set channel width. Default is 2.0.
+        high_col (str): The column name for high prices. Default is 'High'.
+        low_col (str): The column name for low prices. Default is 'Low'.
+        close_col (str): The column name for closing prices. Default is 'Close'.
     
     Returns:
         pd.DataFrame: A DataFrame containing the middle line (EMA), upper band, and lower band.
@@ -38,16 +41,15 @@ def keltner_channels(high: pd.Series, low: pd.Series, close: pd.Series,
     - Range identification: Narrow channels suggest consolidation, while wide channels indicate volatility.
     - Support and resistance: The upper and lower bands can act as dynamic support and resistance levels.
     """
-    # Make sure all inputs have the same index
-    high = high.copy()
-    low = low.copy()
-    close = close.copy()
+    high = df[high_col]
+    low = df[low_col]
+    close = df[close_col]
     
     # Calculate the middle line (EMA of close)
-    middle_line = ema(close, window=ema_window)
+    middle_line = ema(df, window=ema_window, close_col=close_col)
     
     # Calculate ATR for the upper and lower bands
-    atr_values = atr(high, low, close, window=atr_window)
+    atr_values = atr(df, window=atr_window, high_col=high_col, low_col=low_col, close_col=close_col)
     
     # Calculate the upper and lower bands
     upper_band = middle_line + (atr_values * atr_multiplier)
@@ -55,9 +57,9 @@ def keltner_channels(high: pd.Series, low: pd.Series, close: pd.Series,
     
     # Prepare the result DataFrame
     result = pd.DataFrame({
-        f'KELT_Middle_{ema_window}': middle_line,
-        f'KELT_Upper_{ema_window}': upper_band,
-        f'KELT_Lower_{ema_window}': lower_band
+        f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}': middle_line,
+        f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}': upper_band,
+        f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}': lower_band
     }, index=close.index)
     
     return result
