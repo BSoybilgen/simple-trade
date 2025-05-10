@@ -16,12 +16,12 @@ setup(
     long_description_content_type='text/markdown',
     install_requires=[
         "yfinance>=0.2.40",
-        "pandas>=1.3.0",
-        "numpy>=1.17.3",
-        "joblib>=1.1.0",
-        "matplotlib>=3.5.0"
+        "pandas>=1.4.0",
+        "numpy>=1.22.0",
+        "joblib>=1.1.1",
+        "matplotlib>=3.6.0"
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.10',
     classifiers=[
         'Intended Audience :: Financial and Insurance Industry',
         'Intended Audience :: Science/Research',
