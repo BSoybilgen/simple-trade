@@ -41,7 +41,10 @@ class TestRSI:
 
     def test_rsi_calculation(self, sample_data):
         """Test the basic calculation of RSI"""
-        result = rsi(sample_data['close'])
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = rsi(df)
+        
         assert isinstance(result, pd.Series)
         assert not result.empty
         
@@ -61,7 +64,9 @@ class TestRSI:
     def test_rsi_with_custom_window(self, sample_data):
         """Test RSI with a custom window parameter"""
         window = 5
-        result = rsi(sample_data['close'], window=window)
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = rsi(df, window=window)
         
         # Check the first 'window - 1' values are NaN
         assert result.iloc[:window-1].isna().all()
@@ -71,7 +76,9 @@ class TestRSI:
         
     def test_rsi_trend_detection(self, sample_data):
         """Test that RSI correctly detects trend changes"""
-        result = rsi(sample_data['close'])
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = rsi(df)
         
         # Skip initial NaN values
         valid_rsi = result.dropna()
@@ -100,15 +107,17 @@ class TestRSI:
             
             # Get RSI values for these periods if they exist in valid_rsi
             if uptrend_idx in valid_rsi.index and downtrend_idx in valid_rsi.index:
-                # RSI should be higher during uptrends than downtrends
-                assert valid_rsi.loc[uptrend_idx] > valid_rsi.loc[downtrend_idx]
+                # In uptrend, RSI should be higher than in downtrend
+                assert valid_rsi[uptrend_idx] > valid_rsi[downtrend_idx]
 
 class TestMACD:
     """Tests for the MACD indicator"""
     
     def test_macd_calculation(self, sample_data):
         """Test basic MACD calculation"""
-        result = macd(sample_data['close'])
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = macd(df)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
@@ -127,7 +136,9 @@ class TestMACD:
         window_slow = 20
         window_signal = 7
         
-        result = macd(sample_data['close'], 
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = macd(df, 
                      window_slow=window_slow, 
                      window_fast=window_fast, 
                      window_signal=window_signal)
@@ -139,7 +150,9 @@ class TestMACD:
 
     def test_macd_crossover(self, sample_data):
         """Test that MACD line crosses the signal line during trend changes"""
-        result = macd(sample_data['close'])
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = macd(df)
         
         # Extract MACD and Signal lines
         macd_line = result.iloc[:, 0]
@@ -156,20 +169,28 @@ class TestStoch:
     
     def test_stoch_calculation(self, sample_data):
         """Test basic Stochastic calculation"""
-        result = stoch(sample_data['high'], sample_data['low'], sample_data['close'])
+        # Create DataFrame with High, Low, Close columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = stoch(df)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         
-        # Check column names
-        assert 'STOCH_K' in result.columns
-        assert 'STOCH_D' in result.columns
+        # Check column names (with default parameters: k_period=14, d_period=3, smooth_k=3)
+        k_col = 'STOCH_K_14_3_3'
+        d_col = 'STOCH_D_14_3_3'
+        assert k_col in result.columns
+        assert d_col in result.columns
         
         # Check bounds (Stochastic should be between 0 and 100)
-        assert result['STOCH_K'].min() >= 0
-        assert result['STOCH_K'].max() <= 100
-        assert result['STOCH_D'].min() >= 0
-        assert result['STOCH_D'].max() <= 100
+        assert result[k_col].min() >= 0
+        assert result[k_col].max() <= 100
+        assert result[d_col].min() >= 0
+        assert result[d_col].max() <= 100
         
         # Check that index matches input
         assert result.index.equals(sample_data['close'].index)
@@ -180,26 +201,41 @@ class TestStoch:
         d_period = 2
         smooth_k = 2
         
-        result = stoch(sample_data['high'], sample_data['low'], sample_data['close'], 
-                      k_period=k_period, d_period=d_period, smooth_k=smooth_k)
+        # Create DataFrame with High, Low, Close columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = stoch(df, k_period=k_period, d_period=d_period, smooth_k=smooth_k)
+        
+        # Create column names with the custom parameters
+        k_col = f'STOCH_K_{k_period}_{d_period}_{smooth_k}'
+        d_col = f'STOCH_D_{k_period}_{d_period}_{smooth_k}'
         
         # First k_period values should be NaN for K
-        assert result['STOCH_K'].iloc[:k_period].isna().all()
+        assert result[k_col].iloc[:k_period].isna().all()
         
         # K should be valid after k_period + smooth_k - 1 periods
         valid_from_k = k_period + smooth_k - 1
-        assert not result['STOCH_K'].iloc[valid_from_k:].isna().any()
+        assert not result[k_col].iloc[valid_from_k:].isna().any()
         
         # D should be valid after k_period + smooth_k + d_period - 2 periods
         valid_from_d = k_period + smooth_k + d_period - 2
-        assert not result['STOCH_D'].iloc[valid_from_d:].isna().any()
+        assert not result[d_col].iloc[valid_from_d:].isna().any()
 
 class TestCCI:
     """Tests for the Commodity Channel Index"""
     
     def test_cci_calculation(self, sample_data):
         """Test basic CCI calculation"""
-        result = cci(sample_data['high'], sample_data['low'], sample_data['close'])
+        # Create DataFrame with High, Low, Close columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = cci(df)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -219,8 +255,13 @@ class TestCCI:
         window = 10
         constant = 0.02
         
-        result = cci(sample_data['high'], sample_data['low'], sample_data['close'], 
-                    window=window, constant=constant)
+        # Create DataFrame with High, Low, Close columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = cci(df, window=window, constant=constant)
         
         # First 'window - 1' values should be NaN
         assert result.iloc[:window-1].isna().all()
@@ -231,7 +272,13 @@ class TestCCI:
         
     def test_cci_trend_detection(self, sample_data):
         """Test CCI trend detection properties"""
-        result = cci(sample_data['high'], sample_data['low'], sample_data['close'])
+        # Create DataFrame with High, Low, Close columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = cci(df)
         
         # Skip NaN values
         valid_cci = result.dropna()
@@ -254,7 +301,9 @@ class TestROC:
     
     def test_roc_calculation(self, sample_data):
         """Test basic ROC calculation"""
-        result = roc(sample_data['close'])
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = roc(df)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -271,7 +320,9 @@ class TestROC:
     def test_roc_custom_window(self, sample_data):
         """Test ROC with custom window parameter"""
         window = 5
-        result = roc(sample_data['close'], window=window)
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = roc(df, window=window)
         
         # First 'window' values should be NaN
         assert result.iloc[:window].isna().all()
@@ -281,7 +332,9 @@ class TestROC:
         
     def test_roc_trend_detection(self, sample_data):
         """Test ROC trend detection properties"""
-        result = roc(sample_data['close'])
+        # Create DataFrame with Close column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = roc(df)
         
         # Skip NaN values
         valid_roc = result.dropna()

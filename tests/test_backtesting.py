@@ -8,7 +8,7 @@ from simple_trade.backtesting import Backtester
 @pytest.fixture
 def backtester_instance():
     """Provides a default Backtester instance"""
-    return Backtester(initial_cash=10000.0, commission=0.001)
+    return Backtester(initial_cash=10000.0, commission_long=0.001, commission_short=0.001)
 
 @pytest.fixture
 def sample_ohlcv_data():
@@ -57,13 +57,15 @@ class TestBacktester:
         """Test Backtester initialization with default and custom values"""
         bt_default = Backtester()
         assert bt_default.initial_cash == 10000.0
-        assert bt_default.commission == 0.001
+        assert bt_default.commission_long == 0.001
+        assert bt_default.commission_short == 0.001
         assert bt_default.short_borrow_fee_inc_rate == 0.0
         assert bt_default.long_borrow_fee_inc_rate == 0.0
         
-        bt_custom = Backtester(initial_cash=5000, commission=0.002, short_borrow_fee_inc_rate=0.01, long_borrow_fee_inc_rate=0.005)
+        bt_custom = Backtester(initial_cash=5000, commission_long=0.002, commission_short=0.002, short_borrow_fee_inc_rate=0.01, long_borrow_fee_inc_rate=0.005)
         assert bt_custom.initial_cash == 5000
-        assert bt_custom.commission == 0.002
+        assert bt_custom.commission_long == 0.002
+        assert bt_custom.commission_short == 0.002
         assert bt_custom.short_borrow_fee_inc_rate == 0.01
         assert bt_custom.long_borrow_fee_inc_rate == 0.005
 
@@ -79,10 +81,10 @@ class TestBacktester:
         # Check logic: final value should be approx shares * last_price
         first_price = sample_ohlcv_data['Close'].iloc[0]
         last_price = sample_ohlcv_data['Close'].iloc[-1]
-        expected_shares = backtester_instance.initial_cash / (first_price * (1 + backtester_instance.commission))
+        expected_shares = backtester_instance.initial_cash / (first_price * (1 + backtester_instance.commission_long))
         expected_final_value = expected_shares * last_price
         
-        assert results['benchmark_shares' ] == pytest.approx(expected_shares)
+        assert results['benchmark_shares'] == pytest.approx(expected_shares)
         assert results['benchmark_final_value'] == pytest.approx(expected_final_value, abs=0.01)
         assert results['benchmark_return_pct'] == pytest.approx(((expected_final_value / backtester_instance.initial_cash) - 1) * 100, abs=0.01)
 

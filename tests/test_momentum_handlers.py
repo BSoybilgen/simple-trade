@@ -8,7 +8,6 @@ from simple_trade.data.momentum_handlers import (
     handle_roc,
     handle_macd,
     handle_rsi,
-    format_momentum_indicator_name
 )
 
 # --- Fixtures ---
@@ -61,19 +60,19 @@ class TestHandleStochastic:
         # Create a DataFrame missing the 'High' column
         df_no_high = sample_price_data.drop(columns=['High'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns."):
             handle_stochastic(df_no_high, MagicMock())
         
         # Create a DataFrame missing the 'Low' column
         df_no_low = sample_price_data.drop(columns=['Low'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns."):
             handle_stochastic(df_no_low, MagicMock())
         
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns."):
             handle_stochastic(df_no_close, MagicMock())
     
     def test_default_parameters(self, sample_price_data):
@@ -133,19 +132,19 @@ class TestHandleCCI:
         # Create a DataFrame missing the 'High' column
         df_no_high = sample_price_data.drop(columns=['High'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns."):
             handle_cci(df_no_high, MagicMock())
         
         # Create a DataFrame missing the 'Low' column
         df_no_low = sample_price_data.drop(columns=['Low'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns."):
             handle_cci(df_no_low, MagicMock())
         
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns."):
             handle_cci(df_no_close, MagicMock())
     
     def test_default_parameters(self, sample_price_data):
@@ -203,7 +202,7 @@ class TestHandleROC:
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain a 'Close' column"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'Close' column."):
             handle_roc(df_no_close, MagicMock())
     
     def test_default_parameters(self, sample_price_data):
@@ -255,7 +254,7 @@ class TestHandleMACD:
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain a 'Close' column"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'Close' column."):
             handle_macd(df_no_close, MagicMock())
     
     def test_default_parameters(self, sample_price_data):
@@ -300,7 +299,7 @@ class TestHandleRSI:
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain a 'Close' column"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'Close' column."):
             handle_rsi(df_no_close, MagicMock())
     
     def test_default_parameters(self, sample_price_data):
@@ -314,81 +313,3 @@ class TestHandleRSI:
         # Verify the mock was called with default parameters
         args, kwargs = mock_rsi_func.call_args
         assert kwargs['window'] == 14  # Default window
-
-
-class TestFormatMomentumIndicatorName:
-    """Tests for the format_momentum_indicator_name function."""
-    
-    def test_rsi(self):
-        """Test formatting for RSI."""
-        # Test with window parameter
-        result = format_momentum_indicator_name('rsi', {'window': 14})
-        assert result == '_14'
-        
-        # Test with non-default window
-        result = format_momentum_indicator_name('rsi', {'window': 21})
-        assert result == '_21'
-    
-    def test_stochastic(self):
-        """Test formatting for Stochastic Oscillator."""
-        # Test with k_period parameter
-        result = format_momentum_indicator_name('stoch', {'k_period': 14})
-        assert result == '_14'
-        
-        # Test with non-default k_period
-        result = format_momentum_indicator_name('stoch', {'k_period': 20})
-        assert result == '_20'
-    
-    def test_cci(self):
-        """Test formatting for CCI."""
-        # Test with window parameter
-        result = format_momentum_indicator_name('cci', {'window': 20})
-        assert result == '_20'
-        
-        # Test with non-default window
-        result = format_momentum_indicator_name('cci', {'window': 30})
-        assert result == '_30'
-    
-    def test_roc(self):
-        """Test formatting for ROC."""
-        # Test with window parameter
-        result = format_momentum_indicator_name('roc', {'window': 12})
-        assert result == '_12'
-        
-        # Test with non-default window
-        result = format_momentum_indicator_name('roc', {'window': 15})
-        assert result == '_15'
-    
-    def test_macd(self):
-        """Test formatting for MACD."""
-        # MACD doesn't have a window suffix in the current implementation
-        result = format_momentum_indicator_name('macd', {})
-        assert result == ""
-    
-    def test_default_values(self):
-        """Test with default values when parameters are not provided."""
-        # For RSI, default window is 14
-        result = format_momentum_indicator_name('rsi', {})
-        assert result == '_14'
-        
-        # For Stochastic, default k_period is 14
-        result = format_momentum_indicator_name('stoch', {})
-        assert result == '_14'
-        
-        # For CCI, default window is 20
-        result = format_momentum_indicator_name('cci', {})
-        assert result == '_20'
-        
-        # For ROC, default window is 12
-        result = format_momentum_indicator_name('roc', {})
-        assert result == '_12'
-        
-        # MACD doesn't have a window suffix
-        result = format_momentum_indicator_name('macd', {})
-        assert result == ""
-    
-    def test_unsupported_indicator(self):
-        """Test with an indicator not explicitly handled."""
-        # Should return empty string for unsupported indicator
-        result = format_momentum_indicator_name('unknown', {'window': 10})
-        assert result == "" 
