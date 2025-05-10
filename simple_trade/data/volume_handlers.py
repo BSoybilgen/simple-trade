@@ -61,7 +61,7 @@ def handle_adline(df, indicator_func, **indicator_kwargs):
     volume_col_name = kwargs_copy.pop('volume_col', 'Volume')
 
     # Validate that the original DataFrame contains these columns
-    if not all(col in df.columns for col in [high_col_name, low_col_name, close_col_name]):
+    if not all(col in df.columns for col in [high_col_name, low_col_name, close_col_name, volume_col_name]):
         raise ValueError(
             f"DataFrame must contain '{high_col_name}', '{low_col_name}', '{close_col_name}' and '{volume_col_name}' columns."
         )
@@ -85,7 +85,7 @@ def handle_cmf(df, indicator_func, **indicator_kwargs):
     volume_col_name = kwargs_copy.pop('volume_col', 'Volume')
 
     # Validate that the original DataFrame contains these columns
-    if not all(col in df.columns for col in [high_col_name, low_col_name, close_col_name]):
+    if not all(col in df.columns for col in [high_col_name, low_col_name, close_col_name, volume_col_name]):
         raise ValueError(
             f"DataFrame must contain '{high_col_name}', '{low_col_name}', '{close_col_name}' and '{volume_col_name}' columns."
         )

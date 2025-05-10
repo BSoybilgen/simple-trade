@@ -71,15 +71,15 @@ class BacktestPlotter:
         ax1.set_title(f'{price_col} and Trade Signals')
         ax1.grid(True, linestyle='--', alpha=0.6)
 
-        # Plot trades from history using the 'Signal' column
-        buys = history_df[history_df['Signal'].str.contains('Buy', na=False) & ~history_df['Signal'].str.contains('Cover', na=False)] # Exclude 'Cover and Buy'
-        sells = history_df[history_df['Signal'].str.contains('Sell', na=False) & ~history_df['Signal'].str.contains('Short', na=False)] # Exclude 'Sell and Short'
-        shorts = history_df[history_df['Signal'].str.contains('Short', na=False) & ~history_df['Signal'].str.contains('Sell', na=False)] # Exclude 'Sell and Short'
-        covers = history_df[history_df['Signal'].str.contains('Cover', na=False) & ~history_df['Signal'].str.contains('Buy', na=False)] # Exclude 'Cover and Buy'
+        # Plot trades from history using the 'Action' column - use case=False for case-insensitive matching
+        buys = history_df[history_df['Action'].str.contains('Buy', case=False, na=False) & ~history_df['Action'].str.contains('Cover', case=False, na=False)] # Exclude 'Cover and Buy'
+        sells = history_df[history_df['Action'].str.contains('Sell', case=False, na=False) & ~history_df['Action'].str.contains('Short', case=False, na=False)] # Exclude 'Sell and Short'
+        shorts = history_df[history_df['Action'].str.contains('Short', case=False, na=False) & ~history_df['Action'].str.contains('Sell', case=False, na=False)] # Exclude 'Sell and Short'
+        covers = history_df[history_df['Action'].str.contains('Cover', case=False, na=False) & ~history_df['Action'].str.contains('Buy', case=False, na=False)] # Exclude 'Cover and Buy'
 
         # Combined actions
-        sell_and_shorts = history_df[history_df['Signal'].str.contains('Sell and Short', na=False)]
-        cover_and_buys = history_df[history_df['Signal'].str.contains('Cover and Buy', na=False)]
+        sell_and_shorts = history_df[history_df['Action'].str.contains('Sell and Short', case=False, na=False)]
+        cover_and_buys = history_df[history_df['Action'].str.contains('Cover and Buy', case=False, na=False)]
 
         ax1.plot(buys.index, data_df.loc[buys.index, price_col], '^', markersize=8, color='lime', label='Buy')
         ax1.plot(sells.index, data_df.loc[sells.index, price_col], 'v', markersize=8, color='red', label='Sell')
