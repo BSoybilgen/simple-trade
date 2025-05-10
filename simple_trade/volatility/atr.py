@@ -2,16 +2,17 @@ import pandas as pd
 import numpy as np
 
 
-def atr(high: pd.Series, low: pd.Series, close: pd.Series, window: int = 14) -> pd.Series:
+def atr(df: pd.DataFrame, window: int = 14, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close') -> pd.Series:
     """
     Calculates the Average True Range (ATR), a volatility indicator that measures market volatility
     by decomposing the entire range of an asset price for a given period.
 
     Args:
-        high (pd.Series): The high prices of the period.
-        low (pd.Series): The low prices of the period.
+        df (pd.DataFrame): The input DataFrame.
         close (pd.Series): The closing prices of the period.
         window (int): The lookback period for the calculation. Default is 14.
+        high_col (str): The column name for high prices. Default is 'High'.
+        low_col (str): The column name for low prices. Default is 'Low'.
 
     Returns:
         pd.Series: ATR values for the given input series.
@@ -43,10 +44,9 @@ def atr(high: pd.Series, low: pd.Series, close: pd.Series, window: int = 14) -> 
     - Breakout identification: Significant increases in ATR may precede or confirm breakouts.
     - Entry/exit signals: Some trading systems use ATR-based indicators for trade signals.
     """
-    # Make sure all inputs have the same index
-    high = high.copy()
-    low = low.copy()
-    close = close.copy()
+    high = df[high_col]
+    low = df[low_col]
+    close = df[close_col]
     
     # Calculate True Range
     prev_close = close.shift(1)
@@ -70,5 +70,7 @@ def atr(high: pd.Series, low: pd.Series, close: pd.Series, window: int = 14) -> 
     # Apply Wilder's smoothing method for the rest of the values
     for i in range(window, len(close)):
         atr_values.iloc[i] = ((atr_values.iloc[i-1] * (window-1)) + tr.iloc[i]) / window
+
+    atr_values.name = f'ATR_{window}'
     
     return atr_values

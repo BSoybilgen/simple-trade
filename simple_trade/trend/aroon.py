@@ -2,15 +2,16 @@ import pandas as pd
 import numpy as np
 
 
-def aroon(high: pd.Series, low: pd.Series, period: int = 14) -> tuple:
+def aroon(df: pd.DataFrame, period: int = 14, high_col: str = 'High', low_col: str = 'Low') -> tuple:
     """
     Calculates the Aroon indicator, which measures the time it takes for a security
     to reach its highest and lowest points over a specified time period.
     
     Args:
-        high (pd.Series): The high prices of the period.
-        low (pd.Series): The low prices of the period.
+        df (pd.DataFrame): The dataframe containing price data. Must have high and low columns.
         period (int): The lookback period for calculation. Default is 14.
+        high_col (str): The name of the high price column (default: 'High').
+        low_col (str): The name of the low price column (default: 'Low').
     
     Returns:
         tuple: A tuple containing (aroon_up, aroon_down, aroon_oscillator).
@@ -50,8 +51,8 @@ def aroon(high: pd.Series, low: pd.Series, period: int = 14) -> tuple:
     - Crossover signals: When Aroon Up crosses above/below Aroon Down, it may indicate
       a potential trend change.
     """
-    high = high.copy()
-    low = low.copy()
+    high = df[high_col]
+    low = df[low_col]
     
     # Create aroon_up and aroon_down series
     aroon_up = pd.Series(index=high.index, dtype=float)
@@ -77,5 +78,11 @@ def aroon(high: pd.Series, low: pd.Series, period: int = 14) -> tuple:
     
     # Calculate Aroon Oscillator
     aroon_oscillator = aroon_up - aroon_down
-    
-    return aroon_up, aroon_down, aroon_oscillator
+
+    df_aroon = pd.DataFrame({
+        f'AROON_UP_{period}': aroon_down,
+        f'AROON_DOWN_{period}': aroon_up,
+        f'AROON_OSCILLATOR_{period}': aroon_oscillator
+    })
+    df_aroon.index = high.index
+    return df_aroon

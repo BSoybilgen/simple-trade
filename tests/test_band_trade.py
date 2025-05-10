@@ -29,7 +29,7 @@ def sample_band_data():
 @pytest.fixture
 def backtester_band():
     """Fixture to provide an instance of BandTradeBacktester."""
-    return BandTradeBacktester(initial_cash=10000, commission=0.001)
+    return BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
 
 # --- Test Class ---
 
@@ -127,7 +127,7 @@ class TestBandTradeBacktester:
     def test_mean_reversion_long_strategy(self, backtester_band, sample_band_data):
         """Test the mean reversion (type 1) long-only strategy executes buy and sell signals correctly."""
         # Initialize backtester with fixed settings for predictable results
-        backtester = BandTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Add more explicit crossover signal by having indicator cross below lower band
         # and then later cross above upper band to generate buy and sell signals
@@ -175,7 +175,7 @@ class TestBandTradeBacktester:
     def test_breakout_long_strategy(self, backtester_band, sample_band_data):
         """Test the breakout (type 2) long-only strategy executes buy and sell signals correctly."""
         # Initialize backtester with fixed settings for predictable results
-        backtester = BandTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Run backtest with breakout long-only trading type
         results, portfolio_df = backtester.run_band_trade(
@@ -201,7 +201,7 @@ class TestBandTradeBacktester:
     def test_short_only_strategy(self, backtester_band, sample_band_data):
         """Test the short-only strategy executes short and cover signals correctly."""
         # Initialize backtester with fixed settings for predictable results
-        backtester = BandTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Run backtest with short-only trading type
         results, portfolio_df = backtester.run_band_trade(
@@ -236,7 +236,7 @@ class TestBandTradeBacktester:
     def test_mixed_strategy_with_day1_position(self, backtester_band):
         """Test the mixed trading strategy with a day1 position."""
         # Initialize backtester with fixed settings for predictable results
-        backtester = BandTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Create more complex data with multiple crossovers for mixed strategy testing
         dates = pd.date_range(start='2023-01-01', periods=20, freq='D')
@@ -300,7 +300,7 @@ class TestBandTradeBacktester:
     
     def test_print_results(self, backtester_band, sample_band_data, capsys):
         """Test that the print_results method works correctly."""
-        backtester = BandTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Run backtest with long-only trading type
         results, _ = backtester.run_band_trade(

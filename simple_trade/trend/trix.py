@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def trix(series: pd.Series, window: int = 14) -> pd.DataFrame:
+def trix(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.DataFrame:
     """
     Calculates the TRIX (Triple Exponential Average) indicator.
 
@@ -11,8 +11,9 @@ def trix(series: pd.Series, window: int = 14) -> pd.DataFrame:
     used to identify overbought/oversold conditions, divergences, and trend direction.
 
     Args:
-        series (pd.Series): The input price series, typically close prices.
+        df (pd.DataFrame): The dataframe containing price data. Must have close column.
         window (int): The window size for the EMA calculations. Default is 14.
+        close_col (str): The name of the close price column (default: 'Close').
 
     Returns:
         pd.DataFrame: DataFrame containing the TRIX line and its signal line.
@@ -38,6 +39,7 @@ def trix(series: pd.Series, window: int = 14) -> pd.DataFrame:
     - Filter: TRIX can be used to filter out market noise and identify
       significant market moves.
     """
+    series = df[close_col]
     # Step 1: Calculate the single-smoothed EMA
     ema1 = series.ewm(span=window, adjust=False).mean()
     
@@ -58,5 +60,6 @@ def trix(series: pd.Series, window: int = 14) -> pd.DataFrame:
         f'TRIX_{window}': trix_line,
         f'TRIX_SIGNAL_{window}': signal_line
     })
+    df_trix.index = series.index
     
     return df_trix

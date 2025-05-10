@@ -50,7 +50,12 @@ class TestOBV:
 
     def test_obv_calculation(self, sample_data):
         """Test basic OBV calculation structure"""
-        result = obv(sample_data['close'], sample_data['volume'])
+        # Create DataFrame with Close and Volume columns
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = obv(df)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -63,7 +68,12 @@ class TestOBV:
 
     def test_obv_trend_correlation(self, sample_data):
         """Test that OBV generally follows the price trend"""
-        result = obv(sample_data['close'], sample_data['volume'])
+        # Create DataFrame with Close and Volume columns
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = obv(df)
         price_diff = sample_data['close'].diff().dropna()
         obv_diff = result.diff().dropna()
         
@@ -84,7 +94,12 @@ class TestVMA:
     def test_vma_calculation(self, sample_data):
         """Test basic VMA calculation structure"""
         window = 14 # Default
-        result = vma(sample_data['close'], sample_data['volume'], window=window)
+        # Create DataFrame with Close and Volume columns
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = vma(df, window=window)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -98,7 +113,12 @@ class TestVMA:
     def test_vma_custom_window(self, sample_data):
         """Test VMA with a custom window"""
         window = 7
-        result = vma(sample_data['close'], sample_data['volume'], window=window)
+        # Create DataFrame with Close and Volume columns
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = vma(df, window=window)
         
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])
@@ -111,8 +131,14 @@ class TestADLine:
 
     def test_adline_calculation(self, sample_data):
         """Test basic A/D Line calculation structure"""
-        result = adline(sample_data['high'], sample_data['low'], 
-                        sample_data['close'], sample_data['volume'])
+        # Create DataFrame with required columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = adline(df)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -123,8 +149,14 @@ class TestADLine:
 
     def test_adline_trend_correlation(self, sample_data):
         """Test that A/D Line generally follows the price trend"""
-        result = adline(sample_data['high'], sample_data['low'], 
-                        sample_data['close'], sample_data['volume'])
+        # Create DataFrame with required columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = adline(df)
         price_diff = sample_data['close'].diff().dropna()
         ad_diff = result.diff().dropna()
         
@@ -146,8 +178,14 @@ class TestCMF:
     def test_cmf_calculation(self, sample_data):
         """Test basic CMF calculation structure"""
         period = 20 # Default
-        result = cmf(sample_data['high'], sample_data['low'], 
-                     sample_data['close'], sample_data['volume'], period=period)
+        # Create DataFrame with required columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = cmf(df, period=period)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -166,8 +204,14 @@ class TestCMF:
     def test_cmf_custom_period(self, sample_data):
         """Test CMF with a custom period"""
         period = 10
-        result = cmf(sample_data['high'], sample_data['low'], 
-                     sample_data['close'], sample_data['volume'], period=period)
+        # Create DataFrame with required columns
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = cmf(df, period=period)
                      
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])
@@ -183,7 +227,12 @@ class TestVPT:
 
     def test_vpt_calculation(self, sample_data):
         """Test basic VPT calculation structure"""
-        result = vpt(sample_data['close'], sample_data['volume'])
+        # Create DataFrame with Close and Volume columns
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = vpt(df)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -194,7 +243,12 @@ class TestVPT:
 
     def test_vpt_trend_correlation(self, sample_data):
         """Test that VPT generally follows the price trend"""
-        result = vpt(sample_data['close'], sample_data['volume'])
+        # Create DataFrame with Close and Volume columns
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result = vpt(df)
         price_diff = sample_data['close'].diff().dropna()
         vpt_diff = result.diff().dropna()
         

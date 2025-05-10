@@ -2,17 +2,18 @@ import pandas as pd
 import numpy as np
 
 
-def cci(high: pd.Series, low: pd.Series, close: pd.Series, window: int = 20, constant: float = 0.015) -> pd.Series:
+def cci(df: pd.DataFrame, window: int = 20, constant: float = 0.015, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close') -> pd.Series:
     """
     Calculates the Commodity Channel Index (CCI), a momentum oscillator used to identify cyclical trends
     and extreme market conditions.
 
     Args:
-        high (pd.Series): The high prices of the period.
-        low (pd.Series): The low prices of the period.
-        close (pd.Series): The closing prices of the period.
+        df (pd.DataFrame): The input DataFrame.
         window (int): The lookback period for the calculation. Default is 20.
         constant (float): The scaling factor used in the CCI formula. Default is 0.015.
+        high_col (str): The column name for high prices. Default is 'High'.
+        low_col (str): The column name for low prices. Default is 'Low'.
+        close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.Series: CCI values for the given input series.
@@ -42,10 +43,9 @@ def cci(high: pd.Series, low: pd.Series, close: pd.Series, window: int = 20, con
     - Identifying potential reversals: Divergence between CCI and price can signal potential reversals.
     - Generating trading signals: Crossing above/below zero line or +/-100 thresholds can generate signals.
     """
-    # Make sure all inputs have the same index
-    high = high.copy()
-    low = low.copy()
-    close = close.copy()
+    high = df[high_col]
+    low = df[low_col]
+    close = df[close_col]      
     
     # Calculate the Typical Price
     typical_price = (high + low + close) / 3
@@ -63,5 +63,7 @@ def cci(high: pd.Series, low: pd.Series, close: pd.Series, window: int = 20, con
     
     # Calculate the CCI
     cci = (typical_price - sma_tp) / (constant * mean_deviation)
+
+    cci.name = f'CCI_{window}_{constant}'
     
     return cci

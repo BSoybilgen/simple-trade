@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from .wma import wma
 
-def hma(series: pd.Series, window: int = 14) -> pd.Series:
+def hma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Series:
     """
     Calculates the Hull Moving Average (HMA) of a series.
 
@@ -11,8 +11,9 @@ def hma(series: pd.Series, window: int = 14) -> pd.Series:
     window lengths to achieve this effect.
 
     Args:
-        series (pd.Series): The input series.
+        df (pd.DataFrame): The dataframe containing price data. Must have close column.
         window (int): The window size for the HMA.
+        close_col (str): The name of the close price column (default: 'Close').
 
     Returns:
         pd.Series: The HMA of the series.
@@ -40,9 +41,12 @@ def hma(series: pd.Series, window: int = 14) -> pd.Series:
     - Generating buy and sell signals: The HMA can be used in crossover systems
       to generate buy and sell signals.
     """
+    series = df[close_col]
     half_length = int(window / 2)
     sqrt_length = int(np.sqrt(window))
-    wma_half = wma(series, half_length)
-    wma_full = wma(series, window)
-    hma_ = wma(2 * wma_half - wma_full, sqrt_length)
+    wma_half = wma(df, half_length, close_col=close_col)
+    wma_full = wma(df, window, close_col=close_col)
+    df = pd.DataFrame(2 * wma_half - wma_full, columns=[close_col])
+    hma_ = wma(df, sqrt_length, close_col=close_col)
+    hma_.name = f'HMA_{window}'
     return hma_

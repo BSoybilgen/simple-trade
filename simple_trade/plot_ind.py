@@ -73,9 +73,6 @@ class IndicatorPlotter:
             ax_price = ax # Price axis is the only axis
             ax_ind = ax   # Indicators will plot on the same axis
 
-        # Apply dark theme
-        plt.style.use('dark_background')
-
         # Plot Price based on plot_type
         if plot_type == 'line':
             # Plot as a line with increased thickness and darker color
@@ -171,7 +168,7 @@ class IndicatorPlotter:
             
             for i, col in enumerate(indicator_cols):
                 # Special handling for PSAR - display as dots instead of lines
-                if col == 'PSAR':
+                if 'PSAR' in col or 'Supertrend' in col:
                     # Determine whether dots should be above or below the price (above in downtrend, below in uptrend)
                     # PSAR dots are above price in a downtrend (bearish) and below price in an uptrend (bullish)
                     above_price = df[col] > df[price_col]

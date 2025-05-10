@@ -1,12 +1,12 @@
 # Import from data module
-from .data import download_data, compute_indicator, download_and_compute_indicator
+from .data import download_data, compute_indicator
 from .core import INDICATORS
 
 # Import all indicators from core
 from .core import (
     # Trend indicators
-    sma, ema, wma, hma, adx, psar, trix, aroon,
-    ichimoku, tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b, chikou_span,
+    sma, ema, wma, hma, adx, psar, trix, aroon, supertrend,
+    ichimoku,
     
     # Momentum indicators
     rsi, macd, stoch, cci, roc,
@@ -46,8 +46,8 @@ __all__ = [
     "INDICATORS",
     
     # Trend indicators
-    "sma", "ema", "wma", "hma", "adx", "psar", "trix", "aroon",
-    "ichimoku", "tenkan_sen", "kijun_sen", "senkou_span_a", "senkou_span_b", "chikou_span",
+    "sma", "ema", "wma", "hma", "adx", "psar", "trix", "aroon", "supertrend",
+    "ichimoku",
     
     # Momentum indicators
     "rsi", "macd", "stoch", "cci", "roc",

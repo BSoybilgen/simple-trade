@@ -23,7 +23,7 @@ def sample_cross_data():
 @pytest.fixture
 def backtester_cross():
     """Fixture to provide an instance of CrossTradeBacktester."""
-    return CrossTradeBacktester(initial_cash=10000, commission=0.001)
+    return CrossTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
 
 # --- Test Class ---
 
@@ -106,7 +106,7 @@ class TestCrossTradeBacktester:
     def test_long_only_strategy(self, backtester_cross, sample_cross_data):
         """Test the long-only strategy executes buy and sell signals correctly."""
         # Initialize backtester with fixed settings for predictable results
-        backtester = CrossTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = CrossTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Run backtest with long-only trading type
         results, portfolio_df = backtester.run_cross_trade(
@@ -124,11 +124,11 @@ class TestCrossTradeBacktester:
         assert results['num_trades'] == 2, f"Expected 2 trades but got {results['num_trades']}"
         
         # Verify buy transaction occurred
-        buy_day = portfolio_df[portfolio_df['ActionTaken'] == 'BUY']
+        buy_day = portfolio_df[portfolio_df['Action'] == 'BUY']
         assert not buy_day.empty, "No BUY action found in portfolio log"
         
         # Verify sell transaction occurred
-        sell_day = portfolio_df[portfolio_df['ActionTaken'] == 'SELL']
+        sell_day = portfolio_df[portfolio_df['Action'] == 'SELL']
         assert not sell_day.empty, "No SELL action found in portfolio log"
         
         # Check that final value is reasonable (should be greater than initial after our trades)
@@ -151,7 +151,7 @@ class TestCrossTradeBacktester:
     def test_short_only_strategy(self, backtester_cross, sample_cross_data):
         """Test the short-only strategy executes short and cover signals correctly."""
         # Initialize backtester with fixed settings for predictable results
-        backtester = CrossTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = CrossTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Create data with reversed signals so we have clearer short entries
         # Make short indicator cross below long indicator for short entry signal
@@ -173,11 +173,11 @@ class TestCrossTradeBacktester:
         assert not portfolio_df.empty, "Portfolio DataFrame should not be empty"
         
         # Verify short transaction occurred
-        short_day = portfolio_df[portfolio_df['ActionTaken'] == 'SHORT']
+        short_day = portfolio_df[portfolio_df['Action'] == 'SHORT']
         assert not short_day.empty, "No SHORT action found in portfolio log"
         
         # Verify cover transaction occurred
-        cover_day = portfolio_df[portfolio_df['ActionTaken'] == 'COVER']
+        cover_day = portfolio_df[portfolio_df['Action'] == 'COVER']
         assert not cover_day.empty, "No COVER action found in portfolio log"
         
         # Check number of trades matches expectations (should see 1 short and 1 cover)
@@ -223,8 +223,8 @@ class TestCrossTradeBacktester:
                     current_idx = portfolio_df.index.get_loc(short_days[i])
                     next_idx = portfolio_df.index.get_loc(short_days[i+1])
                     
-                    current_price = portfolio_df['TradePrice'].iloc[current_idx]
-                    next_price = portfolio_df['TradePrice'].iloc[next_idx]
+                    current_price = portfolio_df['Price'].iloc[current_idx]
+                    next_price = portfolio_df['Price'].iloc[next_idx]
                     
                     current_value = portfolio_df['PortfolioValue'].iloc[current_idx]
                     next_value = portfolio_df['PortfolioValue'].iloc[next_idx]
@@ -237,7 +237,7 @@ class TestCrossTradeBacktester:
     def test_mixed_strategy_with_day1_position(self, backtester_cross):
         """Test the mixed trading strategy with a day1 position."""
         # Initialize backtester with fixed settings for predictable results
-        backtester = CrossTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = CrossTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Create more complex data with multiple crossovers for mixed strategy testing
         dates = pd.date_range(start='2023-01-01', periods=15, freq='D')
@@ -270,7 +270,7 @@ class TestCrossTradeBacktester:
         
         # Check for specific actions in mixed strategy
         # We should have at least one of each type of action
-        actions = portfolio_df['ActionTaken'].unique()
+        actions = portfolio_df['Action'].unique()
         print(f"Unique actions: {actions}")
         
         # Verify we have a BUY action (either initial day1 or later crossover)
@@ -294,7 +294,7 @@ class TestCrossTradeBacktester:
     def test_print_results(self, backtester_cross, sample_cross_data, capsys):
         """Test that the print_results method works correctly."""
         # Initialize backtester with fixed settings for predictable results
-        backtester = CrossTradeBacktester(initial_cash=10000, commission=0.001)
+        backtester = CrossTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Run backtest with long-only trading type
         results, _ = backtester.run_cross_trade(
@@ -392,7 +392,7 @@ class TestCrossTradeBacktester:
                 return {}, pd.DataFrame()
         
         # Create our custom backtester
-        empty_backtester = EmptyDfBacktester(initial_cash=10000, commission=0.001)
+        empty_backtester = EmptyDfBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
         
         # Create a basic valid dataset
         dates = pd.date_range(start='2023-01-01', periods=5, freq='D')

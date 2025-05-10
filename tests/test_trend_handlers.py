@@ -8,7 +8,6 @@ from simple_trade.data.trend_handlers import (
     handle_psar,
     handle_ichimoku,
     handle_aroon,
-    format_trend_indicator_name
 )
 
 # --- Fixtures ---
@@ -78,7 +77,7 @@ class TestHandleStrend:
         
         # Verify the mock was called with default parameters
         args, kwargs = mock_strend_func.call_args
-        assert kwargs['period'] == 10  # Default period
+        assert kwargs['period'] == 7  # Default period
         assert kwargs['multiplier'] == 3.0  # Default multiplier
     
     def test_remove_hlc_kwargs(self, sample_price_data):
@@ -190,32 +189,23 @@ class TestHandlePSAR:
         # Create a DataFrame missing the 'High' column
         df_no_high = sample_price_data.drop(columns=['High'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High' and 'Low' columns"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
             handle_psar(df_no_high, MagicMock())
         
         # Create a DataFrame missing the 'Low' column
         df_no_low = sample_price_data.drop(columns=['Low'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High' and 'Low' columns"):
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
             handle_psar(df_no_low, MagicMock())
-    
+
     def test_missing_close_column(self, sample_price_data):
-        """Test handling when Close column is missing but High and Low are present."""
-        # Create a mock indicator function
-        mock_psar_func = MagicMock(return_value=pd.Series([105.0] * len(sample_price_data), index=sample_price_data.index))
-        
+        """Test that ValueError is raised when Close column is missing."""
         # Create a DataFrame missing the 'Close' column but with 'High' and 'Low'
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        # Should not raise error but use None for close
-        with patch('builtins.print') as mock_print:
-            result = handle_psar(df_no_close, mock_psar_func)
-            mock_print.assert_called_with("Warning: 'Close' column not found for PSAR. Will use average of High and Low.")
-        
-        # Verify the mock was called with close=None
-        args, kwargs = mock_psar_func.call_args
-        assert args[2] is None  # Third positional arg should be close=None
-    
+        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', and 'Close' columns"):
+            handle_psar(df_no_close, MagicMock())
+
     def test_default_parameters(self, sample_price_data):
         """Test that default parameters are correctly applied."""
         # Create a mock indicator function
@@ -382,69 +372,3 @@ class TestHandleAroon:
         args, kwargs = mock_aroon_func.call_args
         assert 'high' not in kwargs
         assert 'low' not in kwargs
-
-
-class TestFormatTrendIndicatorName:
-    """Tests for the format_trend_indicator_name function."""
-    
-    def test_moving_averages(self):
-        """Test formatting for moving averages."""
-        # Test SMA with window parameter
-        result = format_trend_indicator_name('sma', {'window': 10})
-        assert result == '_10'
-        
-        # Test EMA with window parameter
-        result = format_trend_indicator_name('ema', {'window': 20})
-        assert result == '_20'
-        
-        # Test WMA with window parameter
-        result = format_trend_indicator_name('wma', {'window': 30})
-        assert result == '_30'
-        
-        # Test HMA with window parameter
-        result = format_trend_indicator_name('hma', {'window': 40})
-        assert result == '_40'
-        
-        # Test TRIX with window parameter
-        result = format_trend_indicator_name('trix', {'window': 50})
-        assert result == '_50'
-    
-    def test_adx(self):
-        """Test formatting for ADX."""
-        # Test ADX with window parameter
-        result = format_trend_indicator_name('adx', {'window': 14})
-        assert result == '_14'
-        
-        # Test with non-default window
-        result = format_trend_indicator_name('adx', {'window': 21})
-        assert result == '_21'
-    
-    def test_aroon(self):
-        """Test formatting for Aroon."""
-        # Test Aroon with period parameter
-        result = format_trend_indicator_name('aroon', {'period': 14})
-        assert result == '_14'
-        
-        # Test with non-default period
-        result = format_trend_indicator_name('aroon', {'period': 25})
-        assert result == '_25'
-    
-    def test_default_values(self):
-        """Test with default values when parameters are not provided."""
-        # For SMA, default window is 20
-        result = format_trend_indicator_name('sma', {})
-        assert result == '_20'
-        
-        # For ADX, default window is 14
-        result = format_trend_indicator_name('adx', {})
-        assert result == '_14'
-        
-        # For Aroon, default period is 14
-        result = format_trend_indicator_name('aroon', {})
-        assert result == '_14'
-    
-    def test_unsupported_indicator(self):
-        """Test with an indicator not explicitly handled."""
-        # Should return empty string for unsupported indicator
-        result = format_trend_indicator_name('unknown', {'window': 10})
-        assert result == "" 

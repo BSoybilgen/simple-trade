@@ -8,7 +8,6 @@ from simple_trade.data.volatility_handlers import (
     handle_kelt,
     handle_donch,
     handle_chaik,
-    format_volatility_indicator_name
 )
 
 # --- Fixtures ---
@@ -62,7 +61,7 @@ class TestHandleBollingerBands:
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain a 'Close' column"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'Close' columns\."):
             handle_bollin(df_no_close, MagicMock())
     
     def test_default_parameters(self, sample_price_data):
@@ -372,85 +371,3 @@ class TestHandleChaikinVolatility:
         args, kwargs = mock_chaik_func.call_args
         assert 'high' not in kwargs
         assert 'low' not in kwargs
-
-
-class TestFormatVolatilityIndicatorName:
-    """Tests for the format_volatility_indicator_name function."""
-    
-    def test_bollinger_bands(self):
-        """Test formatting for Bollinger Bands."""
-        # Test with window parameter
-        result = format_volatility_indicator_name('bollin', {'window': 20})
-        assert result == '_20'
-        
-        # Test with non-default window
-        result = format_volatility_indicator_name('bollin', {'window': 50})
-        assert result == '_50'
-    
-    def test_atr(self):
-        """Test formatting for ATR."""
-        # Test with window parameter
-        result = format_volatility_indicator_name('atr', {'window': 14})
-        assert result == '_14'
-        
-        # Test with non-default window
-        result = format_volatility_indicator_name('atr', {'window': 21})
-        assert result == '_21'
-    
-    def test_keltner_channels(self):
-        """Test formatting for Keltner Channels."""
-        # Test with ema_window parameter
-        result = format_volatility_indicator_name('kelt', {'ema_window': 20})
-        assert result == '_20'
-        
-        # Test with non-default ema_window
-        result = format_volatility_indicator_name('kelt', {'ema_window': 30})
-        assert result == '_30'
-    
-    def test_donchian_channels(self):
-        """Test formatting for Donchian Channels."""
-        # Test with window parameter
-        result = format_volatility_indicator_name('donch', {'window': 20})
-        assert result == '_20'
-        
-        # Test with non-default window
-        result = format_volatility_indicator_name('donch', {'window': 30})
-        assert result == '_30'
-    
-    def test_chaikin_volatility(self):
-        """Test formatting for Chaikin Volatility."""
-        # Test with both window parameters
-        result = format_volatility_indicator_name('chaik', {'ema_window': 10, 'roc_window': 10})
-        assert result == '_10_10'
-        
-        # Test with non-default window parameters
-        result = format_volatility_indicator_name('chaik', {'ema_window': 15, 'roc_window': 20})
-        assert result == '_15_20'
-    
-    def test_default_values(self):
-        """Test with default values when parameters are not provided."""
-        # For Bollinger Bands, default window is 20
-        result = format_volatility_indicator_name('bollin', {})
-        assert result == '_20'
-        
-        # For ATR, default window is 14
-        result = format_volatility_indicator_name('atr', {})
-        assert result == '_14'
-        
-        # For Keltner Channels, default ema_window is 20
-        result = format_volatility_indicator_name('kelt', {})
-        assert result == '_20'
-        
-        # For Donchian Channels, default window is 20
-        result = format_volatility_indicator_name('donch', {})
-        assert result == '_20'
-        
-        # For Chaikin Volatility, default windows are 10 and 10
-        result = format_volatility_indicator_name('chaik', {})
-        assert result == '_10_10'
-    
-    def test_unsupported_indicator(self):
-        """Test with an indicator not explicitly handled."""
-        # Should return empty string for unsupported indicator
-        result = format_volatility_indicator_name('unknown', {'window': 10})
-        assert result == "" 

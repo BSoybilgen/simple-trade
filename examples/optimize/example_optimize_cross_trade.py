@@ -31,7 +31,7 @@ def run_cross_trade_with_windows(data, short_window, long_window, **kwargs):
     # Create a backtester instance
     backtester = CrossTradeBacktester(
         initial_cash=kwargs.pop('initial_cash', 10000),
-        commission=kwargs.pop('commission', 0.001),
+        commission_long=kwargs.pop('commission_long', 0.001),
         short_borrow_fee_inc_rate=kwargs.pop('short_borrow_fee_inc_rate', 0.0),
         long_borrow_fee_inc_rate=kwargs.pop('long_borrow_fee_inc_rate', 0.0)
     )
@@ -54,7 +54,7 @@ param_grid = {
 # Define constant parameters for the backtester
 constant_params = {
     'initial_cash': initial_capital, 
-    'commission': commission_fee,
+    'commission_long': commission_fee,
     'price_col': 'Close'
 }
 
@@ -115,7 +115,7 @@ final_data = compute_indicator(final_data, indicator='sma', window=long_window)
 # Extract backtester initialization parameters
 bt_init_args = {
     'initial_cash': constant_params.get('initial_cash', 10000.0),
-    'commission': constant_params.get('commission', 0.001)
+    'commission_long': constant_params.get('commission_long', 0.001)
 }
 
 # Create backtester with proper initialization parameters

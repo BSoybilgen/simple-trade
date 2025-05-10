@@ -25,7 +25,7 @@ def sample_history_data() -> pd.DataFrame:
     dates = pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05'])
     data = {
         'PortfolioValue': [10000, 10050, 10100, 10080, 10150],
-        'Signal': ['Initial', 'Buy', '', 'Sell', 'Buy'], # Example signals
+        'Action': ['Initial', 'Buy', '', 'Sell', 'Buy'], # Example signals
     }
     # Make index match sample_line_data subset for simpler tests
     return pd.DataFrame(data, index=dates)
@@ -36,7 +36,7 @@ def sample_history_data_complex_signals() -> pd.DataFrame:
     dates = pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05', '2023-01-06'])
     data = {
         'PortfolioValue': [10000, 10050, 10100, 10080, 10150, 10120],
-        'Signal': ['Initial', 'Buy', 'Sell and Short', 'Cover', 'Cover and Buy', 'Sell'],
+        'Action': ['Initial', 'Buy', 'Sell and Short', 'Cover', 'Cover and Buy', 'Sell'],
     }
     return pd.DataFrame(data, index=dates)
 
@@ -103,7 +103,7 @@ class TestBacktestPlotter:
         assert price_call_kwargs.get('linewidth') == 1.5
 
         # Assert Buy signal plot (now uses plot, not scatter)
-        buy_signals = sample_history_data[sample_history_data['Signal'].str.contains('Buy', na=False) & ~sample_history_data['Signal'].str.contains('Cover', na=False)]
+        buy_signals = sample_history_data[sample_history_data['Action'].str.contains('Buy', na=False) & ~sample_history_data['Action'].str.contains('Cover', na=False)]
         buy_call = next((c for c in mock_ax1.plot.call_args_list if c.kwargs.get('label') == 'Buy'), None)
         assert buy_call is not None, "Buy Signal plot call not found"
         buy_call_args, buy_call_kwargs = buy_call
@@ -114,7 +114,7 @@ class TestBacktestPlotter:
         assert buy_call_kwargs.get('markersize') == 8
 
         # Assert Sell signal plot (now uses plot, not scatter)
-        sell_signals = sample_history_data[sample_history_data['Signal'].str.contains('Sell', na=False) & ~sample_history_data['Signal'].str.contains('Short', na=False)]
+        sell_signals = sample_history_data[sample_history_data['Action'].str.contains('Sell', na=False) & ~sample_history_data['Action'].str.contains('Short', na=False)]
         sell_call = next((c for c in mock_ax1.plot.call_args_list if c.kwargs.get('label') == 'Sell'), None)
         assert sell_call is not None, "Sell Signal plot call not found"
         sell_call_args, sell_call_kwargs = sell_call
@@ -196,7 +196,7 @@ class TestBacktestPlotter:
         # Check each expected signal type that exists in the fixture
         for signal_label, (marker, color) in expected_plots.items():
             # Find the corresponding data in the fixture
-            signal_data = sample_history_data_complex_signals[sample_history_data_complex_signals['Signal'] == signal_label]
+            signal_data = sample_history_data_complex_signals[sample_history_data_complex_signals['Action'] == signal_label]
             if signal_data.empty:
                 continue # Skip if this signal type isn't in the specific test data
 

@@ -2,16 +2,17 @@ import pandas as pd
 import numpy as np
 
 
-def adline(high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series) -> pd.Series:
+def adline(df, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close', volume_col: str = 'Volume') -> pd.Series:
     """
     Calculates the Accumulation/Distribution Line (A/D Line), a volume-based indicator
     that measures the cumulative flow of money into and out of a security.
     
     Args:
-        high (pd.Series): The high prices of the period.
-        low (pd.Series): The low prices of the period.
-        close (pd.Series): The closing prices of the period.
-        volume (pd.Series): The volume traded of the period.
+        df (pd.DataFrame): The DataFrame containing the data.
+        high_col (str): The column name for high prices. Default is 'High'.
+        low_col (str): The column name for low prices. Default is 'Low'.
+        close_col (str): The column name for closing prices. Default is 'Close'.
+        volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
         pd.Series: The Accumulation/Distribution Line values.
@@ -44,11 +45,10 @@ def adline(high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series)
     - Early warning: A/D Line often leads price movements, making it useful for
       identifying potential trend changes before they occur in price.
     """
-    # Ensure all series have the same index
-    high = high.copy()
-    low = low.copy()
-    close = close.copy()
-    volume = volume.copy()
+    high = df[high_col]
+    low = df[low_col]
+    close = df[close_col]
+    volume = df[volume_col]
     
     # Handle division by zero - if high and low are the same,
     # money flow multiplier is zero (neutral)
@@ -65,5 +65,6 @@ def adline(high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series)
     
     # Calculate A/D Line as cumulative sum of Money Flow Volume
     ad_line = mfv.cumsum()
+    ad_line.name = 'ADLINE'
     
     return ad_line

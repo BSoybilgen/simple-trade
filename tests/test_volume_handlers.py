@@ -8,7 +8,6 @@ from simple_trade.data.volume_handlers import (
     handle_adline,
     handle_cmf,
     handle_vpt,
-    format_volume_indicator_name
 )
 
 # --- Fixtures ---
@@ -47,20 +46,22 @@ class TestHandleOBV:
         # Verify the mock was called with the correct arguments
         mock_obv_func.assert_called_once()
         args, kwargs = mock_obv_func.call_args
-        assert len(args) == 2  # Close and Volume
+        assert args[0].equals(sample_price_data) # Check DataFrame is passed
+        assert kwargs.get('close_col') == 'Close'
+        assert kwargs.get('volume_col') == 'Volume'
     
     def test_missing_columns(self, sample_price_data):
         """Test that ValueError is raised when required columns are missing."""
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'Close' and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'Close' and 'Volume' columns\."):
             handle_obv(df_no_close, MagicMock())
         
         # Create a DataFrame missing the 'Volume' column
         df_no_volume = sample_price_data.drop(columns=['Volume'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'Close' and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'Close' and 'Volume' columns\."):
             handle_obv(df_no_volume, MagicMock())
     
     def test_remove_column_kwargs(self, sample_price_data):
@@ -97,21 +98,23 @@ class TestHandleVMA:
         # Verify the mock was called with the correct arguments
         mock_vma_func.assert_called_once()
         args, kwargs = mock_vma_func.call_args
-        assert len(args) == 2  # Close and Volume
-        assert kwargs['window'] == 14
-    
+        assert args[0].equals(sample_price_data)
+        assert kwargs.get('window') == 14 # Default window
+        assert kwargs.get('close_col') == 'Close'
+        assert kwargs.get('volume_col') == 'Volume'
+
     def test_missing_columns(self, sample_price_data):
         """Test that ValueError is raised when required columns are missing."""
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'Close' and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'Close' and 'Volume' columns\."):
             handle_vma(df_no_close, MagicMock())
         
         # Create a DataFrame missing the 'Volume' column
         df_no_volume = sample_price_data.drop(columns=['Volume'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'Close' and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'Close' and 'Volume' columns\."):
             handle_vma(df_no_volume, MagicMock())
     
     def test_default_parameters(self, sample_price_data):
@@ -160,33 +163,33 @@ class TestHandleADLine:
         # Verify the mock was called with the correct arguments
         mock_adline_func.assert_called_once()
         args, kwargs = mock_adline_func.call_args
-        assert len(args) == 4  # High, Low, Close, and Volume
-    
+        assert args[0].equals(sample_price_data)
+        assert kwargs.get('high_col') == 'High'
+        assert kwargs.get('low_col') == 'Low'
+        assert kwargs.get('close_col') == 'Close'
+        assert kwargs.get('volume_col') == 'Volume'
+
     def test_missing_columns(self, sample_price_data):
         """Test that ValueError is raised when required columns are missing."""
-        # Create a DataFrame missing the 'High' column
+        # Test missing 'High' column
         df_no_high = sample_price_data.drop(columns=['High'])
-        
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', 'Close', and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'High', 'Low', 'Close' and 'Volume' columns\."):
             handle_adline(df_no_high, MagicMock())
+
+        # Test missing 'Volume' column
+        df_no_volume = sample_price_data.drop(columns=['Volume'])
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'High', 'Low', 'Close' and 'Volume' columns\."):
+            handle_adline(df_no_volume, MagicMock())
         
-        # Create a DataFrame missing the 'Low' column
+        # Test missing 'Low' column
         df_no_low = sample_price_data.drop(columns=['Low'])
-        
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', 'Close', and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'High', 'Low', 'Close' and 'Volume' columns\."):
             handle_adline(df_no_low, MagicMock())
         
-        # Create a DataFrame missing the 'Close' column
+        # Test missing 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
-        
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', 'Close', and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'High', 'Low', 'Close' and 'Volume' columns\."):
             handle_adline(df_no_close, MagicMock())
-        
-        # Create a DataFrame missing the 'Volume' column
-        df_no_volume = sample_price_data.drop(columns=['Volume'])
-        
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', 'Close', and 'Volume' columns"):
-            handle_adline(df_no_volume, MagicMock())
     
     def test_remove_column_kwargs(self, sample_price_data):
         """Test that high, low, close, volume kwargs are removed if passed."""
@@ -224,33 +227,37 @@ class TestHandleCMF:
         # Verify the mock was called with the correct arguments
         mock_cmf_func.assert_called_once()
         args, kwargs = mock_cmf_func.call_args
-        assert len(args) == 4  # High, Low, Close, and Volume
-        assert kwargs['period'] == 20
-    
+        assert args[0].equals(sample_price_data)
+        assert kwargs.get('period') == 20 # Default period
+        assert kwargs.get('high_col') == 'High'
+        assert kwargs.get('low_col') == 'Low'
+        assert kwargs.get('close_col') == 'Close'
+        assert kwargs.get('volume_col') == 'Volume'
+
     def test_missing_columns(self, sample_price_data):
         """Test that ValueError is raised when required columns are missing."""
         # Create a DataFrame missing the 'High' column
         df_no_high = sample_price_data.drop(columns=['High'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', 'Close', and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'High', 'Low', 'Close' and 'Volume' columns\."):
             handle_cmf(df_no_high, MagicMock())
         
         # Create a DataFrame missing the 'Low' column
         df_no_low = sample_price_data.drop(columns=['Low'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', 'Close', and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'High', 'Low', 'Close' and 'Volume' columns\."):
             handle_cmf(df_no_low, MagicMock())
         
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', 'Close', and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'High', 'Low', 'Close' and 'Volume' columns\."):
             handle_cmf(df_no_close, MagicMock())
         
         # Create a DataFrame missing the 'Volume' column
         df_no_volume = sample_price_data.drop(columns=['Volume'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'High', 'Low', 'Close', and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'High', 'Low', 'Close' and 'Volume' columns\."):
             handle_cmf(df_no_volume, MagicMock())
     
     def test_default_parameters(self, sample_price_data):
@@ -301,20 +308,22 @@ class TestHandleVPT:
         # Verify the mock was called with the correct arguments
         mock_vpt_func.assert_called_once()
         args, kwargs = mock_vpt_func.call_args
-        assert len(args) == 2  # Close and Volume
-    
+        assert args[0].equals(sample_price_data) # Check DataFrame
+        assert kwargs.get('close_col') == 'Close'
+        assert kwargs.get('volume_col') == 'Volume'
+
     def test_missing_columns(self, sample_price_data):
         """Test that ValueError is raised when required columns are missing."""
         # Create a DataFrame missing the 'Close' column
         df_no_close = sample_price_data.drop(columns=['Close'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'Close' and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'Close' and 'Volume' columns\."):
             handle_vpt(df_no_close, MagicMock())
         
         # Create a DataFrame missing the 'Volume' column
         df_no_volume = sample_price_data.drop(columns=['Volume'])
         
-        with pytest.raises(ValueError, match="DataFrame must contain 'Close' and 'Volume' columns"):
+        with pytest.raises(ValueError, match=r"DataFrame must contain 'Close' and 'Volume' columns\."):
             handle_vpt(df_no_volume, MagicMock())
     
     def test_remove_column_kwargs(self, sample_price_data):
@@ -329,61 +338,3 @@ class TestHandleVPT:
         args, kwargs = mock_vpt_func.call_args
         assert 'close' not in kwargs
         assert 'volume' not in kwargs
-
-
-class TestFormatVolumeIndicatorName:
-    """Tests for the format_volume_indicator_name function."""
-    
-    def test_obv(self):
-        """Test formatting for OBV."""
-        # OBV doesn't use parameters in the name
-        result = format_volume_indicator_name('obv', {})
-        assert result == ""
-    
-    def test_vma(self):
-        """Test formatting for VMA."""
-        # Test with window parameter
-        result = format_volume_indicator_name('vma', {'window': 14})
-        assert result == '_14'
-        
-        # Test with non-default window
-        result = format_volume_indicator_name('vma', {'window': 20})
-        assert result == '_20'
-    
-    def test_adline(self):
-        """Test formatting for A/D Line."""
-        # A/D Line doesn't use parameters in the name
-        result = format_volume_indicator_name('adline', {})
-        assert result == ""
-    
-    def test_cmf(self):
-        """Test formatting for CMF."""
-        # Test with period parameter
-        result = format_volume_indicator_name('cmf', {'period': 20})
-        assert result == '_20'
-        
-        # Test with non-default period
-        result = format_volume_indicator_name('cmf', {'period': 30})
-        assert result == '_30'
-    
-    def test_vpt(self):
-        """Test formatting for VPT."""
-        # VPT doesn't use parameters in the name
-        result = format_volume_indicator_name('vpt', {})
-        assert result == ""
-    
-    def test_default_values(self):
-        """Test with default values when parameters are not provided."""
-        # For VMA, default window is 14
-        result = format_volume_indicator_name('vma', {})
-        assert result == '_14'
-        
-        # For CMF, default period is 20
-        result = format_volume_indicator_name('cmf', {})
-        assert result == '_20'
-    
-    def test_unsupported_indicator(self):
-        """Test with an indicator not explicitly handled."""
-        # Should return empty string for unsupported indicator
-        result = format_volume_indicator_name('unknown', {'window': 10})
-        assert result == "" 

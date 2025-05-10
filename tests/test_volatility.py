@@ -47,7 +47,9 @@ class TestBollingerBands:
         """Test basic Bollinger Bands calculation structure"""
         window=20
         num_std=2
-        result = bollinger_bands(sample_data['close'], window=window, num_std=num_std)
+        # Create a DataFrame with 'Close' column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = bollinger_bands(df, window=window, num_std=num_std)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
@@ -71,7 +73,9 @@ class TestBollingerBands:
         """Test Bollinger Bands with custom parameters"""
         window = 10
         num_std = 3
-        result = bollinger_bands(sample_data['close'], window=window, num_std=num_std)
+        # Create a DataFrame with 'Close' column
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result = bollinger_bands(df, window=window, num_std=num_std)
         
         assert isinstance(result, pd.DataFrame)
         expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}', f'BB_Lower_{window}_{num_std}']
@@ -92,7 +96,12 @@ class TestATR:
     def test_atr_calculation(self, sample_data):
         """Test basic ATR calculation structure"""
         window = 14 # Default
-        result = atr(sample_data['high'], sample_data['low'], sample_data['close'], window=window)
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = atr(df, window=window)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -112,7 +121,12 @@ class TestATR:
     def test_atr_custom_window(self, sample_data):
         """Test ATR with a custom window"""
         window = 7
-        result = atr(sample_data['high'], sample_data['low'], sample_data['close'], window=window)
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = atr(df, window=window)
         
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])
@@ -124,7 +138,12 @@ class TestATR:
     def test_atr_volatility_reflection(self, sample_data):
         """Test that ATR reflects changes in volatility in sample data"""
         window = 14
-        result = atr(sample_data['high'], sample_data['low'], sample_data['close'], window=window).dropna()
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = atr(df, window=window).dropna()
         
         # Sample data has high vol first 50, low vol last 50
         high_vol_period_atr = result.iloc[window:50].mean() # Take mean ATR during high vol
@@ -141,15 +160,19 @@ class TestKeltnerChannels:
         ema_window = 20
         atr_window = 10
         atr_multiplier = 2.0
-        result = keltner_channels(sample_data['high'], sample_data['low'], sample_data['close'], 
-                                  ema_window=ema_window, atr_window=atr_window, atr_multiplier=atr_multiplier)
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = keltner_channels(df, ema_window=ema_window, atr_window=atr_window, atr_multiplier=atr_multiplier)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
         assert result.index.equals(sample_data['close'].index)
         
-        expected_cols = [f'KELT_Middle_{ema_window}', f'KELT_Upper_{ema_window}', f'KELT_Lower_{ema_window}']
+        expected_cols = [f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
         assert all(col in result.columns for col in expected_cols)
         
         # Check initial NaNs: The first row with no NaNs should be determined by ATR window
@@ -170,11 +193,15 @@ class TestKeltnerChannels:
         ema_window = 10
         atr_window = 5
         atr_multiplier = 1.5
-        result = keltner_channels(sample_data['high'], sample_data['low'], sample_data['close'], 
-                                  ema_window=ema_window, atr_window=atr_window, atr_multiplier=atr_multiplier)
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result = keltner_channels(df, ema_window=ema_window, atr_window=atr_window, atr_multiplier=atr_multiplier)
 
         assert isinstance(result, pd.DataFrame)
-        expected_cols = [f'KELT_Middle_{ema_window}', f'KELT_Upper_{ema_window}', f'KELT_Lower_{ema_window}']
+        expected_cols = [f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
         assert all(col in result.columns for col in expected_cols)
         assert len(result) == len(sample_data['close'])
         
@@ -197,46 +224,53 @@ class TestDonchianChannels:
     def test_donchian_calculation(self, sample_data):
         """Test basic Donchian Channel calculation structure"""
         window = 20 # Default
-        result = donchian_channels(sample_data['high'], sample_data['low'], window=window)
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low']
+        })
+        result = donchian_channels(df, window=window)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
         assert result.index.equals(sample_data['close'].index)
         
-        # Check columns
         expected_cols = [f'DONCH_Upper_{window}', f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
         assert all(col in result.columns for col in expected_cols)
         
-        # Check initial NaNs (first window-1)
-        assert result.iloc[:window-1].isna().all().all()
-        assert not result.iloc[window-1:].isna().any().any()
+        # Check initial NaNs (first window-1 should be strictly NaN)
+        assert result.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
+        assert not result.iloc[window-1:].isna().any().any() # Check no NaNs from window-1 onwards
         
         # Check band properties on non-NaN data
         valid_result = result.dropna()
-        assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[2]]).all() # Upper >= Lower
-        # Middle band check
         assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[1]]).all() # Upper >= Middle
         assert (valid_result[expected_cols[1]] >= valid_result[expected_cols[2]]).all() # Middle >= Lower
+        # Middle should be exactly halfway between upper and lower bands
+        middle_calc = (valid_result[expected_cols[0]] + valid_result[expected_cols[2]]) / 2
+        # Set the name to match the name of the middle band Series for comparison
+        middle_calc.name = expected_cols[1]
+        pd.testing.assert_series_equal(valid_result[expected_cols[1]], middle_calc)
 
     def test_donchian_custom_window(self, sample_data):
         """Test Donchian Channels with a custom window"""
         window = 10
-        result = donchian_channels(sample_data['high'], sample_data['low'], window=window)
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low']
+        })
+        result = donchian_channels(df, window=window)
         
         assert isinstance(result, pd.DataFrame)
         expected_cols = [f'DONCH_Upper_{window}', f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
         assert all(col in result.columns for col in expected_cols)
         assert len(result) == len(sample_data['close'])
-        assert result.iloc[:window-1].isna().all().all()
-        assert not result.iloc[window-1:].isna().any().any()
-        
-        # Check band properties on non-NaN data
+        assert result.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
+        assert not result.iloc[window-1:].isna().any().any() # Check no NaNs from window-1 onwards properties on non-NaN data
         valid_result = result.dropna()
         assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[2]]).all() # Upper >= Lower
         assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[1]]).all() # Upper >= Middle
         assert (valid_result[expected_cols[1]] >= valid_result[expected_cols[2]]).all() # Middle >= Lower
-
 
 class TestChaikinVolatility:
     """Tests for Chaikin Volatility"""
@@ -245,8 +279,11 @@ class TestChaikinVolatility:
         """Test basic Chaikin Volatility calculation structure"""
         ema_window = 10 # Default
         roc_window = 10 # Default
-        result = chaikin_volatility(sample_data['high'], sample_data['low'], 
-                                    ema_window=ema_window, roc_window=roc_window)
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low']
+        })
+        result = chaikin_volatility(df, ema_window=ema_window, roc_window=roc_window, high_col='High', low_col='Low')
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -268,8 +305,11 @@ class TestChaikinVolatility:
         """Test Chaikin Volatility with custom parameters"""
         ema_window = 5
         roc_window = 7
-        result = chaikin_volatility(sample_data['high'], sample_data['low'], 
-                                    ema_window=ema_window, roc_window=roc_window)
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low']
+        })
+        result = chaikin_volatility(df, ema_window=ema_window, roc_window=roc_window, high_col='High', low_col='Low')
         
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])

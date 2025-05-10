@@ -8,6 +8,7 @@ class CrossTradeBacktester(Backtester):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.log = None
+        self.num_trades = 0
         
     def run_cross_trade(self, data: pd.DataFrame, short_window_indicator: str, 
                          long_window_indicator: str, price_col: str = 'Close', 
@@ -46,6 +47,7 @@ class CrossTradeBacktester(Backtester):
             long_entry_pct_cash (float): Pct of available cash to use for long entries (0.0 to 1.0, default 0.9).
             short_entry_pct_cash (float): Pct of available cash defining the value of short entries (0.0 to 1.0, default 0.1).
             day1_position (str): Specifies whether to take a position on day 1. Options: 'none', 'long', 'short' (default: 'none').
+            risk_free_rate (float): Risk-free rate for Sharpe and Sortino ratios (default: 0.0).
 
         Returns:
             tuple: A tuple containing:
@@ -126,8 +128,10 @@ class CrossTradeBacktester(Backtester):
         # --- Initialize State --- Only run if df was not empty ---
         cash = self.initial_cash
         position_size = 0 # Shares held (negative for short positions)
+        position_type = 'none' # Position type ('none', 'long', 'short')
         position_cost_basis = 0 # Weighted average cost of current position
-        self.num_trades = 0 # Use instance variable and initialize
+        self.num_trades = 0 # Reset trade counter for this run
+        portfolio_log = [] # Initialize portfolio log locally for consistency with BandTradeBacktester
         
         # Initialize variable to track if we're on the first day
         first_day = True
@@ -151,44 +155,50 @@ class CrossTradeBacktester(Backtester):
             signal_generated = "NONE"
             action_taken = "HOLD"
             commission_paid = 0.0
-            short_fee_paid = 0.0
+            short_fee = 0.0
+            long_fee = 0.0
             
-            # Calculate portfolio value (before any trades)
-            if position_size > 0: # Long position
-                portfolio_value = cash + (position_size * trade_price)
+            # Calculate position value based on position size and type
+            position_value = 0.0
+            if position_type == 'long':
+                position_value = position_size * trade_price
                 
                 # Apply daily borrow fee for long positions if applicable (e.g., leveraged ETFs)
                 if self.long_borrow_fee_inc_rate > 0:
-                    long_fee = position_size * trade_price * self.long_borrow_fee_inc_rate
+                    long_fee = position_value * self.long_borrow_fee_inc_rate
                     cash -= long_fee
-                    short_fee_paid = long_fee  # Reuse this variable for tracking
             
-            elif position_size < 0: # Short position
-                portfolio_value = cash + (position_size * trade_price) # Will subtract because position_size is negative
+            elif position_type == 'short':
+                position_value = abs(position_size) * trade_price  # Positive value representing liability
                 
                 # Apply daily borrow fee for short positions if applicable
                 if self.short_borrow_fee_inc_rate > 0:
-                    short_fee = abs(position_size) * trade_price * self.short_borrow_fee_inc_rate
+                    short_fee = position_value * self.short_borrow_fee_inc_rate
                     cash -= short_fee
-                    short_fee_paid = short_fee
             
-            else: # Flat (no position)
-                portfolio_value = cash
+            # Calculate portfolio value (consistent with band_trade.py)
+            portfolio_value = cash
+            if position_type == 'long':
+                portfolio_value += position_value
+            elif position_type == 'short':
+                # For short positions, subtract the positive position value (liability)
+                portfolio_value -= position_value
             
             # --- Execute Trading Logic Based on trading_type ---
             
             if trading_type == 'long': # LONG-ONLY strategy
-                if position_size == 0 and buy_signal: # We're flat and have a buy signal
+                if position_type == 'none' and buy_signal: # We're flat and have a buy signal
                     # Enter long position
                     signal_generated = "Buy"
                     action_taken = "BUY"
                     
                     # Calculate shares to buy (consider commission in calculation)
-                    max_shares = int((cash * long_entry_pct_cash) / (trade_price * (1 + self.commission)))
+                    max_shares = int((cash * long_entry_pct_cash) / (trade_price * (1 + self.commission_long)))
                     
                     if max_shares > 0:
                         position_size = max_shares
-                        commission_cost = position_size * trade_price * self.commission
+                        position_type = 'long'  # Set position type explicitly
+                        commission_cost = position_size * trade_price * self.commission_long
                         cash -= (position_size * trade_price + commission_cost)
                         position_cost_basis = trade_price
                         commission_paid = commission_cost
@@ -196,33 +206,35 @@ class CrossTradeBacktester(Backtester):
                     else:
                         action_taken = "INSUFFICIENT_CASH"
                         
-                elif position_size > 0 and sell_signal: # We're long and have a sell signal
+                elif position_type == 'long' and sell_signal: # We have a long position and need to sell signal
                     # Close long position
                     signal_generated = "Sell"
                     action_taken = "SELL"
                     
                     # Calculate proceeds from sale (consider commission)
-                    commission_cost = position_size * trade_price * self.commission
+                    commission_cost = position_size * trade_price * self.commission_long
                     cash += (position_size * trade_price - commission_cost)
                     commission_paid = commission_cost
                     
                     position_size = 0
+                    position_type = 'none'  # Reset position type when closing position
                     position_cost_basis = 0
                     self.num_trades += 1
 
             elif trading_type == 'short': # SHORT-ONLY strategy
-                if position_size == 0 and sell_signal: # We're flat and have a sell signal
+                if position_type == 'none' and sell_signal: # We're flat and have a sell signal
                     # Enter short position
                     signal_generated = "Short"
                     action_taken = "SHORT"
                     
                     # Calculate shares to short (careful with cash calculation)
                     short_position_value = cash * short_entry_pct_cash
-                    max_shares = int(short_position_value / (trade_price * (1 + self.commission)))
+                    max_shares = int(short_position_value / (trade_price * (1 + self.commission_short)))
                     
                     if max_shares > 0:
                         position_size = -max_shares  # Negative for short
-                        commission_cost = abs(position_size) * trade_price * self.commission
+                        position_type = 'short'  # Set position type explicitly
+                        commission_cost = abs(position_size) * trade_price * self.commission_short
                         # When shorting, cash INCREASES (we receive proceeds from the short sale)
                         cash += (abs(position_size) * trade_price - commission_cost)
                         position_cost_basis = trade_price
@@ -231,32 +243,34 @@ class CrossTradeBacktester(Backtester):
                     else:
                         action_taken = "INSUFFICIENT_CASH"
                         
-                elif position_size < 0 and buy_signal: # We're short and have a buy signal
+                elif position_type == 'short' and buy_signal: # We're short and have a buy signal
                     # Cover short position
                     signal_generated = "Cover"
                     action_taken = "COVER"
                     
                     # Calculate cost to buy back shares (consider commission)
-                    commission_cost = abs(position_size) * trade_price * self.commission
+                    commission_cost = abs(position_size) * trade_price * self.commission_short
                     # When covering, cash DECREASES (we pay to buy back the shares)
                     cash -= (abs(position_size) * trade_price + commission_cost)
                     commission_paid = commission_cost
                     
                     position_size = 0
+                    position_type = 'none'
                     position_cost_basis = 0
                     self.num_trades += 1
 
             else: # MIXED strategy (both long and short with possible direct transitions)
-                if position_size == 0: # Flat position
+                if position_type == 'none': # Flat position
                     if buy_signal: # Enter long
                         signal_generated = "Buy"
                         action_taken = "BUY"
                         
-                        max_shares = int((cash * long_entry_pct_cash) / (trade_price * (1 + self.commission)))
+                        max_shares = int((cash * long_entry_pct_cash) / (trade_price * (1 + self.commission_long)))
                         
                         if max_shares > 0:
                             position_size = max_shares
-                            commission_cost = position_size * trade_price * self.commission
+                            position_type = 'long'  # Set position type explicitly
+                            commission_cost = position_size * trade_price * self.commission_long
                             cash -= (position_size * trade_price + commission_cost)
                             position_cost_basis = trade_price
                             commission_paid = commission_cost
@@ -269,11 +283,12 @@ class CrossTradeBacktester(Backtester):
                         action_taken = "SHORT"
                         
                         short_position_value = cash * short_entry_pct_cash
-                        max_shares = int(short_position_value / (trade_price * (1 + self.commission)))
+                        max_shares = int(short_position_value / (trade_price * (1 + self.commission_short)))
                         
                         if max_shares > 0:
                             position_size = -max_shares
-                            commission_cost = abs(position_size) * trade_price * self.commission
+                            position_type = 'short'  # Set position type explicitly
+                            commission_cost = abs(position_size) * trade_price * self.commission_short
                             cash += (abs(position_size) * trade_price - commission_cost)
                             position_cost_basis = trade_price
                             commission_paid = commission_cost
@@ -281,7 +296,7 @@ class CrossTradeBacktester(Backtester):
                         else:
                             action_taken = "INSUFFICIENT_CASH"
                 
-                elif position_size > 0: # Long position
+                elif position_type == 'long': # Long position
                     if sell_signal: # Have sell signal while long
                         signal_generated = "Sell"
                         
@@ -291,21 +306,23 @@ class CrossTradeBacktester(Backtester):
                             # Determine if we should just sell or "Sell and Short" based on logic
                             # We have an explicit sell signal, so we'll flip to short
                             signal_generated = "Sell and Short"
-                            action_taken = "SELL_AND_SHORT"
+                            action_taken = "SELL AND SHORT"
                             
                             # First close the long position
-                            commission_cost = position_size * trade_price * self.commission
+                            commission_cost = position_size * trade_price * self.commission_long
                             cash += (position_size * trade_price - commission_cost)
                             commission_paid = commission_cost
                             position_size = 0
+                            position_type = 'none'  # Reset position type after closing long position
                             
                             # Then enter short position using available cash
                             short_position_value = cash * short_entry_pct_cash
-                            max_shares = int(short_position_value / (trade_price * (1 + self.commission)))
+                            max_shares = int(short_position_value / (trade_price * (1 + self.commission_short)))
                             
                             if max_shares > 0:
                                 position_size = -max_shares
-                                commission_cost = abs(position_size) * trade_price * self.commission
+                                position_type = 'short'  # Set position type when entering short
+                                commission_cost = abs(position_size) * trade_price * self.commission_short
                                 cash += (abs(position_size) * trade_price - commission_cost)
                                 commission_paid += commission_cost  # Add to existing commission
                                 position_cost_basis = trade_price
@@ -314,7 +331,7 @@ class CrossTradeBacktester(Backtester):
                                 action_taken = "SELL" # Just sell if can't short
                                 self.num_trades += 1
                 
-                elif position_size < 0: # Short position
+                elif position_type == 'short': # Short position
                     if buy_signal: # Have buy signal while short
                         signal_generated = "Cover"
                         
@@ -324,20 +341,22 @@ class CrossTradeBacktester(Backtester):
                             # Determine if we should just cover or "Cover and Buy" based on logic
                             # We have an explicit buy signal, so we'll flip to long
                             signal_generated = "Cover and Buy"
-                            action_taken = "COVER_AND_BUY"
+                            action_taken = "COVER AND BUY"
                             
                             # First cover the short position
-                            commission_cost = abs(position_size) * trade_price * self.commission
+                            commission_cost = abs(position_size) * trade_price * self.commission_short
                             cash -= (abs(position_size) * trade_price + commission_cost)
                             commission_paid = commission_cost
                             position_size = 0
+                            position_type = 'none'  # Reset position type after covering short
                             
                             # Then enter long position using available cash
-                            max_shares = int((cash * long_entry_pct_cash) / (trade_price * (1 + self.commission)))
+                            max_shares = int((cash * long_entry_pct_cash) / (trade_price * (1 + self.commission_long)))
                             
                             if max_shares > 0:
                                 position_size = max_shares
-                                commission_cost = position_size * trade_price * self.commission
+                                position_type = 'long'  # Set position type when entering long
+                                commission_cost = position_size * trade_price * self.commission_long
                                 cash -= (position_size * trade_price + commission_cost)
                                 commission_paid += commission_cost  # Add to existing commission
                                 position_cost_basis = trade_price
@@ -347,26 +366,43 @@ class CrossTradeBacktester(Backtester):
                                 self.num_trades += 1
                 
             # --- Log Daily State (using self.portfolio_log) ---
+            # Convert signal_generated to boolean buy/sell signals for consistency with band_trade.py
+            buy_signal = False
+            sell_signal = False
+            if signal_generated in ['Buy', 'Cover and Buy']:
+                buy_signal = True
+            elif signal_generated in ['Sell', 'Sell and Short']:
+                sell_signal = True
+            elif signal_generated == 'Cover':
+                buy_signal = True  # Cover is triggered by buy signals
+            elif signal_generated == 'Short':
+                sell_signal = True  # Short is triggered by sell signals
+                
             log_entry = {
                 'Date': idx,
+                'Price': trade_price,  # Renamed from TradePrice for consistency
+                'Close': trade_price,  # Added for compatibility with compute_benchmark_return
                 'Cash': cash,
                 'PositionSize': position_size,
-                'PositionCostBasis': position_cost_basis,
+                'PositionValue': position_value,  # Use calculated position value for consistency
+                'PositionType': position_type,  # Added for consistency
                 'PortfolioValue': portfolio_value,
-                'SignalGenerated': signal_generated, 
-                'ActionTaken': action_taken, 
-                'TradePrice': trade_price,
                 'CommissionPaid': commission_paid,
-                'ShortFeePaid': short_fee_paid
+                'ShortFee': short_fee,
+                'LongFee': long_fee,
+                'BuySignal': buy_signal,  # Added for consistency
+                'SellSignal': sell_signal,  # Added for consistency
+                'Action': action_taken,
+                'PositionCostBasis': position_cost_basis  # Keep this unique field
             }
             # --------------------------------------------------
-            self.portfolio_log.append(log_entry)
+            portfolio_log.append(log_entry)
 
         # --- Final Calculations and DataFrame Creation ---
         # Create portfolio DataFrame from log
-        portfolio_df = pd.DataFrame(self.portfolio_log)
+        portfolio_df = pd.DataFrame(portfolio_log)
         
-        if not self.portfolio_log: # Check if the log itself is empty first
+        if not portfolio_log: # Check if the log itself is empty first
              portfolio_df = pd.DataFrame() # Ensure df is truly empty
         else:
             portfolio_df.set_index('Date', inplace=True)
@@ -384,8 +420,8 @@ class CrossTradeBacktester(Backtester):
             "short_window_indicator": short_window_indicator,
             "long_window_indicator": long_window_indicator,
             "initial_cash": self.initial_cash,
-            "final_value": final_value,
-            "total_return_pct": total_return_pct,
+            "final_value": round(final_value, 2),
+            "total_return_pct": round(total_return_pct, 2),
             "num_trades": self.num_trades,
         }
 

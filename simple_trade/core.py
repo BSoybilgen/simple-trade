@@ -11,9 +11,10 @@ from simple_trade.trend.wma import wma
 from simple_trade.trend.hma import hma
 from simple_trade.trend.adx import adx
 from simple_trade.trend.psar import psar
-from simple_trade.trend.ichi import ichimoku, tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b, chikou_span
+from simple_trade.trend.ichi import ichimoku
 from simple_trade.trend.trix import trix
 from simple_trade.trend.aroon import aroon
+from simple_trade.trend.strend import supertrend
 
 # Import momentum indicators
 from simple_trade.momentum.rsi import rsi
@@ -48,13 +49,9 @@ INDICATORS = {
     'adx': adx,
     'psar': psar,
     'ichimoku': ichimoku,
-    'tenkan_sen': tenkan_sen,
-    'kijun_sen': kijun_sen,
-    'senkou_span_a': senkou_span_a,
-    'senkou_span_b': senkou_span_b,
-    'chikou_span': chikou_span,
     'trix': trix,
     'aroon': aroon,
+    'strend': supertrend,
     'stoch': stoch,
     'cci': cci,
     'roc': roc,
@@ -71,8 +68,8 @@ INDICATORS = {
 
 # Export all indicators
 __all__ = [
-    'sma', 'ema', 'wma', 'hma', 'adx', 'psar', 'trix', 'aroon',   # Trend indicators
-    'ichimoku', 'tenkan_sen', 'kijun_sen', 'senkou_span_a', 'senkou_span_b', 'chikou_span',  # Ichimoku indicators
+    'sma', 'ema', 'wma', 'hma', 'adx', 'psar', 'trix', 'aroon', 'supertrend',   # Trend indicators
+    'ichimoku',
     'rsi', 'macd', 'stoch', 'cci', 'roc',    # Momentum indicators
     'bollinger_bands', 'atr', 'keltner_channels', 'donchian_channels', 'chaikin_volatility',  # Volatility indicators
     'obv', 'vma', 'adline', 'cmf', 'vpt',  # Volume indicators

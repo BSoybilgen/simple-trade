@@ -1,14 +1,15 @@
 import pandas as pd
 
-def rsi(series: pd.Series, window: int = 14) -> pd.Series:
+def rsi(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Series:
     """
     Calculates the Relative Strength Index (RSI) of a series.
 
     The RSI is a momentum indicator used in technical analysis that measures the magnitude of recent price changes to evaluate overbought or oversold conditions in the price of a stock or other asset.
 
     Args:
-        series (pd.Series): The input series.
+        df (pd.DataFrame): The input DataFrame.
         window (int): The window size for the RSI calculation.
+        close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.Series: The RSI of the series.
@@ -26,10 +27,11 @@ def rsi(series: pd.Series, window: int = 14) -> pd.Series:
     - Identifying trend direction: The RSI can be used to confirm the direction of a price trend.
     - Generating buy and sell signals: Divergences between the RSI and price can be used to generate buy and sell signals.
     """
+    series = df[close_col]
     delta = series.diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
     rs = gain / loss
     rsi = 100 - (100 / (1 + rs))
-    # Return the raw Series, naming will be handled in core.py
+    rsi.name = f'RSI_{window}'
     return rsi

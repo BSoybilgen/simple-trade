@@ -5,9 +5,9 @@ from simple_trade.backtesting import Backtester
 class BandTradeBacktester(Backtester):
     """Backtester extension for Band Trade strategies."""
     
-    def __init__(self, initial_cash: float = 10000.0, commission: float = 0.001, short_fee_rate: float = 0.0005):
-        """Initializes the BandTradeBacktester."""
-        super().__init__(initial_cash, commission, short_fee_rate)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.log = None
 
     def run_band_trade(self, data: pd.DataFrame, indicator_col: str, upper_band_col: str, lower_band_col: str, 
                             price_col: str = 'Close', long_entry_pct_cash: float = 0.9, short_entry_pct_cash: float = 0.1, 
@@ -57,6 +57,7 @@ class BandTradeBacktester(Backtester):
             trading_type (str): Defines the trading behavior ('long', 'short', 'mixed'). Default is 'long'.
             strategy_type (int): Defines the band trade logic (1: mean_reversion, 2: breakout). Default is 1.
             day1_position (str): Specifies whether to take a position on day 1. Options: 'none', 'long', 'short' (default: 'none').
+            risk_free_rate (float): Risk-free rate for Sharpe and Sortino ratios (default: 0.0).
 
         Returns:
             tuple: A tuple containing:
@@ -243,8 +244,8 @@ class BandTradeBacktester(Backtester):
                 # Calculate shares to buy
                 shares_to_buy = int((cash * long_entry_pct_cash) / first_price)
                 if shares_to_buy > 0:
-                    # Calculate commission
-                    commission = shares_to_buy * first_price * self.commission
+                    # Calculate commission for long position
+                    commission = shares_to_buy * first_price * self.commission_long
                     # Update portfolio
                     cash -= (shares_to_buy * first_price + commission)
                     position_size = shares_to_buy
@@ -256,10 +257,10 @@ class BandTradeBacktester(Backtester):
                 # Calculate shares to short
                 shares_to_short = int((cash * short_entry_pct_cash) / first_price)
                 if shares_to_short > 0:
-                    # Calculate commission
-                    commission = shares_to_short * first_price * self.commission
-                    # When shorting, we receive cash from the sale
-                    cash -= commission
+                    # Calculate commission for short position
+                    commission = shares_to_short * first_price * self.commission_short
+                    # When shorting, we receive cash from the sale, minus commission
+                    cash += (shares_to_short * first_price - commission)
                     position_size = -shares_to_short  # Negative for short positions
                     position_value = abs(position_size) * first_price  # Use absolute size to calculate positive liability value
                     position_type = 'short'
@@ -275,13 +276,21 @@ class BandTradeBacktester(Backtester):
             start_of_day_position_type = position_type
             start_of_day_position_value = position_value # Value based on *previous* day's close
             
-            # Apply short borrow fee based on START of day position
-            # This ensures the fee for holding overnight is applied even if covered today
+            # Apply borrow fees based on START of day position
+            # This ensures the fee for holding overnight is applied even if position is closed today
             short_fee = 0.0
+            long_fee = 0.0
+            
             if start_of_day_position_type == 'short':
+                # Apply short borrow fee rate
                 # Use the positive position value from the start of the day (liability)
-                short_fee = start_of_day_position_value * self.short_fee_rate
+                short_fee = start_of_day_position_value * self.short_borrow_fee_inc_rate
                 cash -= short_fee # Deduct fee from cash immediately
+            
+            elif start_of_day_position_type == 'long':
+                # Apply incremental long borrow fee rate (typically for ETFs/leveraged positions)
+                long_fee = start_of_day_position_value * self.long_borrow_fee_inc_rate
+                cash -= long_fee # Deduct fee from cash immediately
             
             # Update position value based on the current day's closing price
             if position_type == 'long':
@@ -299,21 +308,31 @@ class BandTradeBacktester(Backtester):
                     # Buy signal and not already long
                     shares_to_buy = int((cash * long_entry_pct_cash) / current_price)
                     if shares_to_buy > 0:
-                        commission = shares_to_buy * current_price * self.commission
+                        commission = shares_to_buy * current_price * self.commission_long
                         cash -= (shares_to_buy * current_price + commission)
                         position_size = shares_to_buy
                         position_value = shares_to_buy * current_price
                         position_type = 'long'
                         commission_paid += commission
+                        action = 'BUY'  # Set action when buy is executed
+                    else:
+                        action = 'HOLD'
                 
                 elif sell_signal and position_type == 'long':
-                    # Sell signal and currently long
-                    commission = position_value * self.commission
-                    cash += (position_value - commission)
-                    position_size = 0
-                    position_value = 0.0
-                    position_type = 'none'
-                    commission_paid += commission
+                    # Check for conflicting signals
+                    if buy_signal:  # Both buy AND sell signals - conflicting
+                        action = 'HOLD_CONFLICTING_SIGNAL'
+                    else:
+                        # Sell signal and currently long
+                        commission = position_value * self.commission_long
+                        cash += (position_value - commission)
+                        position_size = 0
+                        position_value = 0.0
+                        position_type = 'none'
+                        commission_paid += commission
+                        action = 'SELL'  # Set action when sell is executed
+                else:
+                    action = 'HOLD'
             
             elif trading_type == 'short':
                 # Short-only trading
@@ -321,7 +340,7 @@ class BandTradeBacktester(Backtester):
                     # Sell signal and not already short
                     shares_to_short = int((cash * short_entry_pct_cash) / current_price)
                     if shares_to_short > 0:
-                        commission = shares_to_short * current_price * self.commission
+                        commission = shares_to_short * current_price * self.commission_short
                         # When shorting, we receive cash from the sale
                         cash += (shares_to_short * current_price - commission)
                         position_size = -shares_to_short
@@ -333,25 +352,33 @@ class BandTradeBacktester(Backtester):
                         action = 'HOLD'
                 
                 elif buy_signal and position_type == 'short':
-                    # Buy signal and currently short (cover)
-                    commission = position_value * self.commission
-                    # When covering, we pay to buy back the shares
-                    cash -= (position_value + commission)
-                    position_size = 0
-                    position_value = 0.0
-                    position_type = 'none'
-                    commission_paid += commission
-                    action = 'COVER'
+                    # Check for conflicting signals
+                    if sell_signal:  # Both buy AND sell signals - conflicting
+                        action = 'HOLD_CONFLICTING_SIGNAL'
+                    else:
+                        # Buy signal and currently short (cover)
+                        commission = position_value * self.commission_short
+                        # When covering, we pay to buy back the shares
+                        cash -= (position_value + commission)
+                        position_size = 0
+                        position_value = 0.0
+                        position_type = 'none'
+                        commission_paid += commission
+                        action = 'COVER'
                 else:
                     action = 'HOLD'
             
             elif trading_type == 'mixed':
                 # Mixed long/short trading
                 if buy_signal:
+                    # Track previous position for combined actions
+                    prev_position_type = position_type
+                    
                     if position_type == 'short':
                         # Cover short position
-                        commission = position_value * self.commission
-                        cash += (position_value - commission)
+                        # When covering, we need to pay to buy back the shares we borrowed
+                        commission = position_value * self.commission_short
+                        cash -= (position_value + commission)
                         commission_paid += commission
                         position_size = 0
                         position_value = 0.0
@@ -361,17 +388,34 @@ class BandTradeBacktester(Backtester):
                     if position_type != 'long':
                         shares_to_buy = int((cash * long_entry_pct_cash) / current_price)
                         if shares_to_buy > 0:
-                            commission = shares_to_buy * current_price * self.commission
+                            commission = shares_to_buy * current_price * self.commission_long
                             cash -= (shares_to_buy * current_price + commission)
                             position_size = shares_to_buy
                             position_value = shares_to_buy * current_price
                             position_type = 'long'
                             commission_paid += commission
+                            
+                            # Set appropriate action based on previous position
+                            if prev_position_type == 'short':
+                                action = 'COVER AND BUY'
+                            else:  # prev_position_type was 'none'
+                                action = 'BUY'
+                        else:
+                            # Just cover if no shares bought
+                            if prev_position_type == 'short':
+                                action = 'COVER'
+                            else:
+                                action = 'HOLD'
+                    else:
+                        action = 'HOLD'  # Already long
                 
                 elif sell_signal:
+                    # Track previous position for combined actions
+                    prev_position_type = position_type
+                    
                     if position_type == 'long':
                         # Sell long position
-                        commission = position_value * self.commission
+                        commission = position_value * self.commission_long
                         cash += (position_value - commission)
                         commission_paid += commission
                         position_size = 0
@@ -382,26 +426,33 @@ class BandTradeBacktester(Backtester):
                     if position_type != 'short':
                         shares_to_short = int((cash * short_entry_pct_cash) / current_price)
                         if shares_to_short > 0:
-                            commission = shares_to_short * current_price * self.commission
-                            cash -= commission
+                            commission = shares_to_short * current_price * self.commission_short
+                            # When shorting, we receive cash from the sale of borrowed shares
+                            cash += (shares_to_short * current_price - commission)
                             position_size = -shares_to_short
                             position_value = abs(position_size) * current_price
                             position_type = 'short'
                             commission_paid += commission
-            
-            # Determine action based on trading type
-            if trading_type == 'long':
-                action = 'BUY' if buy_signal and position_type != 'long' else ('SELL' if sell_signal and position_type == 'long' else 'HOLD')
-            elif trading_type == 'short':
-                # Action is set in the trading logic above
-                pass
-            else:  # mixed
-                if buy_signal:
-                    action = 'COVER' if position_type == 'short' else ('BUY' if position_type != 'long' else 'HOLD')
-                elif sell_signal:
-                    action = 'SELL' if position_type == 'long' else ('SHORT' if position_type != 'short' else 'HOLD')
+                            
+                            # Set appropriate action based on previous position
+                            if prev_position_type == 'long':
+                                action = 'SELL AND SHORT'
+                            else:  # prev_position_type was 'none'
+                                action = 'SHORT'
+                        else:
+                            # Just sell if no shares shorted
+                            if prev_position_type == 'long':
+                                action = 'SELL'
+                            else:
+                                action = 'HOLD'
+                    else:
+                        action = 'HOLD'  # Already short
                 else:
-                    action = 'HOLD'
+                    action = 'HOLD'  # No buy or sell signal
+            
+            # Make sure action is set to HOLD if it hasn't been set by any of the trading logic
+            if 'action' not in locals():
+                action = 'HOLD'
             
             # Calculate portfolio value
             portfolio_value = cash
@@ -423,6 +474,7 @@ class BandTradeBacktester(Backtester):
                 'PortfolioValue': portfolio_value,
                 'CommissionPaid': commission_paid,
                 'ShortFee': short_fee,
+                'LongFee': long_fee,
                 'BuySignal': buy_signal,
                 'SellSignal': sell_signal,
                 'Action': action
@@ -438,7 +490,7 @@ class BandTradeBacktester(Backtester):
         else:
             # Create empty DataFrame with expected columns if no log entries
             end_state = pd.DataFrame(columns=['Price', 'Close', 'Cash', 'PositionSize', 'PositionValue', 
-                                             'PositionType', 'PortfolioValue', 'CommissionPaid', 
+                                             'PositionType', 'PortfolioValue', 'CommissionPaid', 'ShortFee', 'LongFee',
                                              'BuySignal', 'SellSignal', 'Action'])
         
         return portfolio_log, end_state
@@ -452,6 +504,11 @@ class BandTradeBacktester(Backtester):
         benchmark_results = self.compute_benchmark_return(final_df, price_col='Close')
         improved_results = self.calculate_performance_metrics(portfolio_df, risk_free_rate)
 
+        # Calculate total fees
+        total_short_fees = portfolio_df['ShortFee'].sum() if 'ShortFee' in portfolio_df.columns else 0
+        total_long_fees = portfolio_df['LongFee'].sum() if 'LongFee' in portfolio_df.columns else 0
+        total_fees = total_short_fees + total_long_fees
+
         # Merge all benchmark results
         results = {
             "strategy": f"Band Trade ({indicator_col} vs {lower_band_col}/{upper_band_col} - {'Mean Reversion' if strategy_type == 1 else 'Breakout'}){' [Shorts Allowed]' if trading_type in ['short', 'mixed'] else ''}{' [Day1 ' + day1_position.capitalize() + ']' if day1_position != 'none' else ''}",
@@ -462,8 +519,10 @@ class BandTradeBacktester(Backtester):
             "initial_cash": self.initial_cash,
             "final_value": round(portfolio_df['PortfolioValue'].iloc[-1], 2),
             "total_return_pct": round(((portfolio_df['PortfolioValue'].iloc[-1] - self.initial_cash) / self.initial_cash) * 100, 2),
-
             "num_trades": portfolio_df['Action'].value_counts().get('BUY', 0) + portfolio_df['Action'].value_counts().get('SELL', 0) + portfolio_df['Action'].value_counts().get('SHORT', 0) + portfolio_df['Action'].value_counts().get('COVER', 0),
+            "total_short_fees": round(total_short_fees, 2),
+            "total_long_fees": round(total_long_fees, 2),
+            "total_borrow_fees": round(total_fees, 2),
             }
         results.update(benchmark_results)
         results.update(improved_results)
@@ -536,5 +595,14 @@ class BandTradeBacktester(Backtester):
                     print(f"  • Avg Drawdown Duration: {results['avg_drawdown_duration_days']} days")
                 if 'annualized_volatility_pct' in results:
                     print(f"  • Annualized Volatility: {results['annualized_volatility_pct']:,.2f}%")
+            
+            # Fee information
+            if 'total_borrow_fees' in results and results['total_borrow_fees'] > 0:
+                print("\n💰 BORROW FEES:")
+                if 'total_short_fees' in results and results['total_short_fees'] > 0:
+                    print(f"  • Total Short Borrow Fees: ${results['total_short_fees']:,.2f}")
+                if 'total_long_fees' in results and results['total_long_fees'] > 0:
+                    print(f"  • Total Long Borrow Fees: ${results['total_long_fees']:,.2f}")
+                print(f"  • Total Borrow Fees: ${results['total_borrow_fees']:,.2f}")
         
         print("\n" + "="*60)

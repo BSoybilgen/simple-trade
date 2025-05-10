@@ -31,7 +31,8 @@ initial_capital = 100000
 commission_fee = 0.001  # 0.1%
 constant_params = {
     'initial_cash': initial_capital, 
-    'commission': commission_fee,
+    'commission_long': commission_fee,
+    'commission_short': commission_fee,
     'price_col': 'Close'
 }
 
@@ -60,7 +61,8 @@ def run_band_trade_with_windows(data, rsi_upper_threshold, rsi_lower_threshold, 
     # Create a backtester instance
     backtester = BandTradeBacktester(
         initial_cash=kwargs.pop('initial_cash', 10000),
-        commission=kwargs.pop('commission', 0.001),
+        commission_long=kwargs.pop('commission_long', 0.001),
+        commission_short=kwargs.pop('commission_short', 0.001),
         short_borrow_fee_inc_rate=kwargs.pop('short_borrow_fee_inc_rate', 0.0),
         long_borrow_fee_inc_rate=kwargs.pop('long_borrow_fee_inc_rate', 0.0)
     )
@@ -129,7 +131,8 @@ else:
     # Create backtester with best parameters
     best_backtester = BandTradeBacktester(
         initial_cash=constant_params.get('initial_cash', 10000.0),
-        commission=constant_params.get('commission', 0.001)
+        commission_long=constant_params.get('commission_long', 0.001),
+        commission_short=constant_params.get('commission_short', 0.001)
     )
     
     # Run backtest with best parameters

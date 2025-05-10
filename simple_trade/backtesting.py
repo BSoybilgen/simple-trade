@@ -7,23 +7,24 @@ class Backtester:
     Handles backtesting of trading strategies based on indicator signals.
     This is the base class with common functionality. Strategy-specific methods are in subclasses.
     """
-    def __init__(self, initial_cash: float = 10000.0, commission: float = 0.001, 
-                 short_borrow_fee_inc_rate: float = 0.0, long_borrow_fee_inc_rate: float = 0.0, short_fee_rate: float = 0.0005):
+    def __init__(self, initial_cash: float = 10000.0, commission_long: float = 0.001, 
+                 commission_short: float = 0.001, short_borrow_fee_inc_rate: float = 0.0, 
+                 long_borrow_fee_inc_rate: float = 0.0):
         """
         Initializes the Backtester.
 
         Args:
             initial_cash (float): Starting cash balance for the backtest.
-            commission (float): Commission rate per trade (e.g., 0.001 for 0.1%).
-            short_borrow_fee_inc_rate (float): Daily fee rate for holding short positions, applied to the market value of the short position (default: 0.0).
-            long_borrow_fee_inc_rate (float): Daily fee rate for holding long positions. Typically only used for ETFs or leveraged positions (default: 0.0).
-            short_fee_rate (float): Annual rate, applied daily later (default: 0.0005).
+            commission_long (float): Commission rate for long trades (e.g., 0.001 for 0.1%).
+            commission_short (float): Commission rate for short trades (e.g., 0.001 for 0.1%).
+            short_borrow_fee_inc_rate (float): Time-based fee rate for holding short positions, applied to the market value of the short position (default: 0.0).
+            long_borrow_fee_inc_rate (float): Time-based fee rate for holding long positions. Typically only used for ETFs or leveraged positions (default: 0.0).
         """
         self.initial_cash = initial_cash
-        self.commission = commission
+        self.commission_long = commission_long
+        self.commission_short = commission_short
         self.short_borrow_fee_inc_rate = short_borrow_fee_inc_rate
         self.long_borrow_fee_inc_rate = long_borrow_fee_inc_rate
-        self.short_fee_rate = short_fee_rate
         
     def compute_benchmark_return(self, data: pd.DataFrame, price_col: str = 'Close') -> dict:
         """
@@ -46,7 +47,7 @@ class Backtester:
         last_price = data[price_col].iloc[-1]
         
         # Calculate how many shares we could buy at the start with our initial cash, accounting for commission
-        shares_bought = self.initial_cash / (first_price * (1 + self.commission))
+        shares_bought = self.initial_cash / (first_price * (1 + self.commission_long))
         
         # Calculate the final value of our investment
         final_value = shares_bought * last_price
