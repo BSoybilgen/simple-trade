@@ -15,7 +15,7 @@ setup(
                               encoding='utf-8').read(),
     long_description_content_type='text/markdown',
     install_requires=[
-        "yfinance>=0.2.40",
+        "yfinance>=0.2.59",
         "pandas>=1.4.0",
         "numpy>=1.22.0",
         "joblib>=1.1.1",
