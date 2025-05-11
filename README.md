@@ -49,7 +49,7 @@ A Python library that allows you to compute technical indicators and build trade
 
 ## Dependencies
 
-*   Python >= 3.8
+*   Python >= 3.10
 *   [yfinance](https://pypi.org/project/yfinance/)
 *   [pandas](https://pandas.pydata.org/)
 *   [numpy](https://numpy.org/)
@@ -71,29 +71,31 @@ from simple_trade import IndicatorPlotter
 # Step 1: Download data
 symbol = 'TSLA'
 start = '2024-01-01'
+end = '2025-01-01'
 interval = '1d'
 print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, interval=interval)
+data = download_data(symbol, start, end, interval=interval)
 
 # Step 2: Calculate indicator
+window=14
 data = compute_indicator(
     data=data,
     indicator='adx',
-    window=14,
-    high='High',
-    low='Low',
-    close='Close'
+    window=window,
+    high_col='High',
+    low_col='Low',
+    close_col='Close'
 )
 
 # Step 3: Plot the indicator
 plotter = IndicatorPlotter()
-columns = ['ADX_14', '+DI_14', '-DI_14']
+columns = [f'ADX_{window}', f'+DI_{window}', f'-DI_{window}']
 fig = plotter.plot_results(
         data,
         price_col='Close',
         column_names=columns,
         plot_on_subplot=True, 
-        title=f"{symbol} with ADX(14)"
+        title=f"{symbol} with ADX({window})"
     )
 
 # Step 4: Display the plot
@@ -133,7 +135,7 @@ data = compute_indicator(data, indicator='sma', window=long_window)
 # Step 3: Initialize strategy
 initial_cash = 10000.0
 commission = 0.01
-backtester = CrossTradeBacktester(initial_cash=initial_cash, commission=commission)
+backtester = CrossTradeBacktester(initial_cash=initial_cash, commission_long=commission)
 
 results, portfolio = backtester.run_cross_trade(
     data=data,
@@ -226,7 +228,7 @@ initial_capital = 100000
 commission_fee = 0.001 # 0.1%
 constant_params = {
     'initial_cash': initial_capital, 
-    'commission': commission_fee,
+    'commission_long': commission_fee,
     'price_col': 'Close'
 }
 # Define the metric to optimize and whether to maximize or minimize
@@ -249,9 +251,7 @@ def run_cross_trade_with_windows(data, short_window, long_window, **kwargs):
     # Create a backtester instance
     backtester = CrossTradeBacktester(
         initial_cash=kwargs.pop('initial_cash', 10000),
-        commission=kwargs.pop('commission', 0.001),
-        short_borrow_fee_inc_rate=kwargs.pop('short_borrow_fee_inc_rate', 0.0),
-        long_borrow_fee_inc_rate=kwargs.pop('long_borrow_fee_inc_rate', 0.0)
+        commission_long=kwargs.pop('commission_long', 0.001),
     )
     
     # Run the backtest
@@ -272,6 +272,22 @@ optimizer = Optimizer(
     maximize_metric=maximize_metric,
     constant_params=constant_params
 )
+
+print("\nRunning Optimization (Parallel)...")
+# Run optimization with parallel processing (adjust n_jobs as needed)
+results = optimizer.optimize(parallel=True, n_jobs=-1) # n_jobs=-1 uses all available cores
+
+# --- Display Results ---
+print("\n--- Optimization Results ---")
+
+# Unpack results
+best_params, best_metric_value, all_results = results
+
+print("\n--- Top 5 Parameter Combinations ---")
+# Sort results for display
+sorted_results = sorted(all_results, key=lambda x: x[1], reverse=maximize_metric)
+for i, (params, metric_val) in enumerate(sorted_results[:5]):
+    print(f"{i+1}. Params: {params}, Metric: {metric_val:.4f}")
 ```
 
 **Output of Results**
