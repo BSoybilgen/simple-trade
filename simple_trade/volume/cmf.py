@@ -2,18 +2,20 @@ import pandas as pd
 import numpy as np
 
 
-def cmf(df: pd.DataFrame, period: int = 20, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close', volume_col: str = 'Volume') -> pd.Series:
+def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Chaikin Money Flow (CMF), a volume-based indicator that measures
     the amount of Money Flow Volume over a specific period.
     
     Args:
         df (pd.DataFrame): The DataFrame containing the data.
-        period (int): The lookback period for calculation. Default is 20.
-        high_col (str): The column name for high prices. Default is 'High'.
-        low_col (str): The column name for low prices. Default is 'Low'.
-        close_col (str): The column name for closing prices. Default is 'Close'.
-        volume_col (str): The column name for volume. Default is 'Volume'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - period (int): The lookback period for calculation. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+            - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
         pd.Series: The Chaikin Money Flow values.
@@ -49,6 +51,19 @@ def cmf(df: pd.DataFrame, period: int = 20, high_col: str = 'High', low_col: str
     - Overbought/oversold identification: Extreme CMF values may indicate potential
       reversal points.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    period = parameters.get('period', 20)
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    close_col = columns.get('close_col', 'Close')
+    volume_col = columns.get('volume_col', 'Volume')
+    
     high = df[high_col]
     low = df[low_col]
     close = df[close_col]

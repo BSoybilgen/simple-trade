@@ -2,16 +2,18 @@ import pandas as pd
 import numpy as np
 
 
-def vma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close', volume_col: str = 'Volume') -> pd.Series:
+def vma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Volume Moving Average (VMA), which is a weighted moving average
     that uses volume as the weighting factor.
     
     Args:
         df (pd.DataFrame): The DataFrame containing the data.
-        window (int): The lookback period for calculation. Default is 14.
-        close_col (str): The column name for closing prices. Default is 'Close'.
-        volume_col (str): The column name for volume. Default is 'Volume'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for calculation. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+            - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
         pd.Series: The Volume Moving Average values.
@@ -35,6 +37,17 @@ def vma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close', volume_col
     - Divergence analysis: Comparing VMA to other moving averages can highlight periods
       where price moves are or aren't supported by volume.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    window = parameters.get('window', 20)
+    close_col = columns.get('close_col', 'Close')
+    volume_col = columns.get('volume_col', 'Volume')
+
     close = df[close_col]
     volume = df[volume_col]
     

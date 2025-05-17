@@ -2,10 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def ichimoku(df: pd.DataFrame,
-             tenkan_period: int = 9, kijun_period: int = 26,
-             senkou_b_period: int = 52, displacement: int = 26,
-             high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close') -> dict:
+def ichimoku(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
     """
     Calculates the Ichimoku Cloud indicators (Ichimoku Kinko Hyo).
 
@@ -15,13 +12,9 @@ def ichimoku(df: pd.DataFrame,
 
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have high, low, and close columns.
-        tenkan_period (int): Period for Tenkan-sen (Conversion Line). Default is 9.
-        kijun_period (int): Period for Kijun-sen (Base Line). Default is 26.
-        senkou_b_period (int): Period for Senkou Span B. Default is 52.
-        displacement (int): Displacement period for Senkou Span A and B. Default is 26.
-        high_col (str): The name of the high price column (default: 'High').
-        low_col (str): The name of the low price column (default: 'Low').
-        close_col (str): The name of the close price column (default: 'Close').
+        parameter (dict): The parameter dictionary that includes period for Tenkan-sen (Conversion Line),
+        period for Kijun-sen (Base Line), period for Senkou Span B, and displacement period.
+        columns (dict): The column dictionary that includes high, low, and close column names.
 
     Returns:
         dict: A dictionary containing all Ichimoku components as pandas Series:
@@ -62,8 +55,21 @@ def ichimoku(df: pd.DataFrame,
 
     - Strength confirmation: The thicker the cloud, the stronger the support/resistance.
     """
-    high = df[high_col]
-    low = df[low_col]
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    close_col = columns.get('close_col', 'Close')
+    tenkan_period = parameters.get('tenkan_period', 9)
+    kijun_period = parameters.get('kijun_period', 26)
+    senkou_b_period = parameters.get('senkou_b_period', 52)
+    displacement = parameters.get('displacement', 26)
+    
     close = df[close_col]
 
     # Calculate Tenkan-sen (Conversion Line)

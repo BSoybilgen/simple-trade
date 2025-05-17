@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def supertrend(df: pd.DataFrame, period: int = 7, multiplier: float = 3.0, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close') -> pd.DataFrame:
+def supertrend(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
     """
     Calculates the SuperTrend indicator.
     
@@ -11,11 +11,8 @@ def supertrend(df: pd.DataFrame, period: int = 7, multiplier: float = 3.0, high_
     
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have high, low, and close columns.
-        period (int): The lookback period for ATR calculation (default: 7).
-        multiplier (float): The multiplier for the ATR (default: 3.0).
-        high_col (str): The name of the high price column (default: 'high').
-        low_col (str): The name of the low price column (default: 'Low').
-        close_col (str): The name of the close price column (default: 'Close').
+        parameters (dict): The parameter dictionary that includes period and multiplier for the ATR.
+        columns (dict): The column dictionary that includes high, low, and close column names.
     
     Returns:
         pd.DataFrame: DataFrame with 'supertrend' and 'direction' columns.
@@ -33,8 +30,18 @@ def supertrend(df: pd.DataFrame, period: int = 7, multiplier: float = 3.0, high_
     - Swing trading: SuperTrend is effective for identifying entry and exit points in swing trading.
     - Support/resistance: The indicator acts as dynamic support in uptrends and resistance in downtrends.
     """
-    if not all(col in df.columns for col in [high_col, low_col, close_col]):
-        raise ValueError(f"DataFrame must contain columns: {high_col}, {low_col}, {close_col}")
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    period = parameters.get('period', 14)
+    multiplier = parameters.get('multiplier', 3.0)
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    close_col = columns.get('close_col', 'Close')
 
     high = df[high_col]
     low = df[low_col]

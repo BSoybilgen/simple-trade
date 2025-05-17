@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from .wma import wma
 
-def hma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Series:
+def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Hull Moving Average (HMA) of a series.
 
@@ -12,8 +12,8 @@ def hma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Seri
 
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        window (int): The window size for the HMA.
-        close_col (str): The name of the close price column (default: 'Close').
+        parameter (dict): The parameter dictionary that includes the window size for the HMA.
+        columns (dict): The column dictionary that includes close column name.
 
     Returns:
         pd.Series: The HMA of the series.
@@ -41,12 +41,28 @@ def hma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Seri
     - Generating buy and sell signals: The HMA can be used in crossover systems
       to generate buy and sell signals.
     """
-    series = df[close_col]
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    close_col = columns.get('close_col', 'Close')
+    window = parameters.get('window', 20)
+
     half_length = int(window / 2)
     sqrt_length = int(np.sqrt(window))
-    wma_half = wma(df, half_length, close_col=close_col)
-    wma_full = wma(df, window, close_col=close_col)
+    # Create parameter dicts for wma function
+    wma_params_half = {'window': half_length}
+    wma_params_full = {'window': window}
+    wma_cols = {'close_col': close_col}
+    
+    wma_half = wma(df, parameters=wma_params_half, columns=wma_cols)
+    wma_full = wma(df, parameters=wma_params_full, columns=wma_cols)
     df = pd.DataFrame(2 * wma_half - wma_full, columns=[close_col])
-    hma_ = wma(df, sqrt_length, close_col=close_col)
+    
+    wma_params_sqrt = {'window': sqrt_length}
+    hma_ = wma(df, parameters=wma_params_sqrt, columns=wma_cols)
     hma_.name = f'HMA_{window}'
     return hma_

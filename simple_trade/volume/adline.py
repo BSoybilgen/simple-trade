@@ -2,17 +2,19 @@ import pandas as pd
 import numpy as np
 
 
-def adline(df, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close', volume_col: str = 'Volume') -> pd.Series:
+def adline(df, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Accumulation/Distribution Line (A/D Line), a volume-based indicator
     that measures the cumulative flow of money into and out of a security.
     
     Args:
         df (pd.DataFrame): The DataFrame containing the data.
-        high_col (str): The column name for high prices. Default is 'High'.
-        low_col (str): The column name for low prices. Default is 'Low'.
-        close_col (str): The column name for closing prices. Default is 'Close'.
-        volume_col (str): The column name for volume. Default is 'Volume'.
+        parameters (dict, optional): Dictionary containing calculation parameters. This indicator does not use any calculation parameters.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+            - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
         pd.Series: The Accumulation/Distribution Line values.
@@ -45,6 +47,18 @@ def adline(df, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'C
     - Early warning: A/D Line often leads price movements, making it useful for
       identifying potential trend changes before they occur in price.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    close_col = columns.get('close_col', 'Close')
+    volume_col = columns.get('volume_col', 'Volume')
+    
     high = df[high_col]
     low = df[low_col]
     close = df[close_col]
