@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def psar(df: pd.DataFrame, af_initial=0.02, af_step=0.02, af_max=0.2, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close') -> pd.DataFrame:
+def psar(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
     """
     Calculates Parabolic SAR (PSAR).
 
@@ -11,12 +11,8 @@ def psar(df: pd.DataFrame, af_initial=0.02, af_step=0.02, af_max=0.2, high_col: 
 
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have high, low, and close columns.
-        af_initial (float): Initial acceleration factor. Default is 0.02.
-        af_step (float): Acceleration factor step increment. Default is 0.02.
-        af_max (float): Maximum acceleration factor. Default is 0.2.
-        high_col (str): The name of the high price column (default: 'High').
-        low_col (str): The name of the low price column (default: 'Low').
-        close_col (str): The name of the close price column (default: 'Close').
+        parameter (dict): The parameter dictionary that includes af_initial, af_step, and af_max.
+        columns (dict): The column dictionary that includes high, low, and close column names.
 
     Returns:
         pd.DataFrame: DataFrame containing three columns:
@@ -61,6 +57,21 @@ def psar(df: pd.DataFrame, af_initial=0.02, af_step=0.02, af_max=0.2, high_col: 
     - Volatility adaptation: Since the acceleration factor increases as the trend develops, 
       the indicator adapts to changes in market volatility.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    af_initial = parameters.get('af_initial', 0.02)
+    af_step = parameters.get('af_step', 0.02)
+    af_max = parameters.get('af_max', 0.2)
+    
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    close_col = columns.get('close_col', 'Close')
+
     high = df[high_col]
     low = df[low_col]
     close = df[close_col]

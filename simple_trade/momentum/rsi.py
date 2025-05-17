@@ -1,6 +1,6 @@
 import pandas as pd
 
-def rsi(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Series:
+def rsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Relative Strength Index (RSI) of a series.
 
@@ -8,8 +8,10 @@ def rsi(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Seri
 
     Args:
         df (pd.DataFrame): The input DataFrame.
-        window (int): The window size for the RSI calculation.
-        close_col (str): The column name for closing prices. Default is 'Close'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The window size for the RSI calculation. Default is 14.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.Series: The RSI of the series.
@@ -27,6 +29,16 @@ def rsi(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Seri
     - Identifying trend direction: The RSI can be used to confirm the direction of a price trend.
     - Generating buy and sell signals: Divergences between the RSI and price can be used to generate buy and sell signals.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    window = parameters.get('window', 14)
+    close_col = columns.get('close_col', 'Close')
+    
     series = df[close_col]
     delta = series.diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()

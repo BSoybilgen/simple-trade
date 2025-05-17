@@ -2,15 +2,17 @@ import pandas as pd
 import numpy as np
 
 
-def roc(df: pd.DataFrame, window: int = 12, close_col: str = 'Close') -> pd.Series:
+def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Rate of Change (ROC), a momentum oscillator that measures the percentage 
     change in price between the current price and the price a specified number of periods ago.
 
     Args:
-        df (pd.DataFrame): The input DataFrame. 
-        window (int): The lookback period for the calculation. Default is 12.
-        close_col (str): The column name for closing prices. Default is 'Close'.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the calculation. Default is 12.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.Series: ROC values for the given input series.
@@ -34,6 +36,16 @@ def roc(df: pd.DataFrame, window: int = 12, close_col: str = 'Close') -> pd.Seri
     - Measuring momentum strength: The slope of the ROC line indicates the strength of momentum; 
       a steeper slope indicates stronger momentum.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    window = parameters.get('window', 12)
+    close_col = columns.get('close_col', 'Close')
+    
     series = df[close_col]
     
     # Calculate the Rate of Change

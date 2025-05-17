@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from simple_trade.trend import (
-    ema, sma, wma, hma, adx, aroon, psar, trix, ichimoku
+    ema, sma, wma, hma, adx, aroon, psar, trix, ichimoku, supertrend
 )
 
 # Fixture for sample data
@@ -42,7 +42,7 @@ class TestEMA:
     def test_ema_calculation(self, sample_data):
         """Test basic EMA calculation structure and properties"""
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = ema(df)
+        result = ema(df, parameters=None, columns=None)
         assert isinstance(result, pd.Series)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -56,7 +56,7 @@ class TestEMA:
         """Test EMA with a custom window"""
         window = 5
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = ema(df, window=window)
+        result = ema(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])
         assert result.iloc[0] == sample_data['close'].iloc[0]
@@ -66,7 +66,7 @@ class TestEMA:
         """Test EMA calculation against manually calculated values."""
         data = pd.Series([10, 20, 30, 40, 50])
         df = pd.DataFrame({'Close': data})
-        result = ema(df, window=3)
+        result = ema(df, parameters={'window': 3}, columns=None)
         # k = 2 / (3 + 1) = 0.5
         # EMA(1) = 10
         # EMA(2) = (20*0.5) + (10*0.5) = 15
@@ -83,7 +83,7 @@ class TestSMA:
         """Test basic SMA calculation structure and properties"""
         window = 14 # Default
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = sma(df, window=window)
+        result = sma(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.Series)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -97,7 +97,7 @@ class TestSMA:
         """Test SMA with a custom window"""
         window = 5
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = sma(df, window=window)
+        result = sma(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])
         assert result.iloc[:window-1].isna().all()
@@ -107,7 +107,7 @@ class TestSMA:
         """Test SMA calculation against manually calculated values."""
         data = pd.Series([10, 20, 30, 40, 50])
         df = pd.DataFrame({'Close': data})
-        result = sma(df, window=3)
+        result = sma(df, parameters={'window': 3}, columns=None)
         # SMA(3) = (10+20+30)/3 = 20
         # SMA(4) = (20+30+40)/3 = 30
         # SMA(5) = (30+40+50)/3 = 40
@@ -121,7 +121,7 @@ class TestWMA:
         """Test basic WMA calculation structure and properties"""
         window = 14 # Default
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = wma(df, window=window)
+        result = wma(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.Series)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -135,7 +135,7 @@ class TestWMA:
         """Test WMA with a custom window"""
         window = 5
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = wma(df, window=window)
+        result = wma(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])
         assert result.iloc[:window-1].isna().all()
@@ -145,7 +145,7 @@ class TestWMA:
         """Test WMA calculation against manually calculated values."""
         data = pd.Series([10, 20, 30, 40, 50])
         df = pd.DataFrame({'Close': data})
-        result = wma(df, window=3)
+        result = wma(df, parameters={'window': 3}, columns=None)
         # weights = [1, 2, 3], sum = 6
         # WMA(3) = (10*1 + 20*2 + 30*3) / 6 = 140 / 6 = 23.333...
         # WMA(4) = (20*1 + 30*2 + 40*3) / 6 = 200 / 6 = 33.333...
@@ -160,7 +160,7 @@ class TestHMA:
         """Test basic HMA calculation structure and properties"""
         window = 14 # Default
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = hma(df, window=window)
+        result = hma(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.Series)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -173,7 +173,7 @@ class TestHMA:
         """Test HMA with a custom window"""
         window = 5
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = hma(df, window=window)
+        result = hma(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])
         assert not result.isna().all()
@@ -191,18 +191,18 @@ class TestHMA:
         df_half = pd.DataFrame({'Close': data})
         df_full = pd.DataFrame({'Close': data})
         
-        wma_half = wma(df_half, half_length)
-        wma_full = wma(df_full, window)
+        wma_half = wma(df_half, parameters={'window': half_length}, columns=None)
+        wma_full = wma(df_full, parameters={'window': window}, columns=None)
         
         # Create raw_hma from the Series operations
         raw_hma = 2 * wma_half - wma_full
         
         # Create a DataFrame for the raw_hma
         df_raw = pd.DataFrame({'Close': raw_hma})
-        expected_hma = wma(df_raw, sqrt_length)
+        expected_hma = wma(df_raw, parameters={'window': sqrt_length}, columns=None)
 
         # Get the actual HMA implementation result
-        result = hma(df, window=window)
+        result = hma(df, parameters={'window': window}, columns=None)
         
         # Compare the values instead of the Series objects directly
         # This handles potential differences in Series metadata
@@ -230,7 +230,7 @@ class TestADX:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = adx(df, window=window)
+        result = adx(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -252,7 +252,7 @@ class TestADX:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = adx(df, window=window)
+        result = adx(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert len(result) == len(sample_data['close'])
         expected_cols = [f'ADX_{window}', f'+DI_{window}', f'-DI_{window}']
@@ -274,7 +274,7 @@ class TestAroon:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = aroon(df, period=period)
+        result = aroon(df, parameters={'period': period}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -309,7 +309,7 @@ class TestAroon:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = aroon(df, period=period)
+        result = aroon(df, parameters={'period': period}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -343,7 +343,7 @@ class TestPSAR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = psar(df)
+        result = psar(df, parameters=None, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -359,7 +359,7 @@ class TestPSAR:
         
         # Ensure trend flags are present (either Bullish or Bearish has a value for each row)
         bullish_bearish_both_nan = (result[f'PSAR_Bullish_{default_params}'].isna() & 
-                                 result[f'PSAR_Bearish_{default_params}'].isna())
+                                  result[f'PSAR_Bearish_{default_params}'].isna())
         assert not bullish_bearish_both_nan.all()
 
     def test_psar_custom_params(self, sample_data):
@@ -372,7 +372,7 @@ class TestPSAR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = psar(df, af_initial=custom_af_initial, af_max=custom_af_max)
+        result = psar(df, parameters={'af_initial': custom_af_initial, 'af_step': custom_af_step, 'af_max': custom_af_max}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert len(result) == len(sample_data['close'])
         
@@ -392,7 +392,7 @@ class TestTRIX:
         """Test TRIX calculation structure and properties"""
         window = 15 # Default
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = trix(df, window=window)
+        result = trix(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -410,7 +410,7 @@ class TestTRIX:
         """Test TRIX with custom window parameters"""
         window = 10
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = trix(df, window=window)
+        result = trix(df, parameters={'window': window}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -431,7 +431,7 @@ class TestIchimoku:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = ichimoku(df)
+        result = ichimoku(df, parameters=None, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -470,7 +470,7 @@ class TestIchimoku:
             'Close': sample_data['close']
         })
 
-        result = ichimoku(df, tenkan_period=tenkan_period, kijun_period=kijun_period)
+        result = ichimoku(df, parameters={'tenkan_period': tenkan_period, 'kijun_period': kijun_period}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -494,7 +494,6 @@ class TestSuperTrend:
 
     def test_supertrend_calculation(self, sample_data):
         """Test SuperTrend calculation structure and properties"""
-        from simple_trade.trend import supertrend
         period = 7  # Default
         multiplier = 3.0  # Default
         
@@ -504,7 +503,7 @@ class TestSuperTrend:
             'Close': sample_data['close']
         })
         
-        result = supertrend(df, period=period, multiplier=multiplier)
+        result = supertrend(df, parameters={'period': period, 'multiplier': multiplier}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])
@@ -534,7 +533,6 @@ class TestSuperTrend:
 
     def test_supertrend_custom_params(self, sample_data):
         """Test SuperTrend with custom parameters"""
-        from simple_trade.trend import supertrend
         period = 10
         multiplier = 2.0
         
@@ -544,7 +542,7 @@ class TestSuperTrend:
             'Close': sample_data['close']
         })
         
-        result = supertrend(df, period=period, multiplier=multiplier)
+        result = supertrend(df, parameters={'period': period, 'multiplier': multiplier}, columns=None)
         assert isinstance(result, pd.DataFrame)
         assert len(result) == len(sample_data['close'])
         
@@ -560,7 +558,6 @@ class TestSuperTrend:
 
     def test_supertrend_custom_column_names(self, sample_data):
         """Test SuperTrend with custom column names"""
-        from simple_trade.trend import supertrend
         period = 7  # Default
         multiplier = 3.0  # Default
         
@@ -572,7 +569,7 @@ class TestSuperTrend:
         })
         
         # Calculate SuperTrend with custom column names
-        result = supertrend(df, high_col='h', low_col='l', close_col='c')
+        result = supertrend(df, parameters={'period': period, 'multiplier': multiplier}, columns={'high_col': 'h', 'low_col': 'l', 'close_col': 'c'})
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
         assert len(result) == len(sample_data['close'])

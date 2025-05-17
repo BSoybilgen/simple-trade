@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def vpt(df: pd.DataFrame, close_col: str = 'Close', volume_col: str = 'Volume') -> pd.Series:
+def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Volume Price Trend (VPT), a volume-based indicator that relates
     volume to price change percentage to create a cumulative indicator of buying/selling
@@ -10,8 +10,10 @@ def vpt(df: pd.DataFrame, close_col: str = 'Close', volume_col: str = 'Volume') 
     
     Args:
         df (pd.DataFrame): The DataFrame containing the data.
-        close_col (str): The column name for closing prices. Default is 'Close'.
-        volume_col (str): The column name for volume. Default is 'Volume'.
+        parameters (dict, optional): Dictionary containing calculation parameters. This indicator does not use any calculation parameters.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+            - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
         pd.Series: The Volume Price Trend values.
@@ -44,6 +46,16 @@ def vpt(df: pd.DataFrame, close_col: str = 'Close', volume_col: str = 'Volume') 
     - Accumulation/distribution identification: VPT can help identify periods of
       accumulation or distribution before major price moves.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    close_col = columns.get('close_col', 'Close')
+    volume_col = columns.get('volume_col', 'Volume')
+    
     close = df[close_col]
     volume = df[volume_col]
     

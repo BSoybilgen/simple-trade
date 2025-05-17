@@ -2,21 +2,21 @@ import pandas as pd
 import numpy as np
 
 
-def stoch(df: pd.DataFrame, k_period: int = 14, 
-         d_period: int = 3, smooth_k: int = 3,
-         high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close') -> pd.DataFrame:
+def stoch(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
     """
     Calculates the Stochastic Oscillator, a momentum indicator that compares a security's 
     closing price to its price range over a given time period.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
-        k_period (int): The lookback period for %K calculation. Default is 14.
-        d_period (int): The period for %D (the moving average of %K). Default is 3.
-        smooth_k (int): The period for smoothing %K. Default is 3.
-        high_col (str): The column name for high prices. Default is 'High'.
-        low_col (str): The column name for low prices. Default is 'Low'.
-        close_col (str): The column name for closing prices. Default is 'Close'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - k_period (int): The lookback period for %K calculation. Default is 14.
+            - d_period (int): The period for %D (the moving average of %K). Default is 3.
+            - smooth_k (int): The period for smoothing %K. Default is 3.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.DataFrame: A DataFrame containing %K and %D values.
@@ -49,6 +49,20 @@ def stoch(df: pd.DataFrame, k_period: int = 14,
     - Divergence analysis: If price makes a new high or low but the Stochastic doesn't,
       it may indicate a potential reversal.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    k_period = parameters.get('k_period', 14)
+    d_period = parameters.get('d_period', 3)
+    smooth_k = parameters.get('smooth_k', 3)
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    close_col = columns.get('close_col', 'Close')
+    
     high = df[high_col]
     low = df[low_col]
     close = df[close_col]

@@ -66,7 +66,7 @@ class TestRSI:
         window = 5
         # Create DataFrame with Close column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = rsi(df, window=window)
+        result = rsi(df, parameters={'window': window}, columns=None)
         
         # Check the first 'window - 1' values are NaN
         assert result.iloc[:window-1].isna().all()
@@ -138,10 +138,11 @@ class TestMACD:
         
         # Create DataFrame with Close column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = macd(df, 
-                     window_slow=window_slow, 
-                     window_fast=window_fast, 
-                     window_signal=window_signal)
+        result = macd(df, parameters={
+                     'window_slow': window_slow, 
+                     'window_fast': window_fast, 
+                     'window_signal': window_signal
+                     }, columns=None)
         
         # Check that column names reflect custom parameters
         assert f'MACD_{window_fast}_{window_slow}' in result.columns
@@ -175,7 +176,7 @@ class TestStoch:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = stoch(df)
+        result = stoch(df, parameters=None, columns=None)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
@@ -207,7 +208,7 @@ class TestStoch:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = stoch(df, k_period=k_period, d_period=d_period, smooth_k=smooth_k)
+        result = stoch(df, parameters={'k_period': k_period, 'd_period': d_period, 'smooth_k': smooth_k}, columns=None)
         
         # Create column names with the custom parameters
         k_col = f'STOCH_K_{k_period}_{d_period}_{smooth_k}'
@@ -261,7 +262,7 @@ class TestCCI:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = cci(df, window=window, constant=constant)
+        result = cci(df, parameters={'window': window, 'constant': constant}, columns=None)
         
         # First 'window - 1' values should be NaN
         assert result.iloc[:window-1].isna().all()
@@ -322,7 +323,7 @@ class TestROC:
         window = 5
         # Create DataFrame with Close column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = roc(df, window=window)
+        result = roc(df, parameters={'window': window}, columns=None)
         
         # First 'window' values should be NaN
         assert result.iloc[:window].isna().all()

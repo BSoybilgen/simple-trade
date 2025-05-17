@@ -2,14 +2,14 @@ import pandas as pd
 import numpy as np
 
 
-def wma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Series:
+def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Weighted Moving Average (WMA) of a series.
 
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        window (int): The window size for the WMA.
-        close_col (str): The name of the close price column (default: 'Close').
+        parameters (dict): The parameter dictionary that includes window size for the WMA.
+        columns (dict): The column dictionary that includes close column name.
 
     Returns:
         pd.Series: The WMA of the series.
@@ -47,6 +47,16 @@ def wma(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Seri
     short-term WMA crossing above a long-term WMA) as buy signals, 
     and vice versa for sell signals.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    close_col = columns.get('close_col', 'Close')
+    window = parameters.get('window', 20)
+    
     series = df[close_col]
     weights = np.arange(1, window + 1)
     series = series.rolling(window).apply(lambda prices: np.dot(prices, weights) / weights.sum(), raw=True)

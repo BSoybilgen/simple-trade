@@ -1,6 +1,6 @@
 import pandas as pd
 
-def macd(df: pd.DataFrame, window_slow: int = 26, window_fast: int = 12, window_signal: int = 9, close_col: str = 'Close') -> pd.DataFrame:
+def macd(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
     """
     Calculates the Moving Average Convergence Divergence (MACD), Signal Line, and Histogram.
 
@@ -8,10 +8,12 @@ def macd(df: pd.DataFrame, window_slow: int = 26, window_fast: int = 12, window_
 
     Args:
         df (pd.DataFrame): The input DataFrame.
-        window_slow (int): The window size for the slower EMA.
-        window_fast (int): The window size for the faster EMA.
-        window_signal (int): The window size for the signal line EMA.
-        close_col (str): The column name for closing prices. Default is 'Close'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window_slow (int): The window size for the slower EMA. Default is 26.
+            - window_fast (int): The window size for the faster EMA. Default is 12.
+            - window_signal (int): The window size for the signal line EMA. Default is 9.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.DataFrame: A DataFrame containing the MACD line, signal line, and histogram.
@@ -30,6 +32,18 @@ def macd(df: pd.DataFrame, window_slow: int = 26, window_fast: int = 12, window_
     - Identifying potential buy and sell signals: Crossovers of the MACD line and signal line can be used to generate buy and sell signals.
     - Identifying overbought and oversold conditions: The MACD histogram can be used to identify overbought and oversold conditions.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    window_slow = parameters.get('window_slow', 26)
+    window_fast = parameters.get('window_fast', 12)
+    window_signal = parameters.get('window_signal', 9)
+    close_col = columns.get('close_col', 'Close')
+    
     series = df[close_col]
     ema_fast = series.ewm(span=window_fast, adjust=False).mean()
     ema_slow = series.ewm(span=window_slow, adjust=False).mean()

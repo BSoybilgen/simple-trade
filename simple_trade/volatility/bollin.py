@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def bollinger_bands(df: pd.DataFrame, window: int = 20, num_std: int = 2, close_col: str = 'Close') -> pd.DataFrame:
+def bollinger_bands(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
     """
     Calculates Bollinger Bands of a series.
 
@@ -10,9 +10,11 @@ def bollinger_bands(df: pd.DataFrame, window: int = 20, num_std: int = 2, close_
 
     Args:
         df (pd.DataFrame): The input DataFrame.
-        window (int): The window size for calculating the moving average and standard deviation.
-        num_std (int): The number of standard deviations to use for the upper and lower bands.
-        close_col (str): The column name for closing prices. Default is 'Close'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The window size for calculating the moving average and standard deviation. Default is 20.
+            - num_std (int): The number of standard deviations to use for the upper and lower bands. Default is 2.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.DataFrame: A DataFrame containing the middle band (SMA), upper band, and lower band.
@@ -29,6 +31,17 @@ def bollinger_bands(df: pd.DataFrame, window: int = 20, num_std: int = 2, close_
     - Identifying volatility: The width of the Bollinger Bands can be used to gauge volatility. Wide bands indicate high volatility, while narrow bands indicate low volatility.
     - Generating buy and sell signals: Some traders use Bollinger Bands to generate buy and sell signals based on price breakouts or reversals near the bands.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    window = parameters.get('window', 20)
+    num_std = parameters.get('num_std', 2)
+    close_col = columns.get('close_col', 'Close')
+    
     series = df[close_col]
 
     sma = series.rolling(window=window).mean()
