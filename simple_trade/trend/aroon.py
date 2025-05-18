@@ -2,19 +2,18 @@ import pandas as pd
 import numpy as np
 
 
-def aroon(df: pd.DataFrame, period: int = 14, high_col: str = 'High', low_col: str = 'Low') -> tuple:
+def aroon(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
     """
     Calculates the Aroon indicator, which measures the time it takes for a security
     to reach its highest and lowest points over a specified time period.
     
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have high and low columns.
-        period (int): The lookback period for calculation. Default is 14.
-        high_col (str): The name of the high price column (default: 'High').
-        low_col (str): The name of the low price column (default: 'Low').
+        parameter (dict): The parameter dictionary includes the lookback period for calculation.
+        columns (dict): The column dictionary that includes high and low column names.
     
     Returns:
-        tuple: A tuple containing (aroon_up, aroon_down, aroon_oscillator).
+        pd.DataFrame: A DataFrame containing aroon_up, aroon_down, and aroon_oscillator columns.
     
     The Aroon indicator consists of three components:
     
@@ -51,6 +50,17 @@ def aroon(df: pd.DataFrame, period: int = 14, high_col: str = 'High', low_col: s
     - Crossover signals: When Aroon Up crosses above/below Aroon Down, it may indicate
       a potential trend change.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    period = parameters.get('period', 14)
+
     high = df[high_col]
     low = df[low_col]
     

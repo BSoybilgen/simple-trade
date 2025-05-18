@@ -3,18 +3,19 @@ import numpy as np
 from ..trend.ema import ema
 
 
-def chaikin_volatility(df: pd.DataFrame, ema_window: int = 10, 
-                       roc_window: int = 10, high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
+def chaikin_volatility(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Chaikin Volatility (CV) indicator, which measures volatility by 
     calculating the rate of change of the high-low price range.
     
     Args:
         df (pd.DataFrame): The input DataFrame.
-        ema_window (int): The window for calculating the EMA of the high-low range. Default is 10.
-        roc_window (int): The window for calculating the rate of change. Default is 10.
-        high_col (str): The column name for high prices. Default is 'High'.
-        low_col (str): The column name for low prices. Default is 'Low'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - ema_window (int): The window for calculating the EMA of the high-low range. Default is 10.
+            - roc_window (int): The window for calculating the rate of change. Default is 10.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
     
     Returns:
         pd.Series: A Series containing the Chaikin Volatility values.
@@ -37,6 +38,18 @@ def chaikin_volatility(df: pd.DataFrame, ema_window: int = 10,
     - Breakout confirmation: Sharp increases in volatility can confirm breakout movements.
     - Risk management: Adjust position sizing based on current volatility conditions.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    ema_window = parameters.get('ema_window', 10)
+    roc_window = parameters.get('roc_window', 10)
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    
     high = df[high_col]
     low = df[low_col]
     
@@ -45,7 +58,10 @@ def chaikin_volatility(df: pd.DataFrame, ema_window: int = 10,
     df = pd.DataFrame(hl_range, columns=['Close'])
 
     # Calculate the EMA of the high-low range
-    range_ema = ema(df, window=ema_window, close_col='Close')
+    # Create parameters for ema function
+    ema_parameters = {'window': ema_window}
+    ema_columns = {'close_col': 'Close'}
+    range_ema = ema(df, parameters=ema_parameters, columns=ema_columns)
     
     # Calculate the percentage rate of change over roc_window days
     # (Current EMA - EMA roc_window days ago) / (EMA roc_window days ago) * 100

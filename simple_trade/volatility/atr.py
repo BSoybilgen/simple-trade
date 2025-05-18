@@ -2,17 +2,19 @@ import pandas as pd
 import numpy as np
 
 
-def atr(df: pd.DataFrame, window: int = 14, high_col: str = 'High', low_col: str = 'Low', close_col: str = 'Close') -> pd.Series:
+def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Average True Range (ATR), a volatility indicator that measures market volatility
     by decomposing the entire range of an asset price for a given period.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
-        close (pd.Series): The closing prices of the period.
-        window (int): The lookback period for the calculation. Default is 14.
-        high_col (str): The column name for high prices. Default is 'High'.
-        low_col (str): The column name for low prices. Default is 'Low'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the calculation. Default is 14.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         pd.Series: ATR values for the given input series.
@@ -44,6 +46,18 @@ def atr(df: pd.DataFrame, window: int = 14, high_col: str = 'High', low_col: str
     - Breakout identification: Significant increases in ATR may precede or confirm breakouts.
     - Entry/exit signals: Some trading systems use ATR-based indicators for trade signals.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    window = parameters.get('window', 14)
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    close_col = columns.get('close_col', 'Close')
+    
     high = df[high_col]
     low = df[low_col]
     close = df[close_col]

@@ -1,6 +1,6 @@
 import pandas as pd
 
-def ema(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Series:
+def ema(data: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
     """
     Calculates the Exponential Moving Average (EMA) of a series.
 
@@ -9,8 +9,8 @@ def ema(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Seri
 
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        window (int): The window size for the EMA.
-        close_col (str): The name of the close price column (default: 'Close').
+        parameter (dict): The parameter dictionary that includes the window size for the EMA.
+        columns (dict): The column dictionary that includes close column name.
 
     Returns:
         pd.Series: The EMA of the series.
@@ -38,7 +38,17 @@ def ema(df: pd.DataFrame, window: int = 14, close_col: str = 'Close') -> pd.Seri
     - Reacting quickly to price changes: The EMA's responsiveness makes it
       suitable for identifying entry and exit points in fast-moving markets.
     """
-    series = df[close_col]
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    close_col = columns.get('close_col', 'Close')
+    window = parameters.get('window', 20)
+
+    series = data[close_col]
     series = series.ewm(span=window, adjust=False).mean()
     series.name = f'EMA_{window}'
     

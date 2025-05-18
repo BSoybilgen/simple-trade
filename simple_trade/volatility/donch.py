@@ -2,16 +2,18 @@ import pandas as pd
 import numpy as np
 
 
-def donchian_channels(df: pd.DataFrame, window: int = 20, high_col: str = 'High', low_col: str = 'Low') -> pd.DataFrame:
+def donchian_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
     """
     Calculates Donchian Channels, a volatility indicator that plots the highest high and lowest low
     over a specified period.
     
     Args:
         df (pd.DataFrame): The input DataFrame.
-        window (int): The lookback period for the calculation. Default is 20.
-        high_col (str): The column name for high prices. Default is 'High'.
-        low_col (str): The column name for low prices. Default is 'Low'.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the calculation. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
     
     Returns:
         pd.DataFrame: A DataFrame containing the upper band (highest high), middle band (mean of upper and lower),
@@ -34,6 +36,17 @@ def donchian_channels(df: pd.DataFrame, window: int = 20, high_col: str = 'High'
     Notably, Donchian Channels are a key component of the original "Turtle Trading" system, a trend-following
     strategy developed by Richard Dennis and William Eckhardt in the 1980s.
     """
+    # Set default values
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+        
+    # Extract parameters with defaults
+    window = parameters.get('window', 20)
+    high_col = columns.get('high_col', 'High')
+    low_col = columns.get('low_col', 'Low')
+    
     high = df[high_col]
     low = df[low_col]
     

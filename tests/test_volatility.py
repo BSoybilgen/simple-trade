@@ -49,7 +49,7 @@ class TestBollingerBands:
         num_std=2
         # Create a DataFrame with 'Close' column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = bollinger_bands(df, window=window, num_std=num_std)
+        result = bollinger_bands(df, parameters={'window': window, 'num_std': num_std}, columns=None)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
@@ -75,7 +75,7 @@ class TestBollingerBands:
         num_std = 3
         # Create a DataFrame with 'Close' column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = bollinger_bands(df, window=window, num_std=num_std)
+        result = bollinger_bands(df, parameters={'window': window, 'num_std': num_std}, columns=None)
         
         assert isinstance(result, pd.DataFrame)
         expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}', f'BB_Lower_{window}_{num_std}']
@@ -101,7 +101,7 @@ class TestATR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = atr(df, window=window)
+        result = atr(df, parameters={'window': window}, columns=None)
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -126,7 +126,7 @@ class TestATR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = atr(df, window=window)
+        result = atr(df, parameters={'window': window}, columns=None)
         
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])
@@ -143,7 +143,7 @@ class TestATR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = atr(df, window=window).dropna()
+        result = atr(df, parameters={'window': window}, columns=None).dropna()
         
         # Sample data has high vol first 50, low vol last 50
         high_vol_period_atr = result.iloc[window:50].mean() # Take mean ATR during high vol
@@ -165,7 +165,7 @@ class TestKeltnerChannels:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = keltner_channels(df, ema_window=ema_window, atr_window=atr_window, atr_multiplier=atr_multiplier)
+        result = keltner_channels(df, parameters={'ema_window': ema_window, 'atr_window': atr_window, 'atr_multiplier': atr_multiplier}, columns=None)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
@@ -198,7 +198,7 @@ class TestKeltnerChannels:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = keltner_channels(df, ema_window=ema_window, atr_window=atr_window, atr_multiplier=atr_multiplier)
+        result = keltner_channels(df, parameters={'ema_window': ema_window, 'atr_window': atr_window, 'atr_multiplier': atr_multiplier}, columns=None)
 
         assert isinstance(result, pd.DataFrame)
         expected_cols = [f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
@@ -228,7 +228,7 @@ class TestDonchianChannels:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = donchian_channels(df, window=window)
+        result = donchian_channels(df, parameters={'window': window}, columns=None)
         
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
@@ -259,7 +259,7 @@ class TestDonchianChannels:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = donchian_channels(df, window=window)
+        result = donchian_channels(df, parameters={'window': window}, columns=None)
         
         assert isinstance(result, pd.DataFrame)
         expected_cols = [f'DONCH_Upper_{window}', f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
@@ -283,7 +283,7 @@ class TestChaikinVolatility:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = chaikin_volatility(df, ema_window=ema_window, roc_window=roc_window, high_col='High', low_col='Low')
+        result = chaikin_volatility(df, parameters={'ema_window': ema_window, 'roc_window': roc_window}, columns={'high_col': 'High', 'low_col': 'Low'})
         
         assert isinstance(result, pd.Series)
         assert not result.empty
@@ -309,7 +309,7 @@ class TestChaikinVolatility:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = chaikin_volatility(df, ema_window=ema_window, roc_window=roc_window, high_col='High', low_col='Low')
+        result = chaikin_volatility(df, parameters={'ema_window': ema_window, 'roc_window': roc_window}, columns={'high_col': 'High', 'low_col': 'Low'})
         
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_data['close'])

@@ -1,5 +1,5 @@
 # Import from data module
-from .data import download_data, compute_indicator
+from .indicator_handler import download_data, compute_indicator
 from .core import INDICATORS
 
 # Import all indicators from core
@@ -40,7 +40,7 @@ __all__ = [
     "BacktestPlotter",
     
     # Data functions
-    "download_data", "compute_indicator", "download_and_compute_indicator",
+    "download_data", "compute_indicator",
     
     # Indicators dictionary
     "INDICATORS",
