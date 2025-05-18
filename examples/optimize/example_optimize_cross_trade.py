@@ -21,8 +21,8 @@ def run_cross_trade_with_windows(data, short_window, long_window, **kwargs):
     df = data.copy()
     
     # Compute the SMA indicators
-    df = compute_indicator(df, indicator='sma', window=short_window)
-    df = compute_indicator(df, indicator='sma', window=long_window)
+    df = compute_indicator(df, indicator='sma', parameters={'window': short_window}, columns={'close_col': 'Close'})
+    df = compute_indicator(df, indicator='sma', parameters={'window': long_window}, columns={'close_col': 'Close'})
     
     # Get the indicator column names
     short_window_indicator = f"SMA_{short_window}"

@@ -77,18 +77,22 @@ print(f"\nDownloading data for {symbol}...")
 data = download_data(symbol, start, end, interval=interval)
 
 # Step 2: Calculate indicator
-window=14
+parameters = dict()
+columns = dict()
+parameters["window"] = 14
+columns["high_col"] = 'High'
+columns["low_col"] = 'Low'
+columns["close_col"] = 'Close'
 data = compute_indicator(
     data=data,
     indicator='adx',
-    window=window,
-    high_col='High',
-    low_col='Low',
-    close_col='Close'
+    parameters=parameters,
+    columns=columns
 )
 
 # Step 3: Plot the indicator
 plotter = IndicatorPlotter()
+window = parameters["window"]
 columns = [f'ADX_{window}', f'+DI_{window}', f'-DI_{window}']
 fig = plotter.plot_results(
         data,
@@ -99,7 +103,7 @@ fig = plotter.plot_results(
     )
 
 # Step 4: Display the plot
-plt.show()
+fig.show()
 ```
 
 **Plot of Results**
@@ -241,9 +245,9 @@ def run_cross_trade_with_windows(data, short_window, long_window, **kwargs):
     df = data.copy()
     
     # Compute the SMA indicators
-    df = compute_indicator(df, indicator='sma', window=short_window)
-    df = compute_indicator(df, indicator='sma', window=long_window)
-    
+    df = compute_indicator(df, indicator='sma', parameters={'window': short_window}, columns={'close_col': 'Close'})
+    df = compute_indicator(df, indicator='sma', parameters={'window': long_window}, columns={'close_col': 'Close'})
+     
     # Get the indicator column names
     short_window_indicator = f"SMA_{short_window}"
     long_window_indicator = f"SMA_{long_window}"

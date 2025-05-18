@@ -5,9 +5,9 @@
 Example script for optimizing BandTrade strategy parameters.
 """
 
-from simple_trade.data import download_data, compute_indicator
-from simple_trade.band_trade import BandTradeBacktester
-from simple_trade.optimizer import Optimizer
+from simple_trade import download_data, compute_indicator
+from simple_trade import BandTradeBacktester
+from simple_trade import Optimizer
 
 # --- Load Data ---
 ticker = 'SPY'
@@ -55,7 +55,7 @@ def run_band_trade_with_windows(data, rsi_upper_threshold, rsi_lower_threshold, 
     df[lower_threshold_col] = rsi_lower_threshold
 
     # Compute RSI indicator
-    df = compute_indicator(df, indicator='rsi', window=rsi_window)
+    df = compute_indicator(df, indicator='rsi', parameters={'window': rsi_window}, columns={'close_col': 'Close'})
     indicator_col = f'RSI_{rsi_window}'
     
     # Create a backtester instance
@@ -126,7 +126,7 @@ else:
     final_data = data.copy()
     final_data['RSI_Upper'] = rsi_upper_threshold
     final_data['RSI_Lower'] = rsi_lower_threshold
-    final_data = compute_indicator(final_data, indicator='rsi', window=rsi_window)
+    final_data = compute_indicator(final_data, indicator='rsi', parameters={'window': rsi_window}, columns={'close_col': 'Close'})
     
     # Create backtester with best parameters
     best_backtester = BandTradeBacktester(
