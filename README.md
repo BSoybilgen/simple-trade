@@ -66,7 +66,6 @@ Here's a quick example of how to download data and compute a technical indicator
 # Load Packages and Functions
 import pandas as pd
 from simple_trade import compute_indicator, download_data
-from simple_trade import IndicatorPlotter
 
 # Step 1: Download data
 symbol = 'TSLA'
@@ -80,29 +79,13 @@ data = download_data(symbol, start, end, interval=interval)
 parameters = dict()
 columns = dict()
 parameters["window"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data = compute_indicator(
+data, columns, fig = compute_indicator(
     data=data,
     indicator='adx',
-    parameters=parameters,
-    columns=columns
+    parameters=parameters
 )
 
-# Step 3: Plot the indicator
-plotter = IndicatorPlotter()
-window = parameters["window"]
-columns = [f'ADX_{window}', f'+DI_{window}', f'-DI_{window}']
-fig = plotter.plot_results(
-        data,
-        price_col='Close',
-        column_names=columns,
-        plot_on_subplot=True, 
-        title=f"{symbol} with ADX({window})"
-    )
-
-# Step 4: Display the plot
+# Step 3: Display the plot
 fig.show()
 ```
 
