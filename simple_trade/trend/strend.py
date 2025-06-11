@@ -126,7 +126,19 @@ def supertrend(df: pd.DataFrame, parameters: dict = None, columns: dict = None) 
 
         df = result[['Supertrend', 'Direction']].copy()
         df.rename(columns={'Supertrend': f'Supertrend_{period}_{multiplier}', 
-                           'Direction': f'Direction_{period}_{multiplier}'}, 
+                           'Direction': f'Direction_{period}_{multiplier}'},
                            inplace=True)
+
+        # Initialize Bullish and Bearish SuperTrend values
+        df[f'Supertrend_Bullish_{period}_{multiplier}'] = np.nan
+        df[f'Supertrend_Bearish_{period}_{multiplier}'] = np.nan
+        
+        # Set Bullish and Bearish values directly
+        df.loc[df[f'Direction_{period}_{multiplier}'] == 1, f'Supertrend_Bullish_{period}_{multiplier}'] = df.loc[df[f'Direction_{period}_{multiplier}'] == 1, f'Supertrend_{period}_{multiplier}']
+        df.loc[df[f'Direction_{period}_{multiplier}'] == -1, f'Supertrend_Bearish_{period}_{multiplier}'] = df.loc[df[f'Direction_{period}_{multiplier}'] == -1, f'Supertrend_{period}_{multiplier}']
+        
+        # Fill NaN values with scaled close prices
+        df[f'Supertrend_Bullish_{period}_{multiplier}'] = df[f'Supertrend_Bullish_{period}_{multiplier}'].fillna(close * 1.5)
+        df[f'Supertrend_Bearish_{period}_{multiplier}'] = df[f'Supertrend_Bearish_{period}_{multiplier}'].fillna(close * 0.5)
         
     return df
