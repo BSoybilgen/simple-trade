@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Average True Range (ATR), a volatility indicator that measures market volatility
     by decomposing the entire range of an asset price for a given period.
@@ -17,7 +17,7 @@ def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        pd.Series: ATR values for the given input series.
+        tuple: A tuple containing the ATR series and a list of column names.
 
     The ATR is calculated in three steps:
 
@@ -86,5 +86,5 @@ def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
         atr_values.iloc[i] = ((atr_values.iloc[i-1] * (window-1)) + tr.iloc[i]) / window
 
     atr_values.name = f'ATR_{window}'
-    
-    return atr_values
+    columns_list = [atr_values.name]
+    return atr_values, columns_list

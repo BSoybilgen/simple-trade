@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Rate of Change (ROC), a momentum oscillator that measures the percentage 
     change in price between the current price and the price a specified number of periods ago.
@@ -15,7 +15,7 @@ def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        pd.Series: ROC values for the given input series.
+        tuple: A tuple containing the ROC series and a list of column names.
 
     The ROC is calculated using the formula:
     
@@ -53,5 +53,5 @@ def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     roc_values = ((series / series.shift(window)) - 1) * 100
     
     roc_values.name = f'ROC_{window}'
-    
-    return roc_values
+    columns_list = [roc_values.name]
+    return roc_values, columns_list

@@ -1,6 +1,6 @@
 import pandas as pd
 
-def macd(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def macd(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Moving Average Convergence Divergence (MACD), Signal Line, and Histogram.
 
@@ -16,7 +16,7 @@ def macd(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the MACD line, signal line, and histogram.
+        tuple: A tuple containing the MACD DataFrame and a list of column names.
 
     The MACD is calculated as follows:
 
@@ -58,4 +58,5 @@ def macd(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.
     })
     # Ensure index is passed explicitly, just in case
     df_macd.index = series.index
-    return df_macd
+    columns_list = list(df_macd.columns)
+    return df_macd, columns_list

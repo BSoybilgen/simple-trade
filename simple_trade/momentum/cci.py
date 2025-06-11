@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Commodity Channel Index (CCI), a momentum oscillator used to identify cyclical trends
     and extreme market conditions.
@@ -18,7 +18,7 @@ def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        pd.Series: CCI values for the given input series.
+        tuple: A tuple containing the CCI series and a list of column names.
 
     The CCI is calculated in three steps:
 
@@ -80,5 +80,5 @@ def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     cci = (typical_price - sma_tp) / (constant * mean_deviation)
 
     cci.name = f'CCI_{window}_{constant}'
-    
-    return cci
+    columns_list = [cci.name]
+    return cci, columns_list

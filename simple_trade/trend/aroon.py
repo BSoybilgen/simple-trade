@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def aroon(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def aroon(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Aroon indicator, which measures the time it takes for a security
     to reach its highest and lowest points over a specified time period.
@@ -13,7 +13,7 @@ def aroon(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd
         columns (dict): The column dictionary that includes high and low column names.
     
     Returns:
-        pd.DataFrame: A DataFrame containing aroon_up, aroon_down, and aroon_oscillator columns.
+        tuple: A tuple containing aroon_up, aroon_down, aroon_oscillator values and column names.
     
     The Aroon indicator consists of three components:
     
@@ -95,4 +95,7 @@ def aroon(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd
         f'AROON_OSCILLATOR_{period}': aroon_oscillator
     })
     df_aroon.index = high.index
-    return df_aroon
+
+    columns = list(df_aroon.columns)
+
+    return df_aroon, columns

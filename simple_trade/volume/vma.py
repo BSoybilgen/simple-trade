@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def vma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def vma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Volume Moving Average (VMA), which is a weighted moving average
     that uses volume as the weighting factor.
@@ -16,7 +16,7 @@ def vma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
             - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
-        pd.Series: The Volume Moving Average values.
+        tuple: A tuple containing the VMA series and a list of column names.
     
     VMA gives more weight to price moves accompanied by higher volume, making it
     more responsive to significant market movements than a simple moving average.
@@ -58,5 +58,5 @@ def vma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     # For each window, sum(price * volume) / sum(volume)
     vma_values = weighted_price.rolling(window=window).sum() / volume.rolling(window=window).sum()
     vma_values.name = f'VMA_{window}'
-    
-    return vma_values
+    columns_list = [vma_values.name]
+    return vma_values, columns_list

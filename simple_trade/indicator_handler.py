@@ -4,13 +4,17 @@ Main indicator handling module that coordinates the calculation of various techn
 import yfinance as yf
 import pandas as pd
 from .core import INDICATORS
+from simple_trade.plot_ind import IndicatorPlotter
+from typing import Literal
 
 
 def compute_indicator(
     data: pd.DataFrame,
     indicator: str,
+    figure: bool=True,
+    plot_type: Literal['line', 'candlestick'] = 'line',
     **indicator_kwargs
-) -> pd.DataFrame:
+) -> tuple:
     """Computes a specified technical indicator on the provided financial data.
 
     Args:
@@ -36,16 +40,38 @@ def compute_indicator(
 
     try:
         # Delegate to specific handler based on indicator type
-        indicator_result = _calculate_indicator(df, indicator_func, **indicator_kwargs)
+        indicator_result, columns = _calculate_indicator(df, indicator_func, **indicator_kwargs)
         
         # Add the result to the original DataFrame
         df = _add_indicator_to_dataframe(df, indicator_result, indicator_kwargs)
+
+        if indicator in ('adx', 'aroon', 'trix', 'cci', 'macd', 'roc', 
+                         'rsi', 'stoch', 'atr', 'chaik', 'adline', 'cmf',
+                         'obv', 'vpt'):
+            plot_on_subplot=True
+        else:
+            plot_on_subplot=False
+
+        if indicator in ('psar', 'strend'):
+            columns = [columns[0]]
+
+        if figure:
+            plotter = IndicatorPlotter()
+            fig = plotter.plot_results(
+            df,
+            price_col='Close',
+            column_names=columns,
+            plot_on_subplot=plot_on_subplot,
+            plot_type=plot_type,
+            title="Indicator Figure")
         
-        return df
+            return df, columns, fig
+        else:
+            return df, columns, None
         
     except Exception as e:
         print(f"Error calculating indicator '{indicator}': {e}")
-        return df  # Return the original df if calculation fails
+        return df, None, None  # Return the original df if calculation fails
 
 
 def _calculate_indicator(df, indicator_func, **indicator_kwargs):
@@ -57,12 +83,22 @@ def _calculate_indicator(df, indicator_func, **indicator_kwargs):
 
 def _add_indicator_to_dataframe(df, indicator_result, indicator_kwargs):
     """Add the calculated indicator to the DataFrame with appropriate naming."""
+    # Handle various return types from indicator functions
     if isinstance(indicator_result, pd.Series):
         df[indicator_result.name] = indicator_result
         
     elif isinstance(indicator_result, pd.DataFrame):
         df = df.join(indicator_result)
-        
+
+    elif isinstance(indicator_result, tuple):
+        # Expecting (data, columns)
+        data_part, _ = indicator_result
+        if isinstance(data_part, pd.Series):
+            df[data_part.name] = data_part
+        elif isinstance(data_part, pd.DataFrame):
+            df = df.join(data_part)
+        else:
+            print(f"Warning: Unexpected tuple data part type: {type(data_part)}")
     else:
         print(f"Warning: Indicator function returned an unexpected type: {type(indicator_result)}")
     

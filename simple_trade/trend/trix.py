@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def trix(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def trix(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the TRIX (Triple Exponential Average) indicator.
 
@@ -16,7 +16,7 @@ def trix(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.
         columns (dict): The column dictionary that includes close column name.
 
     Returns:
-        pd.DataFrame: DataFrame containing the TRIX line and its signal line.
+        tuple: A tuple containing the TRIX DataFrame and a list of column names.
 
     The TRIX is calculated through the following steps:
     1. Calculate a single EMA of the price series with the specified window.
@@ -71,5 +71,6 @@ def trix(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.
         f'TRIX_SIGNAL_{window}': signal_line
     })
     df_trix.index = series.index
-    
-    return df_trix
+
+    columns_list = list(df_trix.columns)
+    return df_trix, columns_list

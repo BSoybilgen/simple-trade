@@ -1,6 +1,6 @@
 import pandas as pd
 
-def rsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def rsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Relative Strength Index (RSI) of a series.
 
@@ -14,7 +14,7 @@ def rsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        pd.Series: The RSI of the series.
+        tuple: A tuple containing the RSI series and a list of column names.
 
     The RSI is calculated as follows:
 
@@ -46,4 +46,5 @@ def rsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     rs = gain / loss
     rsi = 100 - (100 / (1 + rs))
     rsi.name = f'RSI_{window}'
-    return rsi
+    columns_list = [rsi.name]
+    return rsi, columns_list

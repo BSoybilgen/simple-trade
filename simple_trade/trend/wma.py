@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Weighted Moving Average (WMA) of a series.
 
@@ -12,7 +12,7 @@ def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
         columns (dict): The column dictionary that includes close column name.
 
     Returns:
-        pd.Series: The WMA of the series.
+        tuple: Tuple containing the WMA series and a list of column names.
 
     The (WMA) is a type of moving average that assigns different 
     weights to the data points in the window, with more recent 
@@ -61,4 +61,5 @@ def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     weights = np.arange(1, window + 1)
     series = series.rolling(window).apply(lambda prices: np.dot(prices, weights) / weights.sum(), raw=True)
     series.name = f'WMA_{window}'
-    return series
+    columns = [series.name]
+    return series, columns

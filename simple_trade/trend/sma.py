@@ -1,6 +1,6 @@
 import pandas as pd
 
-def sma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def sma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Simple Moving Average (SMA) of a series.
 
@@ -13,7 +13,7 @@ def sma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
         columns (dict): The column dictionary that includes close column name.
 
     Returns:
-        pd.Series: The SMA of the series.
+        tuple: A tuple containing the SMA series and its column names list.
 
     The Simple Moving Average (SMA) is a type of moving average that is calculated
     by taking the arithmetic mean of a given set of values over a specified
@@ -47,4 +47,6 @@ def sma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     series =series.rolling(window=window).mean()
     series.name = f'SMA_{window}'
 
-    return series
+    columns_list = [series.name]
+
+    return series, columns_list
