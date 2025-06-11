@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def supertrend(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def supertrend(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the SuperTrend indicator.
     
@@ -15,7 +15,7 @@ def supertrend(df: pd.DataFrame, parameters: dict = None, columns: dict = None) 
         columns (dict): The column dictionary that includes high, low, and close column names.
     
     Returns:
-        pd.DataFrame: DataFrame with 'supertrend' and 'direction' columns.
+        tuple: A tuple containing the SuperTrend DataFrame and a list of column names.
         
     The SuperTrend indicator combines Average True Range (ATR) with a multiplier
     to create a dynamic support/resistance line that follows the price trend.
@@ -141,4 +141,5 @@ def supertrend(df: pd.DataFrame, parameters: dict = None, columns: dict = None) 
         df[f'Supertrend_Bullish_{period}_{multiplier}'] = df[f'Supertrend_Bullish_{period}_{multiplier}'].fillna(close * 1.5)
         df[f'Supertrend_Bearish_{period}_{multiplier}'] = df[f'Supertrend_Bearish_{period}_{multiplier}'].fillna(close * 0.5)
         
-    return df
+    columns_list = list(df.columns)
+    return df, columns_list

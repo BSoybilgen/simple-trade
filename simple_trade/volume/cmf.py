@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Chaikin Money Flow (CMF), a volume-based indicator that measures
     the amount of Money Flow Volume over a specific period.
@@ -18,7 +18,7 @@ def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
             - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
-        pd.Series: The Chaikin Money Flow values.
+        tuple: A tuple containing the CMF series and a list of column names.
     
     CMF is derived from the Accumulation/Distribution Line (A/D Line) but instead of
     being cumulative, it sums up the Money Flow Volume over a specific period and
@@ -85,5 +85,5 @@ def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     # Calculate CMF as sum(MFV)/sum(Volume) over the period
     cmf_values = mfv.rolling(window=period).sum() / volume.rolling(window=period).sum()
     cmf_values.name = f'CMF_{period}'
-
-    return cmf_values
+    columns_list = [cmf_values.name]
+    return cmf_values, columns_list

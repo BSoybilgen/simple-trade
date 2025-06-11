@@ -1,6 +1,6 @@
 import pandas as pd
 
-def ema(data: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def ema(data: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Exponential Moving Average (EMA) of a series.
 
@@ -13,7 +13,7 @@ def ema(data: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd
         columns (dict): The column dictionary that includes close column name.
 
     Returns:
-        pd.Series: The EMA of the series.
+        tuple: A tuple containing the EMA of the series and a list of column names.
 
     The Exponential Moving Average (EMA) is a type of moving average that
     gives more weight to recent prices, making it more responsive to new
@@ -52,4 +52,6 @@ def ema(data: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd
     series = series.ewm(span=window, adjust=False).mean()
     series.name = f'EMA_{window}'
     
-    return series
+    # Return as tuple with column names for consistency with other indicators
+    columns_list = [series.name]
+    return series, columns_list

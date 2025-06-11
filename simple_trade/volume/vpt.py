@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Volume Price Trend (VPT), a volume-based indicator that relates
     volume to price change percentage to create a cumulative indicator of buying/selling
@@ -16,7 +16,7 @@ def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
             - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
-        pd.Series: The Volume Price Trend values.
+        tuple: A tuple containing the VPT series and a list of column names.
     
     VPT is similar to OBV but instead of just using the direction of price change,
     it uses the percentage change in price to give more weight to more significant
@@ -60,7 +60,7 @@ def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     volume = df[volume_col]
     
     if len(close) == 0:
-        return pd.Series(index=close.index, dtype=float)
+        return pd.Series(index=close.index, dtype=float), []
         
     # Calculate the percentage price change
     price_change_pct = close.pct_change()
@@ -93,4 +93,5 @@ def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     if len(vpt_values) > 0:
         vpt_values.iloc[0] = 0.0
     vpt_values.name = 'VPT'
-    return vpt_values
+    columns_list = [vpt_values.name]
+    return vpt_values, columns_list

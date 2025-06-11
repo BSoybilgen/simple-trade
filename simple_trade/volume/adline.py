@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def adline(df, parameters: dict = None, columns: dict = None) -> pd.Series:
+def adline(df, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Accumulation/Distribution Line (A/D Line), a volume-based indicator
     that measures the cumulative flow of money into and out of a security.
@@ -17,7 +17,7 @@ def adline(df, parameters: dict = None, columns: dict = None) -> pd.Series:
             - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
-        pd.Series: The Accumulation/Distribution Line values.
+        tuple: A tuple containing the AD Line series and a list of column names.
     
     Unlike OBV which only considers price direction (up or down), the A/D Line
     considers the position of the close relative to the trading range (high-low)
@@ -80,5 +80,5 @@ def adline(df, parameters: dict = None, columns: dict = None) -> pd.Series:
     # Calculate A/D Line as cumulative sum of Money Flow Volume
     ad_line = mfv.cumsum()
     ad_line.name = 'ADLINE'
-    
-    return ad_line
+    columns_list = [ad_line.name]
+    return ad_line, columns_list

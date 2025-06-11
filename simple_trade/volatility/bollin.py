@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def bollinger_bands(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def bollinger_bands(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Bollinger Bands of a series.
 
@@ -17,7 +17,7 @@ def bollinger_bands(df: pd.DataFrame, parameters: dict = None, columns: dict = N
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the middle band (SMA), upper band, and lower band.
+        tuple: A tuple containing the Bollinger Bands DataFrame and a list of column names.
 
     Bollinger Bands consist of:
 
@@ -56,4 +56,5 @@ def bollinger_bands(df: pd.DataFrame, parameters: dict = None, columns: dict = N
     })
     # Ensure index is passed explicitly, just in case
     df_bb.index = series.index
-    return df_bb
+    columns_list = list(df_bb.columns)
+    return df_bb, columns_list

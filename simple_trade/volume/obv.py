@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the On-Balance Volume (OBV), a volume-based momentum indicator that 
     relates volume flow to price changes.
@@ -15,7 +15,7 @@ def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
             - volume_col (str): The column name for volume. Default is 'Volume'.
     
     Returns:
-        pd.Series: The On-Balance Volume values.
+        tuple: A tuple containing the OBV series and a list of column names.
     
     On-Balance Volume is calculated by adding volume on up days and subtracting 
     volume on down days:
@@ -68,4 +68,5 @@ def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
         obv_values.iloc[i] = obv_values.iloc[i-1] + (volume.iloc[i] * price_direction.iloc[i])
     
     obv_values.name = 'OBV'
-    return obv_values
+    columns_list = [obv_values.name]
+    return obv_values, columns_list

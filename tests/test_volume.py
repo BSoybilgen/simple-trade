@@ -55,16 +55,16 @@ class TestOBV:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = obv(df)
+        result_data, _ = obv(df)
         
-        assert isinstance(result, pd.Series)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         # OBV starts immediately, no initial NaNs expected
-        assert not result.isna().any()
+        assert not result_data.isna().any()
         # First value should be first volume
-        assert result.iloc[0] == sample_data['volume'].iloc[0]
+        assert result_data.iloc[0] == sample_data['volume'].iloc[0]
 
     def test_obv_trend_correlation(self, sample_data):
         """Test that OBV generally follows the price trend"""
@@ -73,9 +73,9 @@ class TestOBV:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = obv(df)
+        result_data, _ = obv(df)
         price_diff = sample_data['close'].diff().dropna()
-        obv_diff = result.diff().dropna()
+        obv_diff = result_data.diff().dropna()
         
         # Align indices
         common_index = price_diff.index.intersection(obv_diff.index)
@@ -99,16 +99,16 @@ class TestVMA:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = vma(df, parameters={'window': window}, columns=None)
+        result_data, _ = vma(df, parameters={'window': window}, columns=None)
         
-        assert isinstance(result, pd.Series)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         
         # Check initial NaNs (first window-1)
-        assert result.iloc[:window-1].isna().all()
-        assert not result.iloc[window-1:].isna().any()
+        assert result_data.iloc[:window-1].isna().all()
+        assert not result_data.iloc[window-1:].isna().any()
 
     def test_vma_custom_window(self, sample_data):
         """Test VMA with a custom window"""
@@ -118,12 +118,12 @@ class TestVMA:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = vma(df, parameters={'window': window}, columns=None)
+        result_data, _ = vma(df, parameters={'window': window}, columns=None)
         
-        assert isinstance(result, pd.Series)
-        assert len(result) == len(sample_data['close'])
-        assert result.iloc[:window-1].isna().all()
-        assert not result.iloc[window-1:].isna().any()
+        assert isinstance(result_data, pd.Series)
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.iloc[:window-1].isna().all()
+        assert not result_data.iloc[window-1:].isna().any()
 
 
 class TestADLine:
@@ -138,14 +138,14 @@ class TestADLine:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = adline(df)
+        result_data, _ = adline(df)
         
-        assert isinstance(result, pd.Series)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         # A/D Line starts immediately, no initial NaNs expected
-        assert not result.isna().any()
+        assert not result_data.isna().any()
 
     def test_adline_trend_correlation(self, sample_data):
         """Test that A/D Line generally follows the price trend"""
@@ -156,9 +156,9 @@ class TestADLine:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = adline(df)
+        result_data, _ = adline(df)
         price_diff = sample_data['close'].diff().dropna()
-        ad_diff = result.diff().dropna()
+        ad_diff = result_data.diff().dropna()
         
         # Align indices
         common_index = price_diff.index.intersection(ad_diff.index)
@@ -185,19 +185,19 @@ class TestCMF:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = cmf(df, parameters={'period': period}, columns=None)
+        result_data, _ = cmf(df, parameters={'period': period}, columns=None)
         
-        assert isinstance(result, pd.Series)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         
         # Check initial NaNs (first period-1)
-        assert result.iloc[:period-1].isna().all()
-        assert not result.iloc[period-1:].isna().any()
+        assert result_data.iloc[:period-1].isna().all()
+        assert not result_data.iloc[period-1:].isna().any()
         
         # CMF values should typically be between -1 and 1
-        valid_result = result.dropna()
+        valid_result = result_data.dropna()
         assert (valid_result >= -1).all()
         assert (valid_result <= 1).all()
 
@@ -211,13 +211,13 @@ class TestCMF:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = cmf(df, parameters={'period': period}, columns=None)
+        result_data, _ = cmf(df, parameters={'period': period}, columns=None)
                      
-        assert isinstance(result, pd.Series)
-        assert len(result) == len(sample_data['close'])
-        assert result.iloc[:period-1].isna().all()
-        assert not result.iloc[period-1:].isna().any()
-        valid_result = result.dropna()
+        assert isinstance(result_data, pd.Series)
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.iloc[:period-1].isna().all()
+        assert not result_data.iloc[period-1:].isna().any()
+        valid_result = result_data.dropna()
         assert (valid_result >= -1).all()
         assert (valid_result <= 1).all()
 
@@ -232,14 +232,14 @@ class TestVPT:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = vpt(df)
+        result_data, _ = vpt(df)
         
-        assert isinstance(result, pd.Series)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         # Second value onwards should be valid
-        assert not result.iloc[1:].isna().any()
+        assert not result_data.iloc[1:].isna().any()
 
     def test_vpt_trend_correlation(self, sample_data):
         """Test that VPT generally follows the price trend"""
@@ -248,9 +248,9 @@ class TestVPT:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result = vpt(df)
+        result_data, _ = vpt(df)
         price_diff = sample_data['close'].diff().dropna()
-        vpt_diff = result.diff().dropna()
+        vpt_diff = result_data.diff().dropna()
         
         # Align indices
         common_index = price_diff.index.intersection(vpt_diff.index)

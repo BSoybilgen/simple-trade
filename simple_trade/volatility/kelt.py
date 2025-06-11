@@ -4,7 +4,7 @@ from ..trend.ema import ema
 from .atr import atr
 
 
-def keltner_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def keltner_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Keltner Channels, a volatility-based envelope set above and below an exponential moving average.
     
@@ -20,7 +20,7 @@ def keltner_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = 
             - close_col (str): The column name for closing prices. Default is 'Close'.
     
     Returns:
-        pd.DataFrame: A DataFrame containing the middle line (EMA), upper band, and lower band.
+        tuple: A tuple containing the Keltner Channels DataFrame and a list of column names.
     
     Keltner Channels consist of three lines:
     
@@ -60,22 +60,23 @@ def keltner_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = 
     # Calculate the middle line (EMA of close)
     ema_parameters = {'window': ema_window}
     ema_columns = {'close_col': close_col}
-    middle_line = ema(df, parameters=ema_parameters, columns=ema_columns)
+    middle_line_series, _ = ema(df, parameters=ema_parameters, columns=ema_columns)
     
     # Calculate ATR for the upper and lower bands
     atr_parameters = {'window': atr_window}
     atr_columns = {'high_col': high_col, 'low_col': low_col, 'close_col': close_col}
-    atr_values = atr(df, parameters=atr_parameters, columns=atr_columns)
+    atr_values_series, _ = atr(df, parameters=atr_parameters, columns=atr_columns)
     
     # Calculate the upper and lower bands
-    upper_band = middle_line + (atr_values * atr_multiplier)
-    lower_band = middle_line - (atr_values * atr_multiplier)
+    upper_band = middle_line_series + (atr_values_series * atr_multiplier)
+    lower_band = middle_line_series - (atr_values_series * atr_multiplier)
     
     # Prepare the result DataFrame
     result = pd.DataFrame({
-        f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}': middle_line,
+        f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}': middle_line_series,
         f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}': upper_band,
         f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}': lower_band
     }, index=close.index)
     
-    return result
+    columns_list = list(result.columns)
+    return result, columns_list

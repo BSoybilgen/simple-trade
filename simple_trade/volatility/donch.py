@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def donchian_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def donchian_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Donchian Channels, a volatility indicator that plots the highest high and lowest low
     over a specified period.
@@ -16,8 +16,7 @@ def donchian_channels(df: pd.DataFrame, parameters: dict = None, columns: dict =
             - low_col (str): The column name for low prices. Default is 'Low'.
     
     Returns:
-        pd.DataFrame: A DataFrame containing the upper band (highest high), middle band (mean of upper and lower),
-                     and lower band (lowest low).
+        tuple: A tuple containing the Donchian Channels DataFrame and a list of column names.
     
     Donchian Channels consist of three lines:
     
@@ -64,4 +63,5 @@ def donchian_channels(df: pd.DataFrame, parameters: dict = None, columns: dict =
         f'DONCH_Lower_{window}': lower_band
     }, index=high.index)
     
-    return result
+    columns_list = list(result.columns)
+    return result, columns_list

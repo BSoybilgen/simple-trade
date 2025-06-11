@@ -3,7 +3,7 @@ import numpy as np
 from ..trend.ema import ema
 
 
-def chaikin_volatility(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def chaikin_volatility(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Chaikin Volatility (CV) indicator, which measures volatility by 
     calculating the rate of change of the high-low price range.
@@ -18,7 +18,7 @@ def chaikin_volatility(df: pd.DataFrame, parameters: dict = None, columns: dict 
             - low_col (str): The column name for low prices. Default is 'Low'.
     
     Returns:
-        pd.Series: A Series containing the Chaikin Volatility values.
+        tuple: A tuple containing the Chaikin Volatility series and a list of column names.
     
     The Chaikin Volatility is calculated in three steps:
     
@@ -61,11 +61,11 @@ def chaikin_volatility(df: pd.DataFrame, parameters: dict = None, columns: dict 
     # Create parameters for ema function
     ema_parameters = {'window': ema_window}
     ema_columns = {'close_col': 'Close'}
-    range_ema = ema(df, parameters=ema_parameters, columns=ema_columns)
+    range_ema_series, _ = ema(df, parameters=ema_parameters, columns=ema_columns)
     
     # Calculate the percentage rate of change over roc_window days
     # (Current EMA - EMA roc_window days ago) / (EMA roc_window days ago) * 100
-    roc = ((range_ema - range_ema.shift(roc_window)) / range_ema.shift(roc_window)) * 100
+    roc = ((range_ema_series - range_ema_series.shift(roc_window)) / range_ema_series.shift(roc_window)) * 100
     roc.name = f'CHAIK_{ema_window}_{roc_window}'
-
-    return roc
+    columns_list = [roc.name]
+    return roc, columns_list

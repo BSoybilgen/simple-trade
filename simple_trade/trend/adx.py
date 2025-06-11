@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Average Directional Index (ADX) along with the Positive
     Directional Indicator (+DI) and Negative Directional Indicator (-DI).
@@ -16,7 +16,8 @@ def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.D
         columns (dict): The column dictionary that includes high, low, and close column names.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the ADX, +DI, and -DI values.
+        tuple: A tuple containing the ADX, +DI, and -DI values and column names.
+
 
     The Average Directional Index (ADX) is a technical indicator used to
     measure the strength of a trend. It is calculated from the high, low, and
@@ -82,4 +83,7 @@ def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.D
         f'-DI_{window}': minus_di
     })
     df_adx.index = close.index
-    return df_adx
+
+    columns = list(df_adx.columns)
+
+    return df_adx, columns

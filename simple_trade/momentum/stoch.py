@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def stoch(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def stoch(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Stochastic Oscillator, a momentum indicator that compares a security's 
     closing price to its price range over a given time period.
@@ -19,7 +19,7 @@ def stoch(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        pd.DataFrame: A DataFrame containing %K and %D values.
+        tuple: A tuple containing the Stochastic Oscillator DataFrame and a list of column names.
 
     The Stochastic Oscillator is calculated in three steps:
 
@@ -85,5 +85,5 @@ def stoch(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd
         f'STOCH_K_{k_period}_{d_period}_{smooth_k}': k,
         f'STOCH_D_{k_period}_{d_period}_{smooth_k}': d
     }, index=close.index)
-    
-    return result
+    columns_list = list(result.columns)
+    return result, columns_list

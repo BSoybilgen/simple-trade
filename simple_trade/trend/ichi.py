@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def ichimoku(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def ichimoku(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Ichimoku Cloud indicators (Ichimoku Kinko Hyo).
 
@@ -17,12 +17,7 @@ def ichimoku(df: pd.DataFrame, parameters: dict = None, columns: dict = None) ->
         columns (dict): The column dictionary that includes high, low, and close column names.
 
     Returns:
-        dict: A dictionary containing all Ichimoku components as pandas Series:
-            - tenkan_sen: Conversion Line
-            - kijun_sen: Base Line
-            - senkou_span_a: Leading Span A
-            - senkou_span_b: Leading Span B
-            - chikou_span: Lagging Span
+        tuple: A tuple containing a DataFrame with Ichimoku components and a list of column names:
 
     The Ichimoku Cloud consists of five components:
 
@@ -87,15 +82,16 @@ def ichimoku(df: pd.DataFrame, parameters: dict = None, columns: dict = None) ->
     # Calculate Chikou Span (Lagging Span)
     chikou_span = close.shift(-displacement)
 
-    df = pd.DataFrame({
+    df_out = pd.DataFrame({
         f'tenkan_sen_{tenkan_period}': tenkan_sen,
         f'kijun_sen_{kijun_period}': kijun_sen,
         f'senkou_span_a_{tenkan_period}_{kijun_period}': senkou_span_a,
         f'senkou_span_b_{senkou_b_period}': senkou_span_b,
         f'chikou_span_{displacement}': chikou_span
     })
-    df.index = close.index
-    return df
+    df_out.index = close.index
+    columns_list = list(df_out.columns)
+    return df_out, columns_list
 
 
 def _donchian_channel_middle(df: pd.DataFrame, period: int, high_col: str = 'High', low_col: str = 'Low') -> pd.Series:

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from .wma import wma
 
-def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.Series:
+def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Hull Moving Average (HMA) of a series.
 
@@ -16,7 +16,7 @@ def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
         columns (dict): The column dictionary that includes close column name.
 
     Returns:
-        pd.Series: The HMA of the series.
+        tuple: A tuple containing the HMA series and a list of column names.
 
     The Hull Moving Average (HMA) is a type of moving average that is designed
     to reduce lag and improve smoothing compared to traditional moving averages.
@@ -58,11 +58,15 @@ def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.S
     wma_params_full = {'window': window}
     wma_cols = {'close_col': close_col}
     
-    wma_half = wma(df, parameters=wma_params_half, columns=wma_cols)
-    wma_full = wma(df, parameters=wma_params_full, columns=wma_cols)
-    df = pd.DataFrame(2 * wma_half - wma_full, columns=[close_col])
+    # wma now returns a tuple (series, columns)
+    wma_half_series = wma(df, parameters=wma_params_half, columns=wma_cols)[0]
+    wma_full_series = wma(df, parameters=wma_params_full, columns=wma_cols)[0]
+
+    df_mid = pd.DataFrame(2 * wma_half_series - wma_full_series, columns=[close_col])
     
     wma_params_sqrt = {'window': sqrt_length}
-    hma_ = wma(df, parameters=wma_params_sqrt, columns=wma_cols)
-    hma_.name = f'HMA_{window}'
-    return hma_
+    hma_series = wma(df_mid, parameters=wma_params_sqrt, columns=wma_cols)[0]
+    hma_series.name = f'HMA_{window}'
+
+    columns_list = [hma_series.name]
+    return hma_series, columns_list

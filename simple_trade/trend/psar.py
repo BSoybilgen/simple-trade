@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def psar(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.DataFrame:
+def psar(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Parabolic SAR (PSAR).
 
@@ -15,10 +15,7 @@ def psar(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.
         columns (dict): The column dictionary that includes high, low, and close column names.
 
     Returns:
-        pd.DataFrame: DataFrame containing three columns:
-            - PSAR: Combined PSAR values
-            - PSAR_Bullish: PSAR values during bullish trend (NaN values replaced with 1.5x the price)
-            - PSAR_Bearish: PSAR values during bearish trend (NaN values replaced with 0.5x the price)
+        tuple: A tuple containing a DataFrame with PSAR values and a list of column names:
 
     The Parabolic SAR is calculated using the following rules:
 
@@ -87,7 +84,7 @@ def psar(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.
             }, 
             index=high.index
         )
-        return result
+        return result, list(result.columns)
 
     psar_values = np.zeros(length)
     psar_bullish = np.full(length, np.nan)  # Initialize with NaN
@@ -177,4 +174,5 @@ def psar(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> pd.
     result[f'PSAR_Bullish_{af_initial}_{af_step}_{af_max}'] = result[f'PSAR_Bullish_{af_initial}_{af_step}_{af_max}'].fillna(close * 1.5)
     result[f'PSAR_Bearish_{af_initial}_{af_step}_{af_max}'] = result[f'PSAR_Bearish_{af_initial}_{af_step}_{af_max}'].fillna(close * 0.5)
     
-    return result
+    columns_list = list(result.columns)
+    return result, columns_list
