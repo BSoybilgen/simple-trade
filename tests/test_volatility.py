@@ -49,23 +49,23 @@ class TestBollingerBands:
         num_std=2
         # Create a DataFrame with 'Close' column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = bollinger_bands(df, parameters={'window': window, 'num_std': num_std}, columns=None)
+        result_data, _ = bollinger_bands(df, parameters={'window': window, 'num_std': num_std}, columns=None)
         
-        assert isinstance(result, pd.DataFrame)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         
         # Check columns
         expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}', f'BB_Lower_{window}_{num_std}']
-        assert all(col in result.columns for col in expected_cols)
+        assert all(col in result_data.columns for col in expected_cols)
         
         # Check initial NaNs (first window-1)
-        assert result.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
-        assert not result.iloc[window-1:].isna().any().any() # Check no NaNs after window
+        assert result_data.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
+        assert not result_data.iloc[window-1:].isna().any().any() # Check no NaNs after window
         
         # Check band properties on non-NaN data
-        valid_result = result.dropna()
+        valid_result = result_data.dropna()
         assert (valid_result[expected_cols[1]] >= valid_result[expected_cols[0]]).all() # Upper >= Middle
         assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[2]]).all() # Middle >= Lower
 
@@ -75,17 +75,17 @@ class TestBollingerBands:
         num_std = 3
         # Create a DataFrame with 'Close' column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result = bollinger_bands(df, parameters={'window': window, 'num_std': num_std}, columns=None)
+        result_data, _ = bollinger_bands(df, parameters={'window': window, 'num_std': num_std}, columns=None)
         
-        assert isinstance(result, pd.DataFrame)
+        assert isinstance(result_data, pd.DataFrame)
         expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}', f'BB_Lower_{window}_{num_std}']
-        assert all(col in result.columns for col in expected_cols)
-        assert len(result) == len(sample_data['close'])
-        assert result.iloc[:window-1].isna().all().all()
-        assert not result.iloc[window-1:].isna().any().any()
+        assert all(col in result_data.columns for col in expected_cols)
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.iloc[:window-1].isna().all().all()
+        assert not result_data.iloc[window-1:].isna().any().any()
         
         # Check band properties on non-NaN data
-        valid_result = result.dropna()
+        valid_result = result_data.dropna()
         assert (valid_result[expected_cols[1]] >= valid_result[expected_cols[0]]).all() # Upper >= Middle
         assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[2]]).all() # Middle >= Lower
 
@@ -101,22 +101,22 @@ class TestATR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = atr(df, parameters={'window': window}, columns=None)
+        result_data, _ = atr(df, parameters={'window': window}, columns=None)
         
-        assert isinstance(result, pd.Series)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         
         # Check initial NaNs (first window-1 are strictly NaN due to smoothing start)
-        assert result.iloc[:window-1].isna().all()
+        assert result_data.iloc[:window-1].isna().all()
         # First calculated value is at window-1
-        assert not pd.isna(result.iloc[window-1])
+        assert not pd.isna(result_data.iloc[window-1])
         # Subsequent values should also not be NaN
-        assert not result.iloc[window:].isna().any()
+        assert not result_data.iloc[window:].isna().any()
         
         # ATR should always be positive
-        assert (result.dropna() >= 0).all()
+        assert (result_data.dropna() >= 0).all()
 
     def test_atr_custom_window(self, sample_data):
         """Test ATR with a custom window"""
@@ -126,14 +126,14 @@ class TestATR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = atr(df, parameters={'window': window}, columns=None)
+        result_data, _ = atr(df, parameters={'window': window}, columns=None)
         
-        assert isinstance(result, pd.Series)
-        assert len(result) == len(sample_data['close'])
-        assert result.iloc[:window-1].isna().all()
-        assert not pd.isna(result.iloc[window-1])
-        assert not result.iloc[window:].isna().any()
-        assert (result.dropna() >= 0).all()
+        assert isinstance(result_data, pd.Series)
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.iloc[:window-1].isna().all()
+        assert not pd.isna(result_data.iloc[window-1])
+        assert not result_data.iloc[window:].isna().any()
+        assert (result_data.dropna() >= 0).all()
         
     def test_atr_volatility_reflection(self, sample_data):
         """Test that ATR reflects changes in volatility in sample data"""
@@ -143,11 +143,12 @@ class TestATR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = atr(df, parameters={'window': window}, columns=None).dropna()
+        result_data, _ = atr(df, parameters={'window': window}, columns=None)
+        result_data = result_data.dropna()
         
         # Sample data has high vol first 50, low vol last 50
-        high_vol_period_atr = result.iloc[window:50].mean() # Take mean ATR during high vol
-        low_vol_period_atr = result.iloc[50:].mean()    # Take mean ATR during low vol
+        high_vol_period_atr = result_data.iloc[window:50].mean() # Take mean ATR during high vol
+        low_vol_period_atr = result_data.iloc[50:].mean()    # Take mean ATR during low vol
         
         assert high_vol_period_atr > low_vol_period_atr
 
@@ -165,18 +166,18 @@ class TestKeltnerChannels:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = keltner_channels(df, parameters={'ema_window': ema_window, 'atr_window': atr_window, 'atr_multiplier': atr_multiplier}, columns=None)
+        result_data, _ = keltner_channels(df, parameters={'ema_window': ema_window, 'atr_window': atr_window, 'atr_multiplier': atr_multiplier}, columns=None)
         
-        assert isinstance(result, pd.DataFrame)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         
         expected_cols = [f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
-        assert all(col in result.columns for col in expected_cols)
+        assert all(col in result_data.columns for col in expected_cols)
         
         # Check initial NaNs: The first row with no NaNs should be determined by ATR window
-        valid_result = result.dropna()
+        valid_result = result_data.dropna()
         assert not valid_result.empty # Ensure some valid rows exist
         first_valid_index = valid_result.index[0]
         # ATR produces first value at atr_window - 1
@@ -198,15 +199,15 @@ class TestKeltnerChannels:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result = keltner_channels(df, parameters={'ema_window': ema_window, 'atr_window': atr_window, 'atr_multiplier': atr_multiplier}, columns=None)
+        result_data, _ = keltner_channels(df, parameters={'ema_window': ema_window, 'atr_window': atr_window, 'atr_multiplier': atr_multiplier}, columns=None)
 
-        assert isinstance(result, pd.DataFrame)
+        assert isinstance(result_data, pd.DataFrame)
         expected_cols = [f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
-        assert all(col in result.columns for col in expected_cols)
-        assert len(result) == len(sample_data['close'])
+        assert all(col in result_data.columns for col in expected_cols)
+        assert len(result_data) == len(sample_data['close'])
         
         # Check initial NaNs: The first row with no NaNs should be determined by ATR window
-        valid_result = result.dropna()
+        valid_result = result_data.dropna()
         assert not valid_result.empty
         first_valid_index = valid_result.index[0]
         expected_first_valid_pos = atr_window - 1
@@ -228,22 +229,22 @@ class TestDonchianChannels:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = donchian_channels(df, parameters={'window': window}, columns=None)
+        result_data, _ = donchian_channels(df, parameters={'window': window}, columns=None)
         
-        assert isinstance(result, pd.DataFrame)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         
         expected_cols = [f'DONCH_Upper_{window}', f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
-        assert all(col in result.columns for col in expected_cols)
+        assert all(col in result_data.columns for col in expected_cols)
         
         # Check initial NaNs (first window-1 should be strictly NaN)
-        assert result.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
-        assert not result.iloc[window-1:].isna().any().any() # Check no NaNs from window-1 onwards
+        assert result_data.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
+        assert not result_data.iloc[window-1:].isna().any().any() # Check no NaNs from window-1 onwards
         
         # Check band properties on non-NaN data
-        valid_result = result.dropna()
+        valid_result = result_data.dropna()
         assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[1]]).all() # Upper >= Middle
         assert (valid_result[expected_cols[1]] >= valid_result[expected_cols[2]]).all() # Middle >= Lower
         # Middle should be exactly halfway between upper and lower bands
@@ -259,15 +260,15 @@ class TestDonchianChannels:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = donchian_channels(df, parameters={'window': window}, columns=None)
+        result_data, _ = donchian_channels(df, parameters={'window': window}, columns=None)
         
-        assert isinstance(result, pd.DataFrame)
+        assert isinstance(result_data, pd.DataFrame)
         expected_cols = [f'DONCH_Upper_{window}', f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
-        assert all(col in result.columns for col in expected_cols)
-        assert len(result) == len(sample_data['close'])
-        assert result.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
-        assert not result.iloc[window-1:].isna().any().any() # Check no NaNs from window-1 onwards properties on non-NaN data
-        valid_result = result.dropna()
+        assert all(col in result_data.columns for col in expected_cols)
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
+        assert not result_data.iloc[window-1:].isna().any().any() # Check no NaNs from window-1 onwards properties on non-NaN data
+        valid_result = result_data.dropna()
         assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[2]]).all() # Upper >= Lower
         assert (valid_result[expected_cols[0]] >= valid_result[expected_cols[1]]).all() # Upper >= Middle
         assert (valid_result[expected_cols[1]] >= valid_result[expected_cols[2]]).all() # Middle >= Lower
@@ -283,12 +284,12 @@ class TestChaikinVolatility:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = chaikin_volatility(df, parameters={'ema_window': ema_window, 'roc_window': roc_window}, columns={'high_col': 'High', 'low_col': 'Low'})
+        result_data, _ = chaikin_volatility(df, parameters={'ema_window': ema_window, 'roc_window': roc_window}, columns={'high_col': 'High', 'low_col': 'Low'})
         
-        assert isinstance(result, pd.Series)
-        assert not result.empty
-        assert len(result) == len(sample_data['close'])
-        assert result.index.equals(sample_data['close'].index)
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert len(result_data) == len(sample_data['close'])
+        assert result_data.index.equals(sample_data['close'].index)
         
         # Check initial NaNs (depend on EMA window + ROC window lookback)
         # EMA needs ema_window, ROC needs roc_window shift on top of EMA result.
@@ -296,9 +297,9 @@ class TestChaikinVolatility:
         # Let's check a reasonable number based on defaults.
         nan_lookback = ema_window + roc_window
         # Check that *some* initial values are NaN, and *some* later values are not.
-        assert result.iloc[:nan_lookback].isna().any() 
-        assert not result.isna().all()
-        assert not result.iloc[-1:].isna().any() # Last value should be valid
+        assert result_data.iloc[:nan_lookback].isna().any() 
+        assert not result_data.isna().all()
+        assert not result_data.iloc[-1:].isna().any() # Last value should be valid
         
 
     def test_chaikin_custom_params(self, sample_data):
@@ -309,9 +310,9 @@ class TestChaikinVolatility:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result = chaikin_volatility(df, parameters={'ema_window': ema_window, 'roc_window': roc_window}, columns={'high_col': 'High', 'low_col': 'Low'})
+        result_data, _ = chaikin_volatility(df, parameters={'ema_window': ema_window, 'roc_window': roc_window}, columns={'high_col': 'High', 'low_col': 'Low'})
         
-        assert isinstance(result, pd.Series)
-        assert len(result) == len(sample_data['close'])
-        assert not result.isna().all()
-        assert not result.iloc[-1:].isna().any()
+        assert isinstance(result_data, pd.Series)
+        assert len(result_data) == len(sample_data['close'])
+        assert not result_data.isna().all()
+        assert not result_data.iloc[-1:].isna().any()
