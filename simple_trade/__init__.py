@@ -22,6 +22,7 @@ from .core import (
 from .backtesting import Backtester
 from .band_trade import BandTradeBacktester
 from .cross_trade import CrossTradeBacktester
+from .premade_trade import premade_trade
 
 # Import optimizer
 from .optimizer import Optimizer
@@ -38,6 +39,7 @@ __all__ = [
     "Optimizer",
     "IndicatorPlotter",
     "BacktestPlotter",
+    "premade_trade",
     
     # Data functions
     "download_data", "compute_indicator",
