@@ -58,7 +58,7 @@ def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    period = parameters.get('period', 20)
+    period = int(parameters.get('period', 20))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')

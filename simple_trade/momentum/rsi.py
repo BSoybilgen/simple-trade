@@ -36,7 +36,7 @@ def rsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    window = parameters.get('window', 14)
+    window = int(parameters.get('window', 14))
     close_col = columns.get('close_col', 'Close')
     
     series = df[close_col]

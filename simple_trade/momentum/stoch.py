@@ -56,9 +56,9 @@ def stoch(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tu
         columns = {}
         
     # Extract parameters with defaults
-    k_period = parameters.get('k_period', 14)
-    d_period = parameters.get('d_period', 3)
-    smooth_k = parameters.get('smooth_k', 3)
+    k_period = int(parameters.get('k_period', 14))
+    d_period = int(parameters.get('d_period', 3))
+    smooth_k = int(parameters.get('smooth_k', 3))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')

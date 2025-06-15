@@ -55,7 +55,7 @@ def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         
     # Extract parameters with defaults
     close_col = columns.get('close_col', 'Close')
-    window = parameters.get('window', 20)
+    window = int(parameters.get('window', 20))
     
     series = df[close_col]
     weights = np.arange(1, window + 1)

@@ -49,7 +49,7 @@ def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         
     # Extract parameters with defaults
     close_col = columns.get('close_col', 'Close')
-    window = parameters.get('window', 20)
+    window = int(parameters.get('window', 20))
 
     half_length = int(window / 2)
     sqrt_length = int(np.sqrt(window))

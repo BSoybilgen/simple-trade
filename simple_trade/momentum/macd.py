@@ -39,9 +39,9 @@ def macd(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tup
         columns = {}
         
     # Extract parameters with defaults
-    window_slow = parameters.get('window_slow', 26)
-    window_fast = parameters.get('window_fast', 12)
-    window_signal = parameters.get('window_signal', 9)
+    window_slow = int(parameters.get('window_slow', 26))
+    window_fast = int(parameters.get('window_fast', 12))
+    window_signal = int(parameters.get('window_signal', 9))
     close_col = columns.get('close_col', 'Close')
     
     series = df[close_col]

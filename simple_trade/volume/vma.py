@@ -44,7 +44,7 @@ def vma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    window = parameters.get('window', 20)
+    window = int(parameters.get('window', 20))
     close_col = columns.get('close_col', 'Close')
     volume_col = columns.get('volume_col', 'Volume')
 

@@ -60,10 +60,10 @@ def ichimoku(df: pd.DataFrame, parameters: dict = None, columns: dict = None) ->
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')
-    tenkan_period = parameters.get('tenkan_period', 9)
-    kijun_period = parameters.get('kijun_period', 26)
-    senkou_b_period = parameters.get('senkou_b_period', 52)
-    displacement = parameters.get('displacement', 26)
+    tenkan_period = int(parameters.get('tenkan_period', 9))
+    kijun_period = int(parameters.get('kijun_period', 26))
+    senkou_b_period = int(parameters.get('senkou_b_period', 52))
+    displacement = int(parameters.get('displacement', 26))
     
     close = df[close_col]
 

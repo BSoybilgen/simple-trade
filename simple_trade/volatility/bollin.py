@@ -38,8 +38,8 @@ def bollinger_bands(df: pd.DataFrame, parameters: dict = None, columns: dict = N
         columns = {}
         
     # Extract parameters with defaults
-    window = parameters.get('window', 20)
-    num_std = parameters.get('num_std', 2)
+    window = int(parameters.get('window', 20))
+    num_std = float(parameters.get('num_std', 2))
     close_col = columns.get('close_col', 'Close')
     
     series = df[close_col]

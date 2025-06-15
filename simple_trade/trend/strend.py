@@ -37,8 +37,8 @@ def supertrend(df: pd.DataFrame, parameters: dict = None, columns: dict = None) 
         columns = {}
         
     # Extract parameters with defaults
-    period = parameters.get('period', 14)
-    multiplier = parameters.get('multiplier', 3.0)
+    period = int(parameters.get('period', 14))
+    multiplier = float(parameters.get('multiplier', 3.0))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')

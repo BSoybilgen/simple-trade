@@ -59,7 +59,7 @@ def aroon(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tu
     # Extract parameters with defaults
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
-    period = parameters.get('period', 14)
+    period = int(parameters.get('period', 14))
 
     high = df[high_col]
     low = df[low_col]
