@@ -6,7 +6,7 @@ from simple_trade.band_trade import BandTradeBacktester
 from simple_trade.plot_test import BacktestPlotter
 
 
-def premade_trade(data:pd.DataFrame, strategy_name:str, parameters:dict=None):
+def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None):
 
     initial_cash = float(parameters.get('initial_cash', 10000.0))
     commission_long = float(parameters.get('commission_long', 0.001))
