@@ -42,7 +42,7 @@ def donchian_channels(df: pd.DataFrame, parameters: dict = None, columns: dict =
         columns = {}
         
     # Extract parameters with defaults
-    window = parameters.get('window', 20)
+    window = int(parameters.get('window', 20))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     

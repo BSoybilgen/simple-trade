@@ -45,8 +45,8 @@ def chaikin_volatility(df: pd.DataFrame, parameters: dict = None, columns: dict 
         columns = {}
         
     # Extract parameters with defaults
-    ema_window = parameters.get('ema_window', 10)
-    roc_window = parameters.get('roc_window', 10)
+    ema_window = int(parameters.get('ema_window', 10))
+    roc_window = int(parameters.get('roc_window', 10))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     

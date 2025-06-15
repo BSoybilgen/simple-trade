@@ -43,7 +43,7 @@ def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    window = parameters.get('window', 12)
+    window = int(parameters.get('window', 12))
     close_col = columns.get('close_col', 'Close')
     
     series = df[close_col]

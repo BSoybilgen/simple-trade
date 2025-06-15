@@ -46,7 +46,7 @@ def ema(data: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tu
         
     # Extract parameters with defaults
     close_col = columns.get('close_col', 'Close')
-    window = parameters.get('window', 20)
+    window = int(parameters.get('window', 20))
 
     series = data[close_col]
     series = series.ewm(span=window, adjust=False).mean()

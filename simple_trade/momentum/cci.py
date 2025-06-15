@@ -52,8 +52,8 @@ def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    window = parameters.get('window', 20)
-    constant = parameters.get('constant', 0.015)
+    window = int(parameters.get('window', 20))
+    constant = float(parameters.get('constant', 0.015))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')

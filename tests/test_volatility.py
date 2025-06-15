@@ -57,7 +57,7 @@ class TestBollingerBands:
         assert result_data.index.equals(sample_data['close'].index)
         
         # Check columns
-        expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}', f'BB_Lower_{window}_{num_std}']
+        expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}.0', f'BB_Lower_{window}_{num_std}.0']
         assert all(col in result_data.columns for col in expected_cols)
         
         # Check initial NaNs (first window-1)
@@ -78,7 +78,7 @@ class TestBollingerBands:
         result_data, _ = bollinger_bands(df, parameters={'window': window, 'num_std': num_std}, columns=None)
         
         assert isinstance(result_data, pd.DataFrame)
-        expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}', f'BB_Lower_{window}_{num_std}']
+        expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}.0', f'BB_Lower_{window}_{num_std}.0']
         assert all(col in result_data.columns for col in expected_cols)
         assert len(result_data) == len(sample_data['close'])
         assert result_data.iloc[:window-1].isna().all().all()

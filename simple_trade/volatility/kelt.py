@@ -46,9 +46,9 @@ def keltner_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = 
         columns = {}
         
     # Extract parameters with defaults
-    ema_window = parameters.get('ema_window', 20)
-    atr_window = parameters.get('atr_window', 10)
-    atr_multiplier = parameters.get('atr_multiplier', 2.0)
+    ema_window = int(parameters.get('ema_window', 20))
+    atr_window = int(parameters.get('atr_window', 10))
+    atr_multiplier = float(parameters.get('atr_multiplier', 2.0))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')

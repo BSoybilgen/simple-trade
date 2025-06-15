@@ -61,9 +61,9 @@ def psar(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tup
         columns = {}
         
     # Extract parameters with defaults
-    af_initial = parameters.get('af_initial', 0.02)
-    af_step = parameters.get('af_step', 0.02)
-    af_max = parameters.get('af_max', 0.2)
+    af_initial = float(parameters.get('af_initial', 0.02))
+    af_step = float(parameters.get('af_step', 0.02))
+    af_max = float(parameters.get('af_max', 0.2))
     
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
