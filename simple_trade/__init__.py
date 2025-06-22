@@ -22,7 +22,6 @@ from .core import (
 from .backtesting import Backtester
 from .band_trade import BandTradeBacktester
 from .cross_trade import CrossTradeBacktester
-from .premade_backtest import premade_backtest
 
 # Import optimizer
 from .optimizer import Optimizer
