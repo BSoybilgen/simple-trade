@@ -5,7 +5,7 @@ setup(
     name="simple_trade",
     description="Compute technical indicators and build trade strategies in a simple way",
     license='AGPL-3.0',
-    version="0.1.2",
+    version="0.1.3",
     author="Baris Soybilgen",
     packages=find_packages(),
     project_urls={
