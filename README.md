@@ -196,7 +196,7 @@ for i, result in enumerate(sorted_results[:3]):
 
 **Output of Results**
 ```
-Top 3 RSI Parameter Combinations:
+Top 3 SMA Parameter Combinations:
   1. {'short_window': 10, 'long_window': 50} -> 99.87%
   2. {'short_window': 20, 'long_window': 50} -> 85.69%
   3. {'short_window': 30, 'long_window': 50} -> 67.08%
