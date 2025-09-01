@@ -22,6 +22,7 @@ A Python library that allows you to compute technical indicators and build trade
 *   **Backtesting:** Evaluate the performance of your trading strategies on historical data.
 *   **Optimization:** Optimize strategy parameters using techniques like grid search.
 *   **Plotting:** Visualize data, indicators, and backtest results using `matplotlib`.
+*   **Combining:** Combine different strategies to create a more complex strategy.
 
 ## Installation
 
@@ -60,6 +61,8 @@ These will be installed automatically when you install `simple-trade` using `pip
 
 ## Basic Usage
 
+### Calculate Indicators
+
 Here's a quick example of how to download data and compute a technical indicator:
 
 ```python
@@ -92,19 +95,16 @@ fig.show()
 **Plot of Results**
 <img src="https://i.imgur.com/JBpd0qo.png" alt="Figure 1" width="900" height="600">
 
-
-## Advanced Usage
-
 ### Backtesting Strategies
 
-Use the `backtesting` module to simulate strategies like moving average crossovers (`cross_trade`) or Bollinger Band breakouts (`band_trade`).
+Use the `premade_backtesting` module to simulate strategies like moving average crossovers (`cross_trade`) or Bollinger Band breakouts (`band_trade`).
 
 ```python
 # Load Packages and Functions
 import pandas as pd
-from simple_trade import download_data, compute_indicator
+from simple_trade import download_data
+from simple_trade import premade_backtest
 from simple_trade import CrossTradeBacktester
-from simple_trade import BacktestPlotter
 
 # Step 1: Download data
 symbol = 'AAPL'
@@ -113,74 +113,29 @@ end_date = '2022-12-31'
 interval = '1d'
 data = download_data(symbol, start_date, end_date, interval=interval)
 
-# Step 2: Download indicators
-short_window = 25
-long_window = 75
-data = compute_indicator(data, indicator='sma', window=short_window)
-data = compute_indicator(data, indicator='sma', window=long_window)
+# Step 2: Set Global Parameters
+global_parameters = {
+    'initial_cash': 10000,
+    'commission_long': 0.001,
+    'commission_short': 0.001,
+    'short_borrow_fee_inc_rate': 0.0,
+    'long_borrow_fee_inc_rate': 0.0,
+    'trading_type': 'long',
+    'day1_position': 'none',
+    'risk_free_rate': 0.0,
+}
 
-# Step 3: Initialize strategy
-initial_cash = 10000.0
-commission = 0.01
-backtester = CrossTradeBacktester(initial_cash=initial_cash, commission_long=commission)
+# Step 3: Set Strategy Parameters
+strategy_name = 'sma'
+specific_parameters = {
+    'short_window': 25,
+    'long_window': 75,
+    'fig_control': 1,
+}
 
-results, portfolio = backtester.run_cross_trade(
-    data=data,
-    short_window_indicator="SMA_25",
-    long_window_indicator="SMA_75",
-    price_col='Close',
-)
-
-# Step 4: Produce results
-backtester.print_results(results)
-
-# Step 5: Plot results
-plotter = BacktestPlotter()
-indicator_cols_to_plot = [f'SMA_{short_window}', f'SMA_{long_window}']
-fig = plotter.plot_results(
-    data_df=data,
-    history_df=portfolio,
-    price_col='Close',
-    indicator_cols=indicator_cols_to_plot, 
-    title=f"Cross Trade (Long Only) (SMA-{short_window} vs SMA-{long_window})"
-)
-
-# Step 6: Display the plot
-plt.show()
-```
-
-**Output of Results**
-```
-============================================================
-              ✨ Cross Trade (SMA_25/SMA_75) ✨               
-============================================================
-
-🗓️ BACKTEST PERIOD:
-  • Period: 2020-04-20 to 2022-12-30
-  • Duration: 984 days
-  • Trading Days: 682
-
-📊 BASIC METRICS:
-  • Initial Investment: $10,000.00
-  • Final Portfolio Value: $11,400.77
-  • Total Return: 14.01%
-  • Annualized Return: 4.96%
-  • Number of Trades: 16
-  • Total Commissions: $1,936.74
-
-📈 BENCHMARK COMPARISON:
-  • Benchmark Return: 71.32%
-  • Benchmark Final Value: $17,132.49
-  • Strategy vs Benchmark: -57.31%
-
-📉 RISK METRICS:
-  • Sharpe Ratio: 0.320
-  • Sortino Ratio: 0.260
-  • Maximum Drawdown: -33.59%
-  • Average Drawdown: -15.36%
-  • Max Drawdown Duration: 849 days
-  • Avg Drawdown Duration: 61.33 days
-  • Annualized Volatility: 23.75%
+# Step 4: Run Backtest
+parameters = {**global_parameters, **specific_parameters}
+results, portfolio, fig = premade_backtest(data, strategy_name, parameters)
 ```
 
 **Plot of Results**
@@ -189,13 +144,12 @@ plt.show()
 
 ### Optimizing Strategies
 
-The `optimizer` module allows you to find the best parameters for your strategy (e.g., optimal moving average windows).
+The `premade_optimizer` module allows you to find the best parameters for your strategy (e.g., optimal moving average windows).
 
 ```python
 # Load Packages and Functions
-from simple_trade import download_data, compute_indicator
-from simple_trade import CrossTradeBacktester
-from simple_trade import Optimizer
+from simple_trade import download_data
+from simple_trade.premade_optimizer import premade_optimizer
 
 # Step 1: Load Data
 ticker = "AAPL"
@@ -210,115 +164,42 @@ param_grid = {
     'short_window': [10, 20, 30],
     'long_window': [50, 100, 150],
 }
-# Define constant parameters for the backtester
-initial_capital = 100000
-commission_fee = 0.001 # 0.1%
-constant_params = {
-    'initial_cash': initial_capital, 
-    'commission_long': commission_fee,
-    'price_col': 'Close'
+
+# Step 3: Set Base Parameters
+base_params = {
+    'initial_cash': 100000.0,
+    'commission_long': 0.001,         # 0.1% commission
+    'commission_short': 0.001,
+    'trading_type': 'long',           # Only long trades
+    'day1_position': 'none',
+    'risk_free_rate': 0.02,
+    'metric': 'total_return_pct',     # Metric to optimize
+    'maximize': True,                 # Maximize the metric
+    'parallel': False,                # Sequential execution for this example
+    'fig_control': 0                  # No plotting during optimization
 }
-# Define the metric to optimize and whether to maximize or minimize
-metric_to_optimize = 'total_return_pct'
-maximize_metric = True
 
-# Step 3: Define the wrapper function
-def run_cross_trade_with_windows(data, short_window, long_window, **kwargs):
-    # Work on a copy of the data
-    df = data.copy()
-    
-    # Compute the SMA indicators
-    df = compute_indicator(df, indicator='sma', parameters={'window': short_window}, columns={'close_col': 'Close'})
-    df = compute_indicator(df, indicator='sma', parameters={'window': long_window}, columns={'close_col': 'Close'})
-     
-    # Get the indicator column names
-    short_window_indicator = f"SMA_{short_window}"
-    long_window_indicator = f"SMA_{long_window}"
-    
-    # Create a backtester instance
-    backtester = CrossTradeBacktester(
-        initial_cash=kwargs.pop('initial_cash', 10000),
-        commission_long=kwargs.pop('commission_long', 0.001),
-    )
-    
-    # Run the backtest
-    return backtester.run_cross_trade(
-        data=df,
-        short_window_indicator=short_window_indicator,
-        long_window_indicator=long_window_indicator,
-        **kwargs
-    )
-
-# Step 4: Instantiate and Run Optimizer
-print("Initializing Optimizer...")
-optimizer = Optimizer(
+# Step 4: Run Optimization
+best_results, best_params, all_results = premade_optimizer(
     data=data,
-    backtest_func=run_cross_trade_with_windows,  # Use our wrapper function
-    param_grid=param_grid,
-    metric_to_optimize=metric_to_optimize,
-    maximize_metric=maximize_metric,
-    constant_params=constant_params
+    strategy_name='sma',
+    parameters=base_params,
+    param_grid=param_grid
 )
 
-print("\nRunning Optimization (Parallel)...")
-# Run optimization with parallel processing (adjust n_jobs as needed)
-results = optimizer.optimize(parallel=True, n_jobs=-1) # n_jobs=-1 uses all available cores
-
-# --- Display Results ---
-print("\n--- Optimization Results ---")
-
-# Unpack results
-best_params, best_metric_value, all_results = results
-
-print("\n--- Top 5 Parameter Combinations ---")
-# Sort results for display
-sorted_results = sorted(all_results, key=lambda x: x[1], reverse=maximize_metric)
-for i, (params, metric_val) in enumerate(sorted_results[:5]):
-    print(f"{i+1}. Params: {params}, Metric: {metric_val:.4f}")
+# Show top 3 parameter combinations
+print("\nTop 3 SMA Parameter Combinations:")
+sorted_results = sorted(all_results, key=lambda x: x['score'], reverse=True)
+for i, result in enumerate(sorted_results[:3]):
+    print(f"  {i+1}. {result['params']} -> {result['score']:.2f}%")
 ```
 
 **Output of Results**
 ```
-print("\nRunning Optimization (Parallel)...")
-# Run optimization with parallel processing (adjust n_jobs as needed)
-results = optimizer.optimize(parallel=True, n_jobs=-1) # n_jobs=-1 uses all available cores
-
-# --- Display Results ---
-print("\n--- Optimization Results ---")
-
-# Unpack results
-best_params, best_metric_value, all_results = results
-
-print("\n--- Top 5 Parameter Combinations ---")
-# Sort results for display
-sorted_results = sorted(all_results, key=lambda x: x[1], reverse=maximize_metric)
-for i, (params, metric_val) in enumerate(sorted_results[:5]):
-    print(f"{i+1}. Params: {params}, Metric: {metric_val:.4f}")
-
-Initializing Optimizer...
-Generated 9 parameter combinations.
-
-Running Optimization (Parallel)...
-Starting optimization for 9 combinations...
-Metric: total_return_pct (Maximize) | Parallel: True (n_jobs=-1)
-Using 16 parallel jobs.
-[Parallel(n_jobs=16)]: Using backend LokyBackend with 16 concurrent workers.
-[Parallel(n_jobs=16)]: Done   2 out of   9 | elapsed:    9.0s remaining:   31.6s
-[Parallel(n_jobs=16)]: Done   4 out of   9 | elapsed:    9.4s remaining:   11.7s
-[Parallel(n_jobs=16)]: Done   6 out of   9 | elapsed:    9.5s remaining:    4.7s
-Optimization finished in 9.86 seconds.
-Best Parameters found: {'short_window': 10, 'long_window': 50}
-Best Metric Value (total_return_pct): 89.0500
-
---- Optimization Results ---
-
---- Top 5 Parameter Combinations ---
-1. Params: {'short_window': 10, 'long_window': 50}, Metric: 89.0500
-2. Params: {'short_window': 20, 'long_window': 50}, Metric: 76.6100
-3. Params: {'short_window': 30, 'long_window': 50}, Metric: 60.6400
-4. Params: {'short_window': 10, 'long_window': 150}, Metric: 19.4100
-5. Params: {'short_window': 20, 'long_window': 100}, Metric: 10.9600
-[Parallel(n_jobs=16)]: Done   9 out of   9 | elapsed:    9.7s finished
+Top 3 RSI Parameter Combinations:
+  1. {'short_window': 10, 'long_window': 50} -> 99.87%
+  2. {'short_window': 20, 'long_window': 50} -> 85.69%
+  3. {'short_window': 30, 'long_window': 50} -> 67.08%
 ```
 
 ## Examples
@@ -328,6 +209,7 @@ For more detailed examples, please refer to the Jupyter notebooks in the `/examp
 *   `/examples/indicators`: Demonstrations of various technical indicators.
 *   `/examples/backtest`: Examples of backtesting different strategies.
 *   `/examples/optimize`: Examples of optimizing strategy parameters.
+*   `/examples/combine_trade`: Examples of combining different strategies.
 
 ## Contributing
 
