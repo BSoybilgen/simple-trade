@@ -55,7 +55,7 @@ def run_band_trade_with_windows(data, rsi_upper_threshold, rsi_lower_threshold, 
     df[lower_threshold_col] = rsi_lower_threshold
 
     # Compute RSI indicator
-    df = compute_indicator(df, indicator='rsi', parameters={'window': rsi_window}, columns={'close_col': 'Close'})
+    df, _, _ = compute_indicator(df, indicator='rsi', parameters={'window': rsi_window}, columns={'close_col': 'Close'})
     indicator_col = f'RSI_{rsi_window}'
     
     # Create a backtester instance
@@ -126,7 +126,7 @@ else:
     final_data = data.copy()
     final_data['RSI_Upper'] = rsi_upper_threshold
     final_data['RSI_Lower'] = rsi_lower_threshold
-    final_data = compute_indicator(final_data, indicator='rsi', parameters={'window': rsi_window}, columns={'close_col': 'Close'})
+    final_data, _, _ = compute_indicator(final_data, indicator='rsi', parameters={'window': rsi_window}, columns={'close_col': 'Close'})
     
     # Create backtester with best parameters
     best_backtester = BandTradeBacktester(
