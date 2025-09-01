@@ -13,7 +13,7 @@ class CrossTradeBacktester(Backtester):
     def run_cross_trade(self, data: pd.DataFrame, short_window_indicator: str, 
                          long_window_indicator: str, price_col: str = 'Close', 
                          trading_type: str = 'long', long_entry_pct_cash: float = 0.9, 
-                         short_entry_pct_cash: float = 0.1, day1_position: str = 'none',
+                         short_entry_pct_cash: float = 0.9, day1_position: str = 'none',
                          risk_free_rate: int = 0.0) -> tuple:
         """
         Runs a backtest for a cross trading strategy using Simple Moving Averages (SMAs).

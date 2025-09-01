@@ -22,6 +22,10 @@ from .core import (
 from .backtesting import Backtester
 from .band_trade import BandTradeBacktester
 from .cross_trade import CrossTradeBacktester
+from .combine_trade import CombineTradeBacktester
+from .premade_backtest import premade_backtest
+from .fibonacci_retracement import calculate_fibonacci_levels, plot_fibonacci_retracement
+from .resistance_support import find_pivot_points, find_resistance_support_lines, plot_resistance_support
 
 # Import optimizer
 from .optimizer import Optimizer
@@ -38,7 +42,13 @@ __all__ = [
     "Optimizer",
     "IndicatorPlotter",
     "BacktestPlotter",
+    "CombineTradeBacktester",
     "premade_backtest",
+    "calculate_fibonacci_levels",
+    "plot_fibonacci_retracement",
+    "find_pivot_points",
+    "find_resistance_support_lines",
+    "plot_resistance_support",
     
     # Data functions
     "download_data", "compute_indicator",

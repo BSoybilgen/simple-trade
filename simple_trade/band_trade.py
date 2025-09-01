@@ -10,7 +10,7 @@ class BandTradeBacktester(Backtester):
         self.log = None
 
     def run_band_trade(self, data: pd.DataFrame, indicator_col: str, upper_band_col: str, lower_band_col: str, 
-                            price_col: str = 'Close', long_entry_pct_cash: float = 0.9, short_entry_pct_cash: float = 0.1, 
+                            price_col: str = 'Close', long_entry_pct_cash: float = 0.9, short_entry_pct_cash: float = 0.9, 
                             trading_type: str = 'long', strategy_type: int = 1, day1_position: str = 'none',
                             risk_free_rate: int = 0.0) -> tuple:
         """
