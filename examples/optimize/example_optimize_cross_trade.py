@@ -20,13 +20,13 @@ def run_cross_trade_with_windows(data, short_window, long_window, **kwargs):
     # Work on a copy of the data
     df = data.copy()
     
-    # Compute the SMA indicators
-    df = compute_indicator(df, indicator='sma', parameters={'window': short_window}, columns={'close_col': 'Close'})
-    df = compute_indicator(df, indicator='sma', parameters={'window': long_window}, columns={'close_col': 'Close'})
+    # Compute the EMA indicators
+    df, _, _ = compute_indicator(df, indicator='ema', parameters={'window': short_window}, columns={'close_col': 'Close'})
+    df, _, _ = compute_indicator(df, indicator='ema', parameters={'window': long_window}, columns={'close_col': 'Close'})
     
     # Get the indicator column names
-    short_window_indicator = f"SMA_{short_window}"
-    long_window_indicator = f"SMA_{long_window}"
+    short_window_indicator = f"EMA_{short_window}"
+    long_window_indicator = f"EMA_{long_window}"
     
     # Create a backtester instance
     backtester = CrossTradeBacktester(
@@ -106,11 +106,11 @@ print("\n--- Running Backtest with Best Parameters ---")
 # Make a copy of the data for the final backtest
 final_data = data.copy()
 
-# Compute the SMA indicators for the best parameters
+# Compute the EMA indicators for the best parameters
 short_window = best_params['short_window']
 long_window = best_params['long_window']
-final_data = compute_indicator(final_data, indicator='sma', window=short_window)
-final_data = compute_indicator(final_data, indicator='sma', window=long_window)
+final_data, _, _ = compute_indicator(final_data, indicator='ema', parameters={'window': short_window})
+final_data, _, _ = compute_indicator(final_data, indicator='ema', parameters={'window': long_window})
 
 # Extract backtester initialization parameters
 bt_init_args = {
@@ -124,8 +124,8 @@ best_backtester = CrossTradeBacktester(**bt_init_args)
 # Run backtest with the best parameters
 results, portfolio_df = best_backtester.run_cross_trade(
     data=final_data,
-    short_window_indicator=f"SMA_{short_window}",
-    long_window_indicator=f"SMA_{long_window}",
+    short_window_indicator=f"EMA_{short_window}",
+    long_window_indicator=f"EMA_{long_window}",
     price_col='Close'
 )
 

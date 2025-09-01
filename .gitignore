@@ -176,3 +176,4 @@ cython_debug/
 # Other
 *cachedir
 /trade_ai
+/stock_analysis

@@ -25,6 +25,7 @@ class BacktestPlotter:
         price_col: str = 'Close',
         indicator_cols: Optional[List[str]] = None, # Accept list of columns directly
         title: Optional[str] = None,
+        show_indicator_panel: bool = True
         # **indicator_kwargs # Remove kwargs
     ) -> plt.Figure:
         """
@@ -36,8 +37,6 @@ class BacktestPlotter:
             price_col (str): The name of the column containing the price data.
             indicator_cols (Optional[List[str]]): List of indicator column names to plot.
             title (Optional[str]): Optional title for the plot.
-            # indicator (Optional[str]): The name of the primary indicator used in the strategy. # Removed
-            # **indicator_kwargs: Keyword arguments passed to identify the indicator columns. # Removed
 
         Returns:
             plt.Figure: The generated matplotlib Figure object.
@@ -62,8 +61,12 @@ class BacktestPlotter:
         data_df = data_df.loc[plot_index]
         history_df = history_df.loc[plot_index]
 
-        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 10), sharex=True,
-                                            gridspec_kw={'height_ratios': [3, 1, 2]})
+        if show_indicator_panel:
+            fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 10), sharex=True,
+                                                gridspec_kw={'height_ratios': [3, 1, 2]})
+        else:
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True,
+                                            gridspec_kw={'height_ratios': [3, 1]})
 
         # --- Plot 1: Price and Trades --- 
         ax1.plot(plot_index, data_df[price_col], label=f'{price_col} Price', color='skyblue', linewidth=1.5)
@@ -99,30 +102,31 @@ class BacktestPlotter:
         # Move legend outside plot to the right
         ax2.legend(loc='center left', bbox_to_anchor=(1.02, 0.5))
 
-        # --- Plot 3: Indicators --- 
-        # Use the directly provided indicator_cols list
-        valid_indicator_cols = []
-        if indicator_cols:
-            for col in indicator_cols:
-                if col in data_df.columns:
-                    valid_indicator_cols.append(col)
-                else:
-                    print(f"Warning: Indicator column '{col}' not found in data_df.")
-        
-        if valid_indicator_cols:
-            # Define contrasting colors for indicator lines
-            contrast_colors = ['#FFD700', '#32CD32', '#1E90FF', '#FF8C00', '#FF69B4', '#BA55D3'] 
-            for i, col in enumerate(valid_indicator_cols):
-                color_idx = i % len(contrast_colors)
-                ax3.plot(plot_index, data_df[col], label=col, linewidth=1.5, color=contrast_colors[color_idx])
-            ax3.set_ylabel('Indicator Value')
-            ax3.set_title('Indicator Values') # More generic title
-            # Move legend outside plot to the right
-            ax3.legend(loc='center left', bbox_to_anchor=(1.02, 0.5))
-            ax3.grid(True, linestyle='--', alpha=0.6)
-        else:
-            ax3.set_title('No Indicators Specified/Found for Plotting')
-            ax3.grid(False)
+        if show_indicator_panel:
+            # --- Plot 3: Indicators --- 
+            # Use the directly provided indicator_cols list
+            valid_indicator_cols = []
+            if indicator_cols:
+                for col in indicator_cols:
+                    if col in data_df.columns:
+                        valid_indicator_cols.append(col)
+                    else:
+                        print(f"Warning: Indicator column '{col}' not found in data_df.")
+            
+            if valid_indicator_cols:
+                # Define contrasting colors for indicator lines
+                contrast_colors = ['#FFD700', '#32CD32', '#1E90FF', '#FF8C00', '#FF69B4', '#BA55D3'] 
+                for i, col in enumerate(valid_indicator_cols):
+                    color_idx = i % len(contrast_colors)
+                    ax3.plot(plot_index, data_df[col], label=col, linewidth=1.5, color=contrast_colors[color_idx])
+                ax3.set_ylabel('Indicator Value')
+                ax3.set_title('Indicator Values') # More generic title
+                # Move legend outside plot to the right
+                ax3.legend(loc='center left', bbox_to_anchor=(1.02, 0.5))
+                ax3.grid(True, linestyle='--', alpha=0.6)
+            else:
+                ax3.set_title('No Indicators Specified/Found for Plotting')
+                ax3.grid(False)
 
         # --- Final Touches ---        
         plt.xlabel('Date')
