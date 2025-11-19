@@ -20,7 +20,7 @@ def compute_indicator(
     Args:
         data: pandas.DataFrame containing the financial data (must include 'Close',
               and possibly 'High', 'Low' depending on the indicator).
-        indicator: Technical indicator to compute (e.g., 'rsi', 'sma', 'macd', 'adx').
+        indicator: Technical indicator to compute (e.g., 'rsi', 'sma', 'mac', 'adx').
         **indicator_kwargs: Keyword arguments specific to the chosen indicator.
 
     Returns:
@@ -45,14 +45,16 @@ def compute_indicator(
         # Add the result to the original DataFrame
         df = _add_indicator_to_dataframe(df, indicator_result, indicator_kwargs)
 
-        if indicator in ('adx', 'aroon', 'trix', 'cci', 'macd', 'roc', 
-                         'rsi', 'stoch', 'atr', 'chaik', 'adline', 'cmf',
-                         'obv', 'vpt'):
+        if indicator in ('adx', 'aro', 'tri', 'cci', 'mac', 'roc', 
+                         'rsi', 'sto', 'atr', 'chaik', 'adline', 'cmf',
+                         'obv', 'vpt', 'cmo', 'cog', 'crs', 'dpo', 'eri',
+                         'fis', 'kst', 'lsi', 'msi', 'qst', 'rmi', 'stc',
+                         'tsi', 'ttm', 'ult', 'vor', 'wil'):
             plot_on_subplot=True
         else:
             plot_on_subplot=False
 
-        if indicator in ('psar', 'strend'):
+        if indicator in ('psa', 'str'):
             columns = [columns[0]]
 
         if figure:

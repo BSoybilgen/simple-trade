@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def aroon(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def aro(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Aroon indicator, which measures the time it takes for a security
     to reach its highest and lowest points over a specified time period.

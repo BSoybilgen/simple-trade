@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.patches import Rectangle
-from typing import List, Optional, Union, Literal
+from typing import List, Optional, Literal
 import logging
 
 class IndicatorPlotter:
@@ -63,15 +63,35 @@ class IndicatorPlotter:
         if not columns_to_plot:
             logging.warning("No valid indicator columns specified or found. Plotting price only.")
 
-        # Determine layout based on plot_on_subplot
-        if plot_on_subplot and columns_to_plot:
+        # Separate squeeze columns so they can be plotted on their own panel
+        squeeze_cols = [
+            col for col in columns_to_plot
+            if 'squeeze_on' in col.lower() or 'squeeze_off' in col.lower()
+        ]
+        indicator_plot_cols = [col for col in columns_to_plot if col not in squeeze_cols]
+
+        need_indicator_subplot = plot_on_subplot and bool(indicator_plot_cols)
+        need_squeeze_subplot = bool(squeeze_cols)
+
+        if need_indicator_subplot and need_squeeze_subplot:
+            fig, axes = plt.subplots(
+                3, 1, sharex=True, figsize=(16, 10),
+                gridspec_kw={'height_ratios': [3, 1.4, 0.8]}
+            )
+            ax_price, ax_ind, ax_squeeze = axes
+        elif need_indicator_subplot:
             fig, axes = plt.subplots(2, 1, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
             ax_price, ax_ind = axes
+            ax_squeeze = None
+        elif need_squeeze_subplot:
+            fig, axes = plt.subplots(2, 1, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 0.8]})
+            ax_price, ax_squeeze = axes
+            ax_ind = ax_price
         else:
-            # Always create 1x1 subplot even for overlay to maintain consistency
             fig, ax = plt.subplots(1, 1, figsize=(16, 8))
-            ax_price = ax # Price axis is the only axis
-            ax_ind = ax   # Indicators will plot on the same axis
+            ax_price = ax
+            ax_ind = ax
+            ax_squeeze = None
 
         # Plot Price based on plot_type
         if plot_type == 'line':
@@ -132,20 +152,20 @@ class IndicatorPlotter:
         ax_price.grid(True, linestyle='--', alpha=0.7, color='#303030')
         
         # Plot Indicators if any are specified
-        if indicator_cols:
+        if indicator_plot_cols:
             plot_hist = False
             hist_col_name = ''
             # Special handling for MACD Histogram
-            hist_col_name = next((col for col in indicator_cols if 'hist' in col), None)
+            hist_col_name = next((col for col in indicator_plot_cols if 'hist' in col), None)
             if hist_col_name:
                 plot_hist = True
-                indicator_cols.remove(hist_col_name)
+                indicator_plot_cols.remove(hist_col_name)
 
             # Plot lines with high contrast colors and increased line thickness
             contrast_colors = ['#e50000', '#00b300', '#9900cc', '#ff9500', '#00c3c3']
 
             # Handle Ichimoku Cloud shading if both spans are present
-            if 'Ichimoku_senkou_span_a' in indicator_cols and 'Ichimoku_senkou_span_b' in indicator_cols:
+            if 'Ichimoku_senkou_span_a' in indicator_plot_cols and 'Ichimoku_senkou_span_b' in indicator_plot_cols:
                 # Fill bullish regions (green) - when Senkou A is above Senkou B
                 ax_ind.fill_between(
                     df.index, df['Ichimoku_senkou_span_a'], df['Ichimoku_senkou_span_b'],
@@ -166,7 +186,7 @@ class IndicatorPlotter:
                     label='Kumo (Bearish)'
                 )
             
-            for i, col in enumerate(indicator_cols):
+            for i, col in enumerate(indicator_plot_cols):
                 # Special handling for PSAR - display as dots instead of lines
                 if 'PSAR' in col or 'Supertrend' in col:
                     # Determine whether dots should be above or below the price (above in downtrend, below in uptrend)
@@ -236,21 +256,44 @@ class IndicatorPlotter:
                  colors = ['#00cc00' if x >= 0 else '#e60000' for x in df[hist_col_name]]
                  ax_ind.bar(df.index, df[hist_col_name], label=hist_col_name, color=colors, alpha=0.8, width=0.7)
 
+        # Plot squeeze columns on dedicated axis when present
+        if squeeze_cols:
+            squeeze_colors = ['#00b300', '#c20078']
+            if not ax_squeeze:
+                ax_squeeze = ax_price
+            for i, col in enumerate(squeeze_cols):
+                color = squeeze_colors[i % len(squeeze_colors)]
+                ax_squeeze.step(
+                    df.index,
+                    df[col].astype(int),
+                    where='post',
+                    label=col,
+                    color=color,
+                    linewidth=1.8
+                )
+            ax_squeeze.set_ylim(-0.2, 1.2)
+            ax_squeeze.set_ylabel('Squeeze', fontweight='bold', fontsize=11)
+            ax_squeeze.set_yticks([0, 1])
+            ax_squeeze.grid(True, linestyle='--', alpha=0.5, color='#505050')
+
         # Final Touches
         if title:
             fig.suptitle(title)
         else:
              base_title = f"{df.attrs.get('symbol', 'Data')} {price_col}"
-             if indicator_cols:
-                 base_title += f" and {', '.join(indicator_cols)}"
+             if columns_to_plot:
+                 base_title += f" and {', '.join(columns_to_plot)}"
              fig.suptitle(base_title)
 
         ax_price.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-        if plot_on_subplot:
+        if need_indicator_subplot:
             ax_ind.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-        
+        if need_squeeze_subplot:
+            ax_squeeze.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
         # Apply grid to the indicator axis regardless of subplot mode
-        ax_ind.grid(True, linestyle='--', alpha=0.7, color='#303030')
+        if ax_ind is not ax_price or plot_on_subplot:
+            ax_ind.grid(True, linestyle='--', alpha=0.7, color='#303030')
 
         plt.tight_layout(rect=[0, 0, 0.85, 1]) # Adjust layout to prevent title overlap
         # Return the figure object instead of showing it directly

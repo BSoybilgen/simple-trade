@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def supertrend(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the SuperTrend indicator.
     

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def stoch(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def sto(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Stochastic Oscillator, a momentum indicator that compares a security's 
     closing price to its price range over a given time period.

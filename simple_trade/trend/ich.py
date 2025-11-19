@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def ichimoku(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def ich(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Ichimoku Cloud indicators (Ichimoku Kinko Hyo).
 
@@ -130,9 +130,7 @@ def tenkan_sen(df: pd.DataFrame, period: int = 9, high_col: str = 'High', low_co
     Returns:
         pd.Series: The Tenkan-sen (Conversion Line) values.
     """
-    high = df[high_col]
-    low = df[low_col]
-    return _donchian_channel_middle(high, low, period)
+    return _donchian_channel_middle(df, period, high_col=high_col, low_col=low_col)
 
 
 def kijun_sen(df: pd.DataFrame, period: int = 26, high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
@@ -151,13 +149,11 @@ def kijun_sen(df: pd.DataFrame, period: int = 26, high_col: str = 'High', low_co
     Returns:
         pd.Series: The Kijun-sen (Base Line) values.
     """
-    high = df[high_col]
-    low = df[low_col]
-    return _donchian_channel_middle(high, low, period)
+    return _donchian_channel_middle(df, period, high_col=high_col, low_col=low_col)
 
 
-def senkou_span_a(df: pd.DataFrame, 
-                 tenkan_period: int = 9, kijun_period: int = 26, 
+def senkou_span_a(df: pd.DataFrame,
+                 tenkan_period: int = 9, kijun_period: int = 26,
                  displacement: int = 26,
                  high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
     """
@@ -177,13 +173,14 @@ def senkou_span_a(df: pd.DataFrame,
     Returns:
         pd.Series: The Senkou Span A (Leading Span A) values.
     """
-    tenkan = tenkan_sen(high, low, tenkan_period)
-    kijun = kijun_sen(high, low, kijun_period)
+    tenkan = tenkan_sen(df, period=tenkan_period, high_col=high_col, low_col=low_col)
+    kijun = kijun_sen(df, period=kijun_period, high_col=high_col, low_col=low_col)
     return ((tenkan + kijun) / 2).shift(displacement)
 
 
-def senkou_span_b(high: pd.Series, low: pd.Series, 
-                 period: int = 52, displacement: int = 26) -> pd.Series:
+def senkou_span_b(df: pd.DataFrame,
+                 period: int = 52, displacement: int = 26,
+                 high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
     """
     Calculates Senkou Span B (Leading Span B) component of Ichimoku Cloud.
 
@@ -200,9 +197,7 @@ def senkou_span_b(high: pd.Series, low: pd.Series,
     Returns:
         pd.Series: The Senkou Span B (Leading Span B) values.
     """
-    high = df[high_col]
-    low = df[low_col]
-    return _donchian_channel_middle(high, low, period).shift(displacement)
+    return _donchian_channel_middle(df, period, high_col=high_col, low_col=low_col).shift(displacement)
 
 
 def chikou_span(df: pd.DataFrame, displacement: int = 26, close_col: str = 'Close') -> pd.Series:

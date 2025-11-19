@@ -465,7 +465,7 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
             indicator_cols=indicator_cols_to_plot, 
             title=f"CCI Threshold (CCI_{window}_{constant} {lower}/{upper})")
 
-    elif strategy_name=='macd':
+    elif strategy_name=='mac':
         window_fast = int(parameters.get('window_fast', 12))
         window_slow = int(parameters.get('window_slow', 26))
         window_signal = int(parameters.get('window_signal', 26))
@@ -478,7 +478,7 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
         data, columns, fig = compute_indicator(
         data=data,
-        indicator='macd',
+        indicator='mac',
         parameters=parameters_indicators,
         figure=False)
 

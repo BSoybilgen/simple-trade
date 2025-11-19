@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def trix(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def tri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the TRIX (Triple Exponential Average) indicator.
 

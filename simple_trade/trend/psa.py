@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def psar(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def psa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Parabolic SAR (PSAR).
 

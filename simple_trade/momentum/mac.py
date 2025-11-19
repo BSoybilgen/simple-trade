@@ -1,6 +1,6 @@
 import pandas as pd
 
-def macd(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def mac(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Moving Average Convergence Divergence (MACD), Signal Line, and Histogram.
 

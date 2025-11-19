@@ -5,15 +5,15 @@ from .core import INDICATORS
 # Import all indicators from core
 from .core import (
     # Trend indicators
-    sma, ema, wma, hma, adx, psar, trix, aroon, supertrend,
-    ichimoku,
-    
+    sma, ema, wma, hma, adx, psa, tri, aro, str, vid,
+    ich, ama, eit, fma, gma, htt, jma, kma, soa, tma, zma,
+
     # Momentum indicators
-    rsi, macd, stoch, cci, roc,
-    
+    rsi, mac, sto, cci, roc, wil, cmo, ult, dpo, eri, rmi, tsi, qst, crs, msi, fis, stc, ttm, kst, cog, vor, lsi,
+
     # Volatility indicators
     bollinger_bands, atr, keltner_channels, donchian_channels, chaikin_volatility,
-    
+
     # Volume indicators
     obv, vma, adline, cmf, vpt
 )
@@ -57,11 +57,11 @@ __all__ = [
     "INDICATORS",
     
     # Trend indicators
-    "sma", "ema", "wma", "hma", "adx", "psar", "trix", "aroon", "supertrend",
-    "ichimoku",
+    "sma", "ema", "wma", "hma", "adx", "psa", "tri", "aro", "str", "vid",
+    "ich", "ama", "eit", "fma", "gma", "htt", "jma", "kma", "soa", "tma", "zma",
     
     # Momentum indicators
-    "rsi", "macd", "stoch", "cci", "roc",
+    'rsi', 'mac', 'sto', 'cci', 'roc', 'wil', 'cmo', 'ult', 'dpo', 'eri', 'rmi', 'tsi', 'qst', 'crs', 'msi', 'fis', 'stc', 'ttm', 'kst', 'cog', 'vor', 'lsi',
     
     # Volatility indicators
     "bollinger_bands", "atr", "keltner_channels", "donchian_channels", "chaikin_volatility",
