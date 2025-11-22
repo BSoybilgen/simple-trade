@@ -1,46 +1,42 @@
 import pandas as pd
-import numpy as np
 
 
 def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the On-Balance Volume (OBV), a volume-based momentum indicator that 
-    relates volume flow to price changes.
-    
+    Calculates the On-Balance Volume (OBV), a volume-based momentum indicator that
+    relates volume flow to price changes. It measures buying and selling pressure
+    as a cumulative indicator that adds volume on up days and subtracts it on down days.
+
     Args:
-        df (pd.DataFrame): The DataFrame containing the data.
-        parameters (dict, optional): Dictionary containing calculation parameters. This indicator does not use any calculation parameters.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters.
+            No parameters are used.
         columns (dict, optional): Dictionary containing column name mappings:
             - close_col (str): The column name for closing prices. Default is 'Close'.
             - volume_col (str): The column name for volume. Default is 'Volume'.
-    
+
     Returns:
         tuple: A tuple containing the OBV series and a list of column names.
-    
-    On-Balance Volume is calculated by adding volume on up days and subtracting 
-    volume on down days:
-    
-    1. If today's close is higher than yesterday's close:
-       OBV = Previous OBV + Today's Volume
-    
-    2. If today's close is lower than yesterday's close:
-       OBV = Previous OBV - Today's Volume
-    
-    3. If today's close is equal to yesterday's close:
-       OBV = Previous OBV
-    
-    The absolute OBV value is not important; rather, the trend and slope of the 
-    OBV line should be considered.
-    
+
+    The On-Balance Volume is calculated as follows:
+
+    1. Determine Price Direction:
+       If Close > Previous Close: Direction = +1
+       If Close < Previous Close: Direction = -1
+       If Close = Previous Close: Direction = 0
+
+    2. Calculate OBV:
+       OBV = Previous OBV + (Volume * Direction)
+
+    Interpretation:
+    - Rising OBV: Buying pressure (Accumulation).
+    - Falling OBV: Selling pressure (Distribution).
+    - Trend Confirmation: OBV should move in the direction of the price trend.
+
     Use Cases:
-    
-    - Trend confirmation: Rising OBV confirms an uptrend; falling OBV confirms a downtrend.
-    - Divergence detection: If price makes a new high but OBV doesn't, it may indicate weakness.
-    - Potential breakouts: A sharp rise in OBV might precede a price breakout.
-    - Support/resistance validation: Volume should increase when price breaks through 
-      significant levels.
-    - Accumulation/distribution identification: Increasing OBV during sideways price 
-      movement may indicate accumulation.
+    - Trend Confirmation: Confirm the strength of a trend.
+    - Divergence Detection: Divergences between Price and OBV often precede reversals.
+    - Breakout Validation: Rising OBV during consolidation can signal a breakout.
     """
     # Set default values
     if parameters is None:

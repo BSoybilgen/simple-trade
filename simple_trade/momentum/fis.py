@@ -3,18 +3,44 @@ import pandas as pd
 
 
 def fis(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the Fisher Transform momentum indicator.
+    """
+    Calculates the Fisher Transform, a technical indicator created by John Ehlers 
+    that converts prices into a Gaussian normal distribution.
 
     Args:
-        df (pd.DataFrame): Input price data containing high and low columns.
-        parameters (dict, optional): Calculation parameters.
-            - window (int): Lookback period for normalization. Default is 9.
-        columns (dict, optional): Column overrides.
-            - high_col (str): Column name for high prices. Default is 'High'.
-            - low_col (str): Column name for low prices. Default is 'Low'.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for normalization. Default is 9.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
 
     Returns:
-        tuple: (fisher_series, [column_name])
+        tuple: A tuple containing the Fisher Transform series and a list of column names.
+
+    The Fisher Transform is calculated in several steps:
+
+    1. Calculate Median Price:
+       Median = (High + Low) / 2
+
+    2. Normalize Median Price (over window):
+       Value = 2 * ((Median - Min) / (Max - Min) - 0.5)
+       (Value is clipped to stay within boundaries close to -1 and 1)
+
+    3. Smooth the Normalized Value (optional/specific to implementation):
+       Value = 0.33 * Value + 0.67 * Previous Value
+
+    4. Calculate Fisher Transform:
+       Fisher = 0.5 * ln((1 + Value) / (1 - Value)) + 0.5 * Previous Fisher
+
+    Interpretation:
+    - Sharp Turning Points: The Fisher Transform creates sharp peaks and troughs, making turning points clearer.
+    - Extremes: Extreme positive values indicate overbought conditions; extreme negative values indicate oversold.
+    - Crossings: Crossing the signal line (often the previous value or a moving average of Fisher) can generate signals.
+
+    Use Cases:
+    - Reversal Detection: Identifying precise reversal points in the market price.
+    - Trend Analysis: Assessing the direction and strength of the trend.
     """
     if parameters is None:
         parameters = {}

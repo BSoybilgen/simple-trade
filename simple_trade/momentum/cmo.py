@@ -2,22 +2,47 @@ import pandas as pd
 
 
 def cmo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the Chande Momentum Oscillator (CMO).
-
-    The CMO is a momentum indicator oscillating between -100 and +100 that compares
-    the sum of recent gains to the sum of recent losses over a specified lookback window.
-    Values above 50 typically indicate strong upward momentum, while values below -50
-    indicate strong downward momentum.
+    """
+    Calculates the Chande Momentum Oscillator (CMO), a technical momentum indicator developed by Tushar Chande.
+    It compares the sum of recent gains to the sum of recent losses to determine momentum.
 
     Args:
-        df (pd.DataFrame): Input OHLC data.
-        parameters (dict, optional): Calculation parameters.
-            - window (int): Lookback period for rolling sums. Default is 14.
-        columns (dict, optional): Column overrides.
-            - close_col (str): Close price column. Default is 'Close'.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the calculation. Default is 14.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: (cmo_series, [column_name])
+        tuple: A tuple containing the CMO series and a list of column names.
+
+    The Chande Momentum Oscillator is calculated as follows:
+
+    1. Calculate Price Differences:
+       Diff = Close - Close(prev)
+
+    2. Separate Gains and Losses:
+       Gain = Diff if Diff > 0 else 0
+       Loss = Abs(Diff) if Diff < 0 else 0
+
+    3. Sum Gains and Losses over the Window:
+       Sum Gains = Sum(Gain, window)
+       Sum Losses = Sum(Loss, window)
+
+    4. Calculate CMO:
+       CMO = 100 * (Sum Gains - Sum Losses) / (Sum Gains + Sum Losses)
+
+    Interpretation:
+    - Range: The oscillator fluctuates between -100 and +100.
+    - Overbought: Values above +50 typically indicate overbought conditions.
+    - Oversold: Values below -50 typically indicate oversold conditions.
+    - Trend Strength: High absolute values indicate strong trends.
+
+    Use Cases:
+    - Overbought/Oversold Levels: Identifying potential reversal points when CMO reaches extremes.
+    - Trend Strength: Measuring the strength of the trend (higher absolute value = stronger trend).
+    - Crosses: Crossing the zero line can be used as a signal (Bullish > 0, Bearish < 0).
+    - Divergence: Divergence between price and CMO can signal potential reversals.
     """
     if parameters is None:
         parameters = {}

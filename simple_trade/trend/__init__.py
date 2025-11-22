@@ -21,9 +21,20 @@ from .ich import ich
 from .tri import tri
 from .aro import aro
 from .str import str
+from .dem import dem
+from .tem import tem
+from .alm import alm
+from .mgd import mgd
+from .lsm import lsm
+from .swm import swm
+from .ads import ads
+from .eac import eac
+from .vid import vid
 
 __all__ = [
     'sma', 'ema', 'wma', 'hma', 'adx', 'psa', 'soa', 'ama', 'kma', 'tma', 'fma', 'gma', 'jma', 'zma', 'htt', 'eit',
     'ich',
-    'tri', 'aro', 'str'
+    'tri', 'aro', 'str',
+    'dem', 'tem', 'alm',
+    'mgd', 'lsm', 'swm', 'ads', 'eac', 'vid'
 ]

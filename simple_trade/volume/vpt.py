@@ -7,44 +7,38 @@ def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     Calculates the Volume Price Trend (VPT), a volume-based indicator that relates
     volume to price change percentage to create a cumulative indicator of buying/selling
     pressure.
-    
+
     Args:
-        df (pd.DataFrame): The DataFrame containing the data.
-        parameters (dict, optional): Dictionary containing calculation parameters. This indicator does not use any calculation parameters.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters.
+            No parameters are used.
         columns (dict, optional): Dictionary containing column name mappings:
             - close_col (str): The column name for closing prices. Default is 'Close'.
             - volume_col (str): The column name for volume. Default is 'Volume'.
-    
+
     Returns:
         tuple: A tuple containing the VPT series and a list of column names.
-    
-    VPT is similar to OBV but instead of just using the direction of price change,
-    it uses the percentage change in price to give more weight to more significant
-    price movements.
-    
-    Calculation:
-    1. Calculate percentage price change for each period:
-       Price Change % = (Today's Close - Yesterday's Close) / Yesterday's Close
-    
-    2. For each period, multiply the percentage price change by volume:
-       VPT = Previous VPT + (Price Change % * Volume)
-    
+
+    The Volume Price Trend is calculated as follows:
+
+    1. Calculate Percentage Price Change:
+       PctChange = (Close - Previous Close) / Previous Close
+
+    2. Calculate Period Change:
+       Period Change = PctChange * Volume
+
+    3. Calculate VPT (Cumulative):
+       VPT = Previous VPT + Period Change
+
     Interpretation:
-    - Rising VPT: Indicates buying pressure (accumulation)
-    - Falling VPT: Indicates selling pressure (distribution)
-    - The steepness of the VPT line indicates the strength of the buying/selling pressure
-    
+    - Rising VPT: Buying pressure (Accumulation).
+    - Falling VPT: Selling pressure (Distribution).
+    - Steep Slope: Strong conviction behind the move.
+
     Use Cases:
-    
-    - Trend confirmation: VPT should move in the same direction as price in a valid trend.
-    - Divergence analysis: If price makes new highs/lows but VPT doesn't, it suggests
-      the trend may be weakening.
-    - Volume analysis: VPT gives a cumulative view of volume weighted by price change %,
-      providing insight into the conviction behind price movements.
-    - Breakout validation: Significant volume should accompany breakouts, visible as
-      a steep change in the VPT.
-    - Accumulation/distribution identification: VPT can help identify periods of
-      accumulation or distribution before major price moves.
+    - Trend Confirmation: VPT should move with price.
+    - Divergence: Price/VPT disagreement signals potential reversal.
+    - Breakout Validation: High volume move leads to steep VPT rise.
     """
     # Set default values
     if parameters is None:

@@ -5,10 +5,41 @@ import pandas as pd
 def jma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Jurík Moving Average (JMA).
-
     JMA is designed to remain smooth while maintaining low lag. This
     implementation approximates the JMA by dynamically adjusting a smoothing
     constant based on user-specified length and phase parameters.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - length (int): The lookback period. Default is 21.
+            - phase (float): Phase parameter (-100 to 100) affecting overshoot. Default is 0.
+            - power (float): Power parameter for smoothing curve. Default is 2.0.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+
+    Returns:
+        tuple: A tuple containing the JMA series and a list of column names.
+
+    The Jurík Moving Average (Approximation) is calculated as follows:
+
+    1. Calculate Base Smoothing Constant:
+       SC = (2 / (length + 1))^power
+
+    2. Calculate Phase Ratio:
+       Ratio = phase / 100
+
+    3. Calculate JMA (Iterative):
+       Base = Prev JMA + SC * (Price - Prev JMA)
+       JMA = Base + Ratio * (Price - Base)
+
+    Interpretation:
+    - JMA is famous for its low lag and smooth curve.
+    - Positive phase allows the MA to overshoot price changes slightly, reducing lag further.
+
+    Use Cases:
+    - Trend Following: Excellent for systems requiring fast reaction times.
+    - Filtering: High noise reduction capability.
     """
     if parameters is None:
         parameters = {}

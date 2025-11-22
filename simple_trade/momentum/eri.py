@@ -2,23 +2,44 @@ import pandas as pd
 
 
 def eri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the Elder-Ray Index (ERI).
-
-    ERI combines a trend component (EMA) with buying and selling pressure estimates.
-    It outputs Bull Power (High - EMA) and Bear Power (Low - EMA) to quantify the
-    strength of bulls and bears relative to the prevailing trend.
+    """
+    Calculates the Elder-Ray Index (ERI), a technical indicator developed by Dr. Alexander Elder.
+    It measures the amount of buying and selling pressure in the market.
 
     Args:
-        df (pd.DataFrame): Input OHLC data.
-        parameters (dict, optional): Calculation parameters.
-            - window (int): Period for the EMA baseline. Default is 13.
-        columns (dict, optional): Column overrides.
-            - close_col (str): Close price column. Default is 'Close'.
-            - high_col (str): High price column. Default is 'High'.
-            - low_col (str): Low price column. Default is 'Low'.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The period for the EMA baseline. Default is 13.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
 
     Returns:
-        tuple: (eri_dataframe, [bull_col, bear_col])
+        tuple: A tuple containing the ERI DataFrame (with Bull and Bear power) and a list of column names.
+
+    The Elder-Ray Index consists of three components (calculated as follows):
+
+    1. Calculate the Exponential Moving Average (EMA):
+       EMA = EMA(Close, window) (Often a 13-period EMA)
+
+    2. Calculate Bull Power:
+       Bull Power = High - EMA
+
+    3. Calculate Bear Power:
+       Bear Power = Low - EMA
+
+    Interpretation:
+    - Bull Power: Measures the ability of buyers to push prices above the average consensus of value (EMA).
+      Positive values indicate strength.
+    - Bear Power: Measures the ability of sellers to push prices below the average consensus of value (EMA).
+      Negative values indicate weakness.
+    - EMA Slope: Indicates the direction of the main trend.
+
+    Use Cases:
+    - Trend Following: Buy when the trend is up (EMA rising) and Bear Power is negative but rising.
+      Sell when the trend is down (EMA falling) and Bull Power is positive but falling.
+    - Divergence: Divergence between prices and Bull/Bear Power can signal reversals.
     """
     if parameters is None:
         parameters = {}

@@ -5,11 +5,40 @@ from typing import Iterable, List
 def gma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Guppy Multiple Moving Average (GMMA).
-
     GMMA applies two sets of exponential moving averages (EMAs):
     short-term averages that react quickly to price changes and long-term
     averages that capture the broader trend. The relationship between the two
     groups helps identify trend strength and potential transitions.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - short_windows (iterable): List of periods for short-term EMAs. Default is (3, 5, 8, 10, 12, 15).
+            - long_windows (iterable): List of periods for long-term EMAs. Default is (30, 35, 40, 45, 50, 60).
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+
+    Returns:
+        tuple: A tuple containing the GMMA DataFrame (multiple EMA columns) and a list of column names.
+
+    The GMMA is calculated as follows:
+
+    1. Calculate Short-Term EMAs:
+       Calculate EMA for each period in short_windows.
+
+    2. Calculate Long-Term EMAs:
+       Calculate EMA for each period in long_windows.
+
+    Interpretation:
+    - Compression: When EMAs bunch together, it indicates agreement on price and potential for a breakout.
+    - Expansion: When EMAs spread out, it indicates a strong trend.
+    - Crossovers: Short-term group crossing above long-term group indicates a bullish trend reversal.
+    - Separation: The space between the short-term and long-term groups indicates the strength of the trend.
+
+    Use Cases:
+    - Trend Identification: Determining the long-term trend direction.
+    - Entry Signals: Short-term pullbacks into the long-term group during a strong trend.
+    - Reversal Signals: Crossover of the two groups.
     """
     if parameters is None:
         parameters = {}

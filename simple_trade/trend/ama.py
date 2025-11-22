@@ -4,11 +4,43 @@ import pandas as pd
 
 def ama(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Adaptive Moving Average (AMA, also known as Kaufman AMA).
+    Calculates the Adaptive Moving Average (AMA), also known as Kaufman's Adaptive Moving Average (KAMA).
+    AMA adjusts its smoothing factor based on market noise using an Efficiency Ratio (ER).
 
-    AMA adjusts its smoothing factor based on market noise using an Efficiency
-    Ratio (ER). When price movement is directional (high ER), AMA reacts faster;
-    when movement is choppy (low ER), AMA smooths more aggressively.
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for Efficiency Ratio. Default is 10.
+            - fast_period (int): The fast EMA period limit. Default is 2.
+            - slow_period (int): The slow EMA period limit. Default is 30.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+
+    Returns:
+        tuple: A tuple containing the AMA series and a list of column names.
+
+    The Adaptive Moving Average is calculated as follows:
+
+    1. Calculate Efficiency Ratio (ER):
+       Change = Abs(Price - Price(n periods ago))
+       Volatility = Sum(Abs(Price - Prev Price), n)
+       ER = Change / Volatility
+
+    2. Calculate Smoothing Constant (SC):
+       Fast SC = 2 / (fast_period + 1)
+       Slow SC = 2 / (slow_period + 1)
+       Scaled SC = (ER * (Fast SC - Slow SC) + Slow SC)^2
+
+    3. Calculate AMA:
+       AMA = Previous AMA + Scaled SC * (Price - Previous AMA)
+
+    Interpretation:
+    - When market moves directionally (high ER), AMA adapts quickly.
+    - When market is choppy (low ER), AMA flattens out to avoid false signals.
+
+    Use Cases:
+    - Trend Following: Identifying the trend with reduced noise in sideways markets.
+    - Stop Loss: The flat nature of AMA in ranges makes it a good trailing stop level.
     """
     if parameters is None:
         parameters = {}

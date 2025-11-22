@@ -3,8 +3,7 @@ import pandas as pd
 def mac(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Moving Average Convergence Divergence (MACD), Signal Line, and Histogram.
-
-    The MACD is a popular momentum indicator used in technical analysis that shows the relationship between two exponential moving averages (EMAs) of a security's price.
+    It is a trend-following momentum indicator that shows the relationship between two moving averages of a security’s price.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
@@ -16,21 +15,33 @@ def mac(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the MACD DataFrame and a list of column names.
+        tuple: A tuple containing the MACD DataFrame (MACD, Signal, Hist) and a list of column names.
 
-    The MACD is calculated as follows:
+    Calculation Steps:
+    1. Calculate the Fast EMA:
+       Fast EMA = EMA(Close, window_fast)
 
-    1. Calculate the fast EMA (typically 12 periods).
-    2. Calculate the slow EMA (typically 26 periods).
-    3. Calculate the MACD line by subtracting the slow EMA from the fast EMA.
-    4. Calculate the signal line by taking an EMA of the MACD line (typically 9 periods).
-    5. Calculate the MACD histogram by subtracting the signal line from the MACD line.
+    2. Calculate the Slow EMA:
+       Slow EMA = EMA(Close, window_slow)
+
+    3. Calculate the MACD Line:
+       MACD Line = Fast EMA - Slow EMA
+
+    4. Calculate the Signal Line:
+       Signal Line = EMA(MACD Line, window_signal)
+
+    5. Calculate the MACD Histogram:
+       Histogram = MACD Line - Signal Line
+
+    Interpretation:
+    - Crossovers: MACD crossing above Signal Line is bullish; crossing below is bearish.
+    - Zero Line: MACD crossing above zero suggests uptrend (Fast EMA > Slow EMA); below zero suggests downtrend.
+    - Divergence: Divergence between Price and MACD/Histogram suggests waning momentum and potential reversal.
 
     Use Cases:
-
-    - Identifying trend direction: The MACD can be used to identify the direction of a price trend.
-    - Identifying potential buy and sell signals: Crossovers of the MACD line and signal line can be used to generate buy and sell signals.
-    - Identifying overbought and oversold conditions: The MACD histogram can be used to identify overbought and oversold conditions.
+    - Trend Identification: Confirming trend direction and strength.
+    - Entry/Exit Signals: Signal line crossovers are common entry/exit points.
+    - Momentum Measurement: The width of the histogram indicates the speed of price movement.
     """
     # Set default values
     if parameters is None:

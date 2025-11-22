@@ -23,5 +23,13 @@ from .kst import kst
 from .cog import cog
 from .vor import vor
 from .lsi import lsi
+from .awo import awo
+from .ppo import ppo
+from .sri import sri
+from .rvg import rvg
+from .bop import bop
+from .psy import psy
+from .imi import imi
+from .pgo import pgo
 
-__all__ = ['rsi', 'mac', 'sto', 'cci', 'roc', 'wil', 'cmo', 'ult', 'dpo', 'eri', 'rmi', 'tsi', 'qst', 'crs', 'msi', 'fis', 'stc', 'ttm', 'kst', 'cog', 'vor', 'lsi']
+__all__ = ['rsi', 'mac', 'sto', 'cci', 'roc', 'wil', 'cmo', 'ult', 'dpo', 'eri', 'rmi', 'tsi', 'qst', 'crs', 'msi', 'fis', 'stc', 'ttm', 'kst', 'cog', 'vor', 'lsi', 'awo', 'ppo', 'sri', 'rvg', 'bop', 'psy', 'imi', 'pgo']

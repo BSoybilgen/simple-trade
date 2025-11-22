@@ -5,10 +5,11 @@ import numpy as np
 def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Chaikin Money Flow (CMF), a volume-based indicator that measures
-    the amount of Money Flow Volume over a specific period.
-    
+    the amount of Money Flow Volume over a specific period. It combines price and
+    volume to identify buying and selling pressure.
+
     Args:
-        df (pd.DataFrame): The DataFrame containing the data.
+        df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
             - period (int): The lookback period for calculation. Default is 20.
         columns (dict, optional): Dictionary containing column name mappings:
@@ -16,40 +17,30 @@ def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - low_col (str): The column name for low prices. Default is 'Low'.
             - close_col (str): The column name for closing prices. Default is 'Close'.
             - volume_col (str): The column name for volume. Default is 'Volume'.
-    
+
     Returns:
         tuple: A tuple containing the CMF series and a list of column names.
-    
-    CMF is derived from the Accumulation/Distribution Line (A/D Line) but instead of
-    being cumulative, it sums up the Money Flow Volume over a specific period and
-    divides it by the total volume over that same period.
-    
-    Calculation steps:
-    1. Calculate Money Flow Multiplier (MFM) for each period:
+
+    The Chaikin Money Flow is calculated as follows:
+
+    1. Calculate Money Flow Multiplier (MFM):
        MFM = ((Close - Low) - (High - Close)) / (High - Low)
-       
-    2. Calculate Money Flow Volume (MFV) for each period:
+
+    2. Calculate Money Flow Volume (MFV):
        MFV = MFM * Volume
-       
-    3. Calculate CMF by summing MFV over the period and dividing by the sum of Volume:
-       CMF = Sum(MFV, n) / Sum(Volume, n)
-    
+
+    3. Calculate CMF:
+       CMF = Sum(MFV, period) / Sum(Volume, period)
+
     Interpretation:
-    - CMF > 0: Accumulation (buying pressure)
-    - CMF < 0: Distribution (selling pressure)
-    - The further from zero, the stronger the pressure
-    
+    - CMF > 0: Buying pressure (Accumulation).
+    - CMF < 0: Selling pressure (Distribution).
+    - Magnitude: The further from zero, the stronger the pressure.
+
     Use Cases:
-    
-    - Market strength assessment: CMF helps identify if buying or selling pressure 
-      is driving price movements.
-    - Trend confirmation: CMF should be positive in uptrends and negative in downtrends.
-    - Divergence analysis: If price makes new highs but CMF fails to do so, it suggests
-      the trend may be weakening.
-    - Support/resistance validation: Strong volume should accompany breakouts, visible
-      as a stronger CMF reading.
-    - Overbought/oversold identification: Extreme CMF values may indicate potential
-      reversal points.
+    - Trend Confirmation: Positive CMF confirms uptrends; negative confirms downtrends.
+    - Divergence: Price making new highs while CMF declines suggests weakening trend.
+    - Support/Resistance: Increasing CMF during breakouts confirms the move.
     """
     # Set default values
     if parameters is None:

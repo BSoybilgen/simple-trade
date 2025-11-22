@@ -10,6 +10,60 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
+# ### The Awesome Oscillator (AO)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["fast_window"] = 5
+parameters["slow_window"] = 34
+columns["high_col"] = 'High'
+columns["low_col"] = 'Low'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='awo',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The Balance of Power (BOP)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 14
+parameters["smooth"] = True
+columns["open_col"] = 'Open'
+columns["high_col"] = 'High'
+columns["low_col"] = 'Low'
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='bop',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
 # ### The Commodity Channel Index (CCI)
 # Step 1: Download data
 symbol = 'MSFT'
@@ -186,6 +240,31 @@ if fig is not None:
     plt.show(block=True)
     plt.close(fig)
 
+# ### The Intraday Momentum Index (IMI)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 14
+columns["open_col"] = 'Open'
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='imi',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
 # ### The Know Sure Thing (KST)
 # Step 1: Download data
 symbol = 'MSFT'
@@ -288,6 +367,82 @@ if fig is not None:
     plt.show(block=True)
     plt.close(fig)
 
+# ### The Pretty Good Oscillator (PGO)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 14
+columns["high_col"] = 'High'
+columns["low_col"] = 'Low'
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='pgo',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The Percentage Price Oscillator (PPO)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["fast_window"] = 12
+parameters["slow_window"] = 26
+parameters["signal_window"] = 9
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='ppo',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The Psychological Line (PSY)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 12
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='psy',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
 # ### The Qstick Indicator (QST)
 # Step 1: Download data
 symbol = 'MSFT'
@@ -379,6 +534,60 @@ columns["close_col"] = 'Close'
 data, columns, fig = compute_indicator(
     data=data,
     indicator='rsi',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The Relative Vigor Index (RVG)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 10
+columns["open_col"] = 'Open'
+columns["high_col"] = 'High'
+columns["low_col"] = 'Low'
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='rvg',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The Stochastic RSI (SRI)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["rsi_window"] = 14
+parameters["stoch_window"] = 14
+parameters["k_window"] = 3
+parameters["d_window"] = 3
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='sri',
     parameters=parameters,
     columns=columns,
 )

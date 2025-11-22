@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 
 def sto(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
@@ -19,35 +18,31 @@ def sto(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the Stochastic Oscillator DataFrame and a list of column names.
+        tuple: A tuple containing the Stochastic Oscillator DataFrame (%K and %D) and a list of column names.
 
-    The Stochastic Oscillator is calculated in three steps:
-
+    Calculation Steps:
     1. Calculate the raw %K ("Fast Stochastic Oscillator"):
        %K = 100 * ((Current Close - Lowest Low) / (Highest High - Lowest Low))
        where Lowest Low and Highest High are calculated over the last k_period periods.
 
     2. Calculate the "Full" or "Slow" %K (optional smoothing of raw %K):
-       Slow %K = n-period SMA of Fast %K (n is smooth_k)
+       Slow %K = SMA(Fast %K, smooth_k) (if smooth_k > 1)
 
     3. Calculate %D:
-       %D = n-period SMA of %K (n is d_period)
+       %D = SMA(Slow %K, d_period)
        %D is essentially a moving average of %K.
 
-    The Stochastic oscillates between 0 and 100:
-    - Readings above 80 are considered overbought
-    - Readings below 20 are considered oversold
+    Interpretation:
+    - Range: 0 to 100.
+    - Overbought: Readings above 80 are considered overbought.
+    - Oversold: Readings below 20 are considered oversold.
 
     Use Cases:
-
-    - Identifying overbought/oversold conditions: Values above 80 suggest overbought,
-      while values below 20 suggest oversold.
-    - Identifying trend reversals: When the oscillator crosses above 20, it may signal
-      a bullish reversal; when it crosses below 80, it may signal a bearish reversal.
-    - Signal line crossovers: When %K crosses above %D, it's often interpreted as a buy
-      signal; when %K crosses below %D, it's often interpreted as a sell signal.
+    - Identifying overbought/oversold conditions: Potential reversal zones.
+    - Signal line crossovers: When %K crosses above %D (Bullish) or below %D (Bearish).
     - Divergence analysis: If price makes a new high or low but the Stochastic doesn't,
       it may indicate a potential reversal.
+    - Identifying trend reversals: Crossovers of 20 and 80 levels.
     """
     # Set default values
     if parameters is None:

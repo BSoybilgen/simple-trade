@@ -1,41 +1,40 @@
 import pandas as pd
-import numpy as np
 
 
 def vma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Volume Moving Average (VMA), which is a weighted moving average
-    that uses volume as the weighting factor.
-    
+    that uses volume as the weighting factor. It gives more weight to prices
+    accompanied by higher volume.
+
     Args:
-        df (pd.DataFrame): The DataFrame containing the data.
+        df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
             - window (int): The lookback period for calculation. Default is 20.
         columns (dict, optional): Dictionary containing column name mappings:
             - close_col (str): The column name for closing prices. Default is 'Close'.
             - volume_col (str): The column name for volume. Default is 'Volume'.
-    
+
     Returns:
         tuple: A tuple containing the VMA series and a list of column names.
-    
-    VMA gives more weight to price moves accompanied by higher volume, making it
-    more responsive to significant market movements than a simple moving average.
-    
-    The formula is:
-    VMA = Σ(Price * Volume) / Σ(Volume), calculated over the specified window.
-    
+
+    The Volume Moving Average is calculated as follows:
+
+    1. Calculate Weighted Price:
+       Weighted Price = Price * Volume
+
+    2. Calculate VMA:
+       VMA = Sum(Weighted Price, window) / Sum(Volume, window)
+
+    Interpretation:
+    - Rising VMA: Bullish trend supported by volume.
+    - Falling VMA: Bearish trend supported by volume.
+    - Support/Resistance: VMA often acts as dynamic support or resistance.
+
     Use Cases:
-    
-    - Trend identification: VMA can be used similarly to other moving averages to
-      identify trends, but with more emphasis on volume-supported price movements.
-    - Dynamic support/resistance: VMA can act as support in uptrends and resistance
-      in downtrends.
-    - Entry/exit signals: Crossovers between price and VMA or between multiple VMAs
-      with different periods can generate trading signals.
-    - Volume-validated price movement: VMA filters out price movements that occur on
-      low volume, focusing on more significant market activity.
-    - Divergence analysis: Comparing VMA to other moving averages can highlight periods
-      where price moves are or aren't supported by volume.
+    - Trend Identification: Identify volume-supported trends.
+    - Dynamic Support/Resistance: Use VMA lines for entry/exit points.
+    - Filtering: Validate price moves (price above VMA in uptrend).
     """
     # Set default values
     if parameters is None:

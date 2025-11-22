@@ -19,32 +19,23 @@ def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     Returns:
         tuple: A tuple containing the ATR series and a list of column names.
 
-    The ATR is calculated in three steps:
-
+    Calculation Steps:
     1. Calculate the True Range (TR) for each period:
        TR = max(high - low, abs(high - prev_close), abs(low - prev_close))
-       Where:
-       - high - low = current period range
-       - abs(high - prev_close) = current high minus previous close
-       - abs(low - prev_close) = current low minus previous close
+    2. Calculate Average True Range (ATR):
+       - First value: Simple average of TR over the window.
+       - Subsequent values: ((Prior ATR * (window-1)) + Current TR) / window (Wilder's Smoothing).
 
-    2. For the first ATR value, take the simple average of TR values over the specified window.
-    
-    3. For subsequent ATR values, use a smoothing technique:
-       ATR = ((Prior ATR * (window-1)) + Current TR) / window
-
-    The ATR is primarily used to measure volatility, not to indicate trend direction.
+    Interpretation:
+    - Higher ATR values indicate higher volatility.
+    - Lower ATR values indicate lower volatility.
+    - Does not indicate trend direction, only magnitude of price movement.
 
     Use Cases:
-
-    - Volatility measurement: Higher ATR values indicate higher volatility, while lower ATR values
-      indicate lower volatility.
-    - Position sizing: Traders often use ATR to determine position size and set stop-loss orders
-      that adjust for volatility.
-    - Trend confirmation: ATR can be used to confirm trend strength; increasing ATR during price
-      moves may indicate stronger trends.
-    - Breakout identification: Significant increases in ATR may precede or confirm breakouts.
-    - Entry/exit signals: Some trading systems use ATR-based indicators for trade signals.
+    - Volatility measurement: Gauging market activity.
+    - Position sizing: Adjusting trade size inversely to volatility.
+    - Stop-loss placement: Setting stops based on a multiple of ATR (e.g., 2 * ATR).
+    - Breakout identification: Rising ATR often accompanies breakouts.
     """
     # Set default values
     if parameters is None:

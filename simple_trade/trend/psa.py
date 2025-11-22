@@ -4,55 +4,53 @@ import numpy as np
 def psa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Parabolic SAR (PSAR).
-
     Parabolic SAR (Stop And Reverse) is a trend-following indicator developed by J. Welles Wilder
     that helps identify potential reversals in price direction. It appears as a series of dots
     placed either above or below the price, depending on the trend direction.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have high, low, and close columns.
-        parameter (dict): The parameter dictionary that includes af_initial, af_step, and af_max.
-        columns (dict): The column dictionary that includes high, low, and close column names.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - af_initial (float): Initial acceleration factor. Default is 0.02.
+            - af_step (float): Acceleration factor step. Default is 0.02.
+            - af_max (float): Maximum acceleration factor. Default is 0.2.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing a DataFrame with PSAR values and a list of column names:
+        tuple: A tuple containing a DataFrame with PSAR values and a list of column names.
 
-    The Parabolic SAR is calculated using the following rules:
-
+    Calculation Steps:
     1. Initial SAR value:
-       - In an uptrend, SAR starts at the lowest low of the data range
-       - In a downtrend, SAR starts at the highest high of the data range
+       - In an uptrend, SAR starts at the lowest low of the previous data range.
+       - In a downtrend, SAR starts at the highest high of the previous data range.
 
     2. Extreme Points (EP):
-       - In an uptrend, EP is the highest high reached during the current trend
-       - In a downtrend, EP is the lowest low reached during the current trend
+       - Uptrend: EP is the highest high reached during the current trend.
+       - Downtrend: EP is the lowest low reached during the current trend.
 
     3. Acceleration Factor (AF):
-       - Starts at a value specified by af_initial (default 0.02)
-       - Increases by af_step (default 0.02) each time a new EP is reached
-       - Capped at a maximum of af_max (default 0.2)
+       - Starts at af_initial. Increases by af_step when a new EP is reached.
+       - Capped at af_max.
 
     4. SAR Calculation:
-       - Current SAR = Previous SAR + AF * (EP - Previous SAR)
-       - In an uptrend, SAR cannot be above the low of the previous two periods
-       - In a downtrend, SAR cannot be below the high of the previous two periods
+       SAR = Previous SAR + AF * (EP - Previous SAR)
+       (Constraints: SAR cannot be above/below previous period's High/Low depending on trend).
 
     5. Trend Reversal:
-       - When price crosses the SAR value, the trend is considered to have reversed
-       - SAR then flips to the opposite side of price, and calculations continue with new trend direction
+       - When price crosses SAR, trend reverses. SAR resets to EP.
+
+    Interpretation:
+    - Dots Below Price: Uptrend (Bullish).
+    - Dots Above Price: Downtrend (Bearish).
+    - The gap between price and dots tightens as the trend matures (acceleration).
 
     Use Cases:
-
-    - Trend identification: When dots are below price, the trend is up.
-      When dots are above price, the trend is down.
-
     - Stop loss placement: The SAR value can be used as a trailing stop loss.
-
-    - Exit signal generation: A cross of price through the SAR dots indicates a potential reversal 
-      and can be used as a signal to exit the position.
-
-    - Volatility adaptation: Since the acceleration factor increases as the trend develops, 
-      the indicator adapts to changes in market volatility.
+    - Exit signal generation: A cross of price through the SAR dots indicates a potential reversal.
+    - Trend identification: Determining the current market bias.
     """
     # Set default values
     if parameters is None:

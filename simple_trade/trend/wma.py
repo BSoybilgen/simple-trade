@@ -5,47 +5,34 @@ import numpy as np
 def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Weighted Moving Average (WMA) of a series.
+    The WMA is a moving average that assigns different weights to data points,
+    typically giving more weight to recent data.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        parameters (dict): The parameter dictionary that includes window size for the WMA.
-        columns (dict): The column dictionary that includes close column name.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the WMA. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: Tuple containing the WMA series and a list of column names.
+        tuple: A tuple containing the WMA series and a list of column names.
 
-    The (WMA) is a type of moving average that assigns different 
-    weights to the data points in the window, with more recent 
-    data points receiving higher weights. This makes the WMA more 
-    responsive to recent price changes compared to a Simple Moving 
-    Average (SMA), which gives equal weight to all data points.
+    Calculation Steps:
+    1. Generate Weights:
+       Create an array of weights from 1 to window.
+       Weights = [1, 2, ..., window]
+    2. Calculate Weighted Average:
+       WMA = Sum(Price * Weight) / Sum(Weights)
 
-    The formula for calculating the WMA is as follows:
-
-    1. weights = np.arange(1, window + 1): This line creates an array of 
-    weights, where the weight for each data point increases linearly 
-    from 1 to window. So, the most recent data point has a weight of 
-    window, the second most recent has a weight of window - 1, and so 
-    on.
-    2. series.rolling(window).apply(lambda prices: np.dot(prices, weights)
-    / weights.sum(), raw=True): This line calculates the WMA. It first 
-    creates a rolling window of size window over the input series. 
-    Then, for each window, it calculates the weighted average by 
-    taking the dot product of the prices in the window and the weights,
-    and dividing by the sum of the weights.
+    Interpretation:
+    - More responsive to recent price changes than SMA due to linear weighting.
+    - Less lag than SMA but more than EMA (typically).
 
     Use Cases:
-
-    - Price Trend Identification: WMAs are commonly used to identify 
-    the direction of a price trend. Because they give more weight 
-    to recent prices, they react more quickly to changes in trend 
-    than SMAs. Traders might use multiple WMAs with different window 
-    sizes to identify potential buy or sell signals.
-    - Smoothing Price Data: WMAs can smooth out short-term price 
-    fluctuations to provide a clearer view of the underlying trend.
-    - Crossover Systems: Traders may use WMA crossovers (e.g., a 
-    short-term WMA crossing above a long-term WMA) as buy signals, 
-    and vice versa for sell signals.
+    - Trend Identification: Identifying direction with less lag than SMA.
+    - Crossovers: Using WMA in crossover strategies for faster signals.
+    - Smoothing: General price smoothing.
     """
     # Set default values
     if parameters is None:

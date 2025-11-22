@@ -2,19 +2,48 @@ import pandas as pd
 
 
 def vor(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the Vortex Indicator (VI+ and VI-).
+    """
+    Calculates the Vortex Indicator (VI), a technical indicator developed by Etienne Botes and Douglas Siepman.
+    It consists of two lines (VI+ and VI-) that capture positive and negative trend movements.
 
     Args:
-        df (pd.DataFrame): Input price data containing high, low, and close columns.
-        parameters (dict, optional): Calculation parameters.
-            - window (int): Lookback period for the indicator. Default is 14.
-        columns (dict, optional): Column overrides.
-            - high_col (str): Column name for high prices. Default is 'High'.
-            - low_col (str): Column name for low prices. Default is 'Low'.
-            - close_col (str): Column name for closing prices. Default is 'Close'.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the indicator. Default is 14.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: (DataFrame with VI+ and VI-, [column names])
+        tuple: A tuple containing the Vortex Indicator DataFrame (VI_Plus, VI_Minus) and a list of column names.
+
+    The Vortex Indicator is calculated as follows:
+
+    1. Calculate True Range (TR):
+       TR = Max(High-Low, Abs(High-PrevClose), Abs(Low-PrevClose))
+
+    2. Calculate Positive and Negative Trend Movements (VM):
+       VM+ = Abs(Current High - Previous Low)
+       VM- = Abs(Current Low - Previous High)
+
+    3. Sum TR, VM+, and VM- over the window:
+       SumTR = Sum(TR, window)
+       SumVM+ = Sum(VM+, window)
+       SumVM- = Sum(VM-, window)
+
+    4. Calculate VI lines:
+       VI+ = SumVM+ / SumTR
+       VI- = SumVM- / SumTR
+
+    Interpretation:
+    - VI+ > VI-: Bulls are in control (Uptrend).
+    - VI- > VI+: Bears are in control (Downtrend).
+    - Crossovers: VI+ crossing above VI- is a buy signal; VI- crossing above VI+ is a sell signal.
+
+    Use Cases:
+    - Trend Identification: Determining the current trend direction.
+    - Reversal Signals: Crossovers of the two lines signal potential trend reversals.
     """
     if parameters is None:
         parameters = {}

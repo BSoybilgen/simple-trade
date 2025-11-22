@@ -20,30 +20,30 @@ def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     Returns:
         tuple: A tuple containing the CCI series and a list of column names.
 
-    The CCI is calculated in three steps:
-
+    Calculation Steps:
     1. Calculate the Typical Price (TP):
        TP = (High + Low + Close) / 3
 
     2. Calculate the Simple Moving Average of the Typical Price (SMA(TP)):
-       SMA(TP) = n-period SMA of TP
+       SMA(TP) = SMA(TP, window)
 
     3. Calculate the Mean Deviation (MD):
-       MD = Mean of absolute deviations of TP from SMA(TP)
+       MD = Mean(Abs(TP - SMA(TP))) over the window
 
     4. Calculate the CCI:
        CCI = (TP - SMA(TP)) / (constant * MD)
 
-    The constant (0.015) is used to normalize the CCI to make it comparable across different securities.
-    
-    Use Cases:
+    Interpretation:
+    - The constant (0.015) ensures that approximately 70-80% of CCI values fall between -100 and +100.
+    - Overbought: Values above +100.
+    - Oversold: Values below -100.
+    - Trend: Values consistently above +100 indicate strong uptrend; below -100 indicate strong downtrend.
 
-    - Identifying overbought/oversold conditions: Values above +100 suggest overbought conditions,
-      while values below -100 suggest oversold conditions.
-    - Detecting trend strength: Values consistently above +100 indicate a strong uptrend, while
-      values consistently below -100 indicate a strong downtrend.
-    - Identifying potential reversals: Divergence between CCI and price can signal potential reversals.
-    - Generating trading signals: Crossing above/below zero line or +/-100 thresholds can generate signals.
+    Use Cases:
+    - Identifying overbought/oversold conditions: Potential reversal zones.
+    - Detecting trend strength: Confirming breakout strength.
+    - Identifying potential reversals: Divergence between CCI and price.
+    - Generating trading signals: Zero line crossovers or +/-100 crossovers.
     """
     # Set default values
     if parameters is None:

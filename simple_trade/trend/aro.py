@@ -8,47 +8,39 @@ def aro(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     to reach its highest and lowest points over a specified time period.
     
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have high and low columns.
-        parameter (dict): The parameter dictionary includes the lookback period for calculation.
-        columns (dict): The column dictionary that includes high and low column names.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - period (int): The lookback period for calculation. Default is 14.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
     
     Returns:
-        tuple: A tuple containing aroon_up, aroon_down, aroon_oscillator values and column names.
+        tuple: A tuple containing the Aroon DataFrame (Aroon Up, Aroon Down, Oscillator) and a list of column names.
     
-    The Aroon indicator consists of three components:
+    The Aroon indicator is calculated as follows:
     
-    1. Aroon Up: Measures the number of periods since the highest price within the
-       lookback period and is calculated as:
+    1. Calculate Aroon Up:
+       Measures periods since the highest high within the lookback period.
        Aroon Up = ((period - periods since highest high) / period) * 100
     
-    2. Aroon Down: Measures the number of periods since the lowest price within the
-       lookback period and is calculated as:
+    2. Calculate Aroon Down:
+       Measures periods since the lowest low within the lookback period.
        Aroon Down = ((period - periods since lowest low) / period) * 100
        
-    3. Aroon Oscillator: The difference between Aroon Up and Aroon Down:
+    3. Calculate Aroon Oscillator:
        Aroon Oscillator = Aroon Up - Aroon Down
     
     Interpretation:
-    
-    - Aroon Up/Down range between 0 and 100
-    - Aroon Up values close to 100 indicate a strong uptrend
-    - Aroon Down values close to 100 indicate a strong downtrend
-    - When Aroon Up crosses above Aroon Down, it may signal a bullish trend
-    - When Aroon Down crosses above Aroon Up, it may signal a bearish trend
-    - The Aroon Oscillator ranges from -100 to 100:
-      - Positive values indicate an uptrend
-      - Negative values indicate a downtrend
-      - Values near zero indicate consolidation or weak trends
+    - Aroon Up > 70: Strong uptrend.
+    - Aroon Down > 70: Strong downtrend.
+    - Aroon Up/Down < 30: Weak trend.
+    - Crossovers: Aroon Up crossing above Aroon Down signals potential bullish trend.
     
     Use Cases:
-    
     - Trend identification: Determine the direction and strength of the current trend.
-    - Trend exhaustion: Identify when a trend is losing momentum before a reversal.
-    - Consolidation detection: When both Aroon Up and Down are low, it suggests 
-      price consolidation.
+    - Consolidation detection: When both Aroon Up and Down are low (< 50), it suggests price consolidation.
     - Breakout confirmation: A strong move in Aroon Up/Down can confirm a price breakout.
-    - Crossover signals: When Aroon Up crosses above/below Aroon Down, it may indicate
-      a potential trend change.
     """
     # Set default values
     if parameters is None:

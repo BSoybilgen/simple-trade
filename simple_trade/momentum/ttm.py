@@ -3,23 +3,57 @@ import pandas as pd
 
 
 def ttm(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the TTM Squeeze momentum indicator.
+    """
+    Calculates the TTM Squeeze (Trade The Markets Squeeze), a volatility and momentum indicator developed by John Carter.
+    It identifies periods of consolidation (squeeze) followed by breakouts.
 
     Args:
-        df (pd.DataFrame): Input price data containing high, low, and close columns.
-        parameters (dict, optional): Calculation parameters.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
             - length (int): Lookback window for Bollinger/Keltner calculations. Default is 20.
             - std_dev (float): Standard deviation multiplier for Bollinger Bands. Default is 2.0.
             - atr_length (int): Lookback window for ATR in Keltner Channels. Default is 20.
             - atr_multiplier (float): Multiplier applied to ATR for Keltner Channels. Default is 1.5.
             - smooth (int): EMA smoothing span for the momentum line. Default is 3.
-        columns (dict, optional): Column overrides.
-            - close_col (str): Column name for closing prices. Default is 'Close'.
-            - high_col (str): Column name for high prices. Default is 'High'.
-            - low_col (str): Column name for low prices. Default is 'Low'.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
 
     Returns:
-        tuple: (DataFrame with momentum and squeeze state, [column names])
+        tuple: A tuple containing the TTM DataFrame (Momentum, Squeeze_On, Squeeze_Off) and a list of column names.
+
+    The TTM Squeeze is calculated using Bollinger Bands and Keltner Channels:
+
+    1. Calculate Bollinger Bands:
+       Basis = SMA(Close, length)
+       Upper BB = Basis + (std_dev * StdDev)
+       Lower BB = Basis - (std_dev * StdDev)
+
+    2. Calculate Keltner Channels:
+       Basis = EMA(Close, length) (Implementation typically uses SMA of typical price or similar)
+       ATR = Average True Range
+       Upper KC = Basis + (atr_multiplier * ATR)
+       Lower KC = Basis - (atr_multiplier * ATR)
+
+    3. Identify Squeeze:
+       Squeeze On = Bollinger Bands are INSIDE Keltner Channels.
+       Squeeze Off = Bollinger Bands are OUTSIDE Keltner Channels.
+
+    4. Calculate Momentum:
+       Calculated using linear regression of price relative to a mean (or similar momentum proxy).
+       (This implementation uses a specific linear regression of the typical price minus an average).
+
+    Interpretation:
+    - Squeeze On (Red dots): Volatility is low, market is consolidating. Preparing for a move.
+    - Squeeze Off (Green dots): Volatility is expanding, breakout has occurred.
+    - Momentum Histogram:
+      - Cyan/Green: Bullish momentum (Price rising).
+      - Red/Yellow: Bearish momentum (Price falling).
+
+    Use Cases:
+    - Breakout Trading: Enter when the squeeze fires (Squeeze On -> Squeeze Off).
+    - Trend Direction: Follow the direction of the momentum histogram after a squeeze.
     """
     if parameters is None:
         parameters = {}

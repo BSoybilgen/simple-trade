@@ -5,35 +5,38 @@ from .wma import wma
 def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Hull Moving Average (HMA) of a series.
-
     The HMA is a moving average that reduces lag and improves smoothing.
     It is calculated using weighted moving averages (WMAs) with specific
     window lengths to achieve this effect.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        parameter (dict): The parameter dictionary that includes the window size for the HMA.
-        columns (dict): The column dictionary that includes close column name.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the HMA. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         tuple: A tuple containing the HMA series and a list of column names.
 
-    The Hull Moving Average (HMA) is a type of moving average that is designed
-    to reduce lag and improve smoothing compared to traditional moving averages.
-    It achieves this by using a combination of weighted moving averages (WMAs)
-    with different window lengths.
+    Calculation Steps:
+    1. Calculate WMA of Half Length:
+       WMA1 = WMA(Close, window / 2)
 
-    The formula for calculating the HMA is as follows:
+    2. Calculate WMA of Full Length:
+       WMA2 = WMA(Close, window)
 
-    1. Calculate a WMA of the input series with a window length of half the
-       specified window size (half_length).
-    2. Calculate a WMA of the input series with the full specified window size.
-    3. Calculate the difference between 2 times the first WMA and the second WMA.
-    4. Calculate a WMA of the result from step 3 with a window length equal to
-       the square root of the specified window size.
+    3. Calculate Raw HMA:
+       Raw = 2 * WMA1 - WMA2
+
+    4. Calculate Final HMA:
+       HMA = WMA(Raw, sqrt(window))
+
+    Interpretation:
+    - HMA hugs the price action much closer than SMA or EMA.
+    - The turning points in HMA are often sharper and more timely.
 
     Use Cases:
-
     - Identifying trends: The HMA can be used to identify the direction of a
       price trend.
     - Smoothing price data: The HMA can smooth out short-term price fluctuations

@@ -6,10 +6,41 @@ import pandas as pd
 def fma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Fractal Adaptive Moving Average (FRAMA).
-
     FRAMA adapts its smoothing factor based on the fractal dimension of price
     movements, allowing it to react quickly during strong trends while
     remaining smooth in choppy markets.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period. Default is 16.
+            - alpha_floor (float): Minimum smoothing factor. Default is 0.01.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+
+    Returns:
+        tuple: A tuple containing the FRAMA series and a list of column names.
+
+    The FRAMA is calculated as follows:
+
+    1. Calculate Fractal Dimension (D):
+       D = (Log(N1 + N2) - Log(N3)) / Log(2)
+       Where N1, N2, N3 are price ranges over different sub-windows.
+
+    2. Calculate Alpha:
+       Alpha = Exp(-4.6 * (D - 1))
+       (Clamped between alpha_floor and 1.0)
+
+    3. Calculate FRAMA:
+       FRAMA = Alpha * Price + (1 - Alpha) * Previous FRAMA
+
+    Interpretation:
+    - When fractal dimension is high (choppy market), Alpha is low (more smoothing).
+    - When fractal dimension is low (trending market), Alpha is high (less smoothing, faster reaction).
+
+    Use Cases:
+    - Trend Following: Adapts to changing market conditions effectively.
+    - Filtering: Reduces noise in consolidation zones.
     """
     if parameters is None:
         parameters = {}
@@ -44,7 +75,14 @@ def fma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             continue
 
         if i < start_idx + window:
-            frama_values[i] = price if np.isnan(prev) else prev
+            # Use simple moving average during warmup period
+            lookback = min(i - start_idx + 1, window)
+            warmup_slice = values[max(0, i - lookback + 1):i + 1]
+            warmup_slice = warmup_slice[~np.isnan(warmup_slice)]
+            if warmup_slice.size > 0:
+                frama_values[i] = warmup_slice.mean()
+            else:
+                frama_values[i] = price if np.isnan(prev) else prev
             continue
 
         dimension = _fractal_dimension(values, i, window, half_window)

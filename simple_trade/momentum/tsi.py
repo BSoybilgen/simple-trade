@@ -2,22 +2,48 @@ import pandas as pd
 
 
 def tsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the True Strength Index (TSI).
-
-    TSI double smooths price momentum and its absolute value to create a bounded
-    oscillator between -100 and +100 that filters out short-term noise while
-    highlighting trend strength.
+    """
+    Calculates the True Strength Index (TSI), a momentum oscillator developed by William Blau.
+    It uses double smoothing of price changes to filter out noise and highlight trend strength.
 
     Args:
-        df (pd.DataFrame): Input DataFrame containing price data.
-        parameters (dict, optional): Calculation parameters.
-            - slow (int): Span for the first (slow) EMA smoothing of momentum. Default 25.
-            - fast (int): Span for the second (fast) EMA smoothing. Default 13.
-        columns (dict, optional): Column overrides.
-            - close_col (str): Column name for closing prices. Default 'Close'.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - slow (int): Span for the first (slow) EMA smoothing of momentum. Default is 25.
+            - fast (int): Span for the second (fast) EMA smoothing. Default is 13.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: (tsi_series, [column_name])
+        tuple: A tuple containing the TSI series and a list of column names.
+
+    The True Strength Index is calculated as follows:
+
+    1. Calculate Price Change (Momentum):
+       Momentum = Close - Prev Close
+
+    2. Calculate Double Smoothed Momentum (Numerator):
+       First Smooth = EMA(Momentum, slow)
+       Second Smooth = EMA(First Smooth, fast)
+
+    3. Calculate Double Smoothed Absolute Momentum (Denominator):
+       Abs Momentum = Abs(Momentum)
+       First Smooth Abs = EMA(Abs Momentum, slow)
+       Second Smooth Abs = EMA(First Smooth Abs, fast)
+
+    4. Calculate TSI:
+       TSI = 100 * (Double Smoothed Momentum / Double Smoothed Abs Momentum)
+
+    Interpretation:
+    - Range: -100 to +100.
+    - Signal Line Crossovers: Can be used with a signal line (usually 7-12 period EMA of TSI) to generate buy/sell signals.
+    - Centerline Crossovers: Crossing zero indicates a change in the overall trend direction.
+    - Overbought/Oversold: Extremes can vary but generally > +25 or < -25 indicate strong trends.
+
+    Use Cases:
+    - Trend Direction: Positive TSI indicates uptrend, negative TSI indicates downtrend.
+    - Divergence: Divergence between price and TSI can signal reversals.
+    - Overbought/Oversold: Identifying potential exhaustion points.
     """
     if parameters is None:
         parameters = {}

@@ -3,27 +3,46 @@ import pandas as pd
 
 
 def crs(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the Connors RSI (CRSI).
-
-    CRSI combines three components:
-        1. RSI of closing prices (short period)
-        2. RSI of streak length (consecutive up/down closes)
-        3. Percent rank of one-day price change
-
-    The final value is the average of the three sub-indicators, yielding a value
-    between 0 and 100 useful for short-term overbought/oversold analysis.
+    """
+    Calculates the Connors RSI (CRSI), a composite indicator designed by Larry Connors 
+    to better identify short-term overbought and oversold conditions.
 
     Args:
-        df (pd.DataFrame): Input price data.
-        parameters (dict, optional): Calculation parameters.
-            - rsi_window (int): Window for close-price RSI (default 3).
-            - streak_window (int): Window for streak RSI (default 2).
-            - rank_window (int): Lookback for percent rank of price change (default 100).
-        columns (dict, optional): Column overrides.
-            - close_col (str): Column with closing prices (default 'Close').
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - rsi_window (int): Window for the close-price RSI component. Default is 3.
+            - streak_window (int): Window for the streak RSI component. Default is 2.
+            - rank_window (int): Lookback period for the percent rank component. Default is 100.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: (crsi_series, [column_name])
+        tuple: A tuple containing the Connors RSI series and a list of column names.
+
+    The Connors RSI is calculated as the average of three components:
+
+    1. Calculate the RSI of Closing Prices:
+       RSI_Price = RSI(Close, rsi_window)
+
+    2. Calculate the RSI of the Streak:
+       - Determine the Streak (consecutive days up or down).
+       - RSI_Streak = RSI(Streak, streak_window)
+
+    3. Calculate the Percent Rank of Price Change:
+       - Calculate one-day price change (Percent Change).
+       - Rank = Percent Rank of today's change over rank_window.
+
+    4. Calculate CRSI:
+       CRSI = (RSI_Price + RSI_Streak + Rank) / 3
+
+    Interpretation:
+    - Range: 0 to 100.
+    - Overbought: Values above 90 (or 95) indicate potential short-term exhaustion/overbought.
+    - Oversold: Values below 10 (or 5) indicate potential short-term oversold conditions.
+
+    Use Cases:
+    - Mean Reversion: Identifying short-term pullback opportunities in a broader trend.
+    - Exit Signals: Exiting positions when CRSI reaches extreme levels.
     """
     if parameters is None:
         parameters = {}

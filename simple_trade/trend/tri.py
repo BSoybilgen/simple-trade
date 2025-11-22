@@ -5,39 +5,46 @@ import numpy as np
 def tri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the TRIX (Triple Exponential Average) indicator.
-
     TRIX is a momentum oscillator that displays the percent rate of change of a triple
     exponentially smoothed moving average. It oscillates around a zero line and can be
     used to identify overbought/oversold conditions, divergences, and trend direction.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        parameters (dict): The parameter dictionary that includes window size for the EMA.
-        columns (dict): The column dictionary that includes close column name.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the EMA. Default is 14.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         tuple: A tuple containing the TRIX DataFrame and a list of column names.
 
-    The TRIX is calculated through the following steps:
-    1. Calculate a single EMA of the price series with the specified window.
-    2. Calculate an EMA of the result from step 1 (double-smoothed EMA).
-    3. Calculate an EMA of the result from step 2 (triple-smoothed EMA).
-    4. Calculate the 1-period percent rate of change of the triple-smoothed EMA.
+    The TRIX is calculated as follows:
 
-    The formula can be expressed as:
-    TRIX = 100 * (EMA3 - Previous EMA3) / Previous EMA3
-    where EMA3 is the triple-smoothed EMA.
+    1. Calculate Single-Smoothed EMA:
+       EMA1 = EMA(Close, window)
+
+    2. Calculate Double-Smoothed EMA:
+       EMA2 = EMA(EMA1, window)
+
+    3. Calculate Triple-Smoothed EMA:
+       EMA3 = EMA(EMA2, window)
+
+    4. Calculate TRIX:
+       TRIX = 100 * (EMA3 - Previous EMA3) / Previous EMA3
+
+    5. Calculate Signal Line:
+       Signal = EMA(TRIX, 9)
+
+    Interpretation:
+    - Zero Line Crossover: Crossing above zero is bullish; below zero is bearish.
+    - Signal Line Crossover: TRIX crossing above Signal is bullish; below is bearish.
+    - Divergences: Price making new highs while TRIX fails to do so indicates a potential reversal.
 
     Use Cases:
-
-    - Trend identification: TRIX crossing above zero indicates a bullish trend,
-      while crossing below zero indicates a bearish trend.
-    - Signal line crossovers: When TRIX crosses above its signal line, it generates
-      a bullish signal; when it crosses below, it generates a bearish signal.
-    - Divergences: Divergence between TRIX and price can indicate potential
-      trend reversals.
-    - Filter: TRIX can be used to filter out market noise and identify
-      significant market moves.
+    - Momentum Measurement: Gauging the rate of change of the triple smoothed average.
+    - Trend Reversals: Identifying early signs of trend shifts via divergences.
+    - Filtering: TRIX filters out insignificant price movements better than standard rate-of-change.
     """
     # Set default values
     if parameters is None:

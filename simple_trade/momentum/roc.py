@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 
 def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
@@ -17,14 +16,18 @@ def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     Returns:
         tuple: A tuple containing the ROC series and a list of column names.
 
-    The ROC is calculated using the formula:
-    
-    ROC = ((Current Price - Price n periods ago) / Price n periods ago) * 100
-    
-    Where n is the specified window.
+    Calculation Steps:
+    1. Calculate the difference between the current price and the price n periods ago.
+    2. Divide the result by the price n periods ago.
+    3. Multiply by 100 to convert to a percentage.
+
+    Interpretation:
+    - Positive values: Price is higher than it was n periods ago (Uptrend/Momentum).
+    - Negative values: Price is lower than it was n periods ago (Downtrend/Momentum).
+    - Zero Line: Crossing above zero indicates increasing upward momentum; below zero indicates increasing downward momentum.
+    - Slope: A steep slope indicates strong momentum.
 
     Use Cases:
-
     - Identifying overbought/oversold conditions: Extreme positive values may indicate overbought 
       conditions, while extreme negative values may indicate oversold conditions.
     - Divergence analysis: When price makes a new high or low but ROC doesn't, it may signal 
@@ -33,8 +36,6 @@ def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
       when it crosses below zero, it may signal a sell opportunity.
     - Trend confirmation: Strong positive ROC values confirm an uptrend, while strong negative 
       values confirm a downtrend.
-    - Measuring momentum strength: The slope of the ROC line indicates the strength of momentum; 
-      a steeper slope indicates stronger momentum.
     """
     # Set default values
     if parameters is None:

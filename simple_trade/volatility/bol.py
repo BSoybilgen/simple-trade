@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 
 
-def bollinger_bands(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def bol(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Bollinger Bands of a series.
-
-    Bollinger Bands are a type of statistical chart illustrating the relative high and low prices of a security in relation to its average price.
+    Bollinger Bands are a type of statistical chart illustrating the relative high and low prices
+    of a security in relation to its average price.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
@@ -19,17 +19,26 @@ def bollinger_bands(df: pd.DataFrame, parameters: dict = None, columns: dict = N
     Returns:
         tuple: A tuple containing the Bollinger Bands DataFrame and a list of column names.
 
-    Bollinger Bands consist of:
+    Calculation Steps:
+    1. Middle Band:
+       SMA of the price over the window.
+    2. Standard Deviation:
+       Calculate standard deviation of price over the window.
+    3. Upper Band:
+       Middle Band + (num_std * Standard Deviation)
+    4. Lower Band:
+       Middle Band - (num_std * Standard Deviation)
 
-    1. A middle band, which is a simple moving average (SMA) of the price.
-    2. An upper band, which is the SMA plus a certain number of standard deviations (typically 2).
-    3. A lower band, which is the SMA minus the same number of standard deviations.
+    Interpretation:
+    - Price near Upper Band: Potential overbought condition.
+    - Price near Lower Band: Potential oversold condition.
+    - Squeeze: Bands contracting indicates low volatility and potential breakout.
+    - Expansion: Bands widening indicates increasing volatility.
 
     Use Cases:
-
-    - Identifying overbought and oversold conditions: Prices near the upper band may indicate overbought conditions, while prices near the lower band may indicate oversold conditions.
-    - Identifying volatility: The width of the Bollinger Bands can be used to gauge volatility. Wide bands indicate high volatility, while narrow bands indicate low volatility.
-    - Generating buy and sell signals: Some traders use Bollinger Bands to generate buy and sell signals based on price breakouts or reversals near the bands.
+    - Identifying overbought/oversold conditions.
+    - Measuring volatility (Bandwidth).
+    - Generating buy/sell signals on breakouts or reversals at bands.
     """
     # Set default values
     if parameters is None:

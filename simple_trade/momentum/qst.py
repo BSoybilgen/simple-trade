@@ -2,23 +2,37 @@ import pandas as pd
 
 
 def qst(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the Qstick Indicator.
-
-    Qstick averages the difference between closing and opening prices over a
-    specified window to highlight bullish or bearish pressure. Positive values
-    indicate that closes are generally above opens over the period, while
-    negative values indicate the opposite.
+    """
+    Calculates the Qstick Indicator, a technical indicator developed by Tushar Chande.
+    It quantifies the buying and selling pressure by averaging the difference between closing and opening prices.
 
     Args:
-        df (pd.DataFrame): Input DataFrame containing price data.
-        parameters (dict, optional): Calculation parameters.
-            - window (int): Rolling window length for averaging. Default is 10.
-        columns (dict, optional): Column overrides.
-            - close_col (str): Column for closing prices. Default 'Close'.
-            - open_col (str): Column for opening prices. Default 'Open'.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The rolling window length for averaging. Default is 10.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+            - open_col (str): The column name for opening prices. Default is 'Open'.
 
     Returns:
-        tuple: (qstick_series, [column_name])
+        tuple: A tuple containing the Qstick series and a list of column names.
+
+    The Qstick Indicator is calculated as follows:
+
+    1. Calculate Candle Body:
+       Body = Close - Open
+
+    2. Calculate Moving Average of Body:
+       Qstick = SMA(Body, window)
+
+    Interpretation:
+    - Positive Qstick: Buying pressure is dominant (Closes > Opens on average).
+    - Negative Qstick: Selling pressure is dominant (Opens > Closes on average).
+    - Zero Crossing: Crossing the zero line acts as a signal for trend change.
+
+    Use Cases:
+    - Trend Confirmation: Confirming the validity of a trend (e.g., price rising but Qstick falling is a divergence).
+    - Signal Generation: Crossovers of the zero line.
     """
     if parameters is None:
         parameters = {}

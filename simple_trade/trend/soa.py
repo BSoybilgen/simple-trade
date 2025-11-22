@@ -4,30 +4,36 @@ import pandas as pd
 def soa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Smoothed Moving Average (SmMA) of a series.
-
     The Smoothed Moving Average is similar to Wilder's moving average and applies
     heavier smoothing than a simple moving average. Each new value is a blend of
-    the previous SmMA and the current price, helping highlight longer-term
-    trends while filtering short-term volatility.
+    the previous SmMA and the current price.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have a close column.
-        parameters (dict): Dictionary with the window size for the SmMA calculation.
-        columns (dict): Dictionary specifying the close column name.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the SmMA calculation. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the SmMA series and a list with its column name.
+        tuple: A tuple containing the SmMA series and a list of column names.
 
-    The SmMA is computed iteratively using the formula:
+    The Smoothed Moving Average is calculated as follows:
 
-        SmMA_t = (SmMA_{t-1} * (n - 1) + price_t) / n
+    1. Calculate the first SmMA (usually SMA of the first window).
 
-    This can be efficiently implemented with an exponential weighted mean using
-    alpha = 1 / n and adjust=False, which matches the Wilder smoothing method.
+    2. Calculate subsequent SmMAs:
+       SmMA(i) = (SmMA(i-1) * (n - 1) + Price(i)) / n
+       where n is the window size.
 
-    Use cases mirror those of other moving averages but emphasize smoother trend
-    detection with reduced lag compared to a simple moving average of the same
-    length.
+    Interpretation:
+    - The SmMA gives recent prices an equal weight to historic prices.
+    - It does not respond to price changes as quickly as EMA.
+    - Useful for identifying long-term trends.
+
+    Use Cases:
+    - Trend Identification: Filtering out short-term noise to see the long-term trend.
+    - Support/Resistance: Often acts as a significant dynamic support or resistance level.
     """
     if parameters is None:
         parameters = {}

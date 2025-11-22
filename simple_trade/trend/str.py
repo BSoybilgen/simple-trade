@@ -4,31 +4,48 @@ import numpy as np
 def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the SuperTrend indicator.
-    
     SuperTrend is a trend following indicator similar to moving averages.
     It plots on price charts as a line that follows price but stays a certain
     distance from it, reacting to volatility.
     
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have high, low, and close columns.
-        parameters (dict): The parameter dictionary that includes period and multiplier for the ATR.
-        columns (dict): The column dictionary that includes high, low, and close column names.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - period (int): The lookback period for ATR. Default is 14.
+            - multiplier (float): The multiplier for ATR. Default is 3.0.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
+            - close_col (str): The column name for closing prices. Default is 'Close'.
     
     Returns:
-        tuple: A tuple containing the SuperTrend DataFrame and a list of column names.
+        tuple: A tuple containing the SuperTrend DataFrame (Supertrend, Direction) and a list of column names.
         
-    The SuperTrend indicator combines Average True Range (ATR) with a multiplier
-    to create a dynamic support/resistance line that follows the price trend.
-    When price crosses above the SuperTrend line, it signals a potential uptrend.
-    When price crosses below the SuperTrend line, it signals a potential downtrend.
+    The SuperTrend indicator is calculated as follows:
+    
+    1. Calculate Average True Range (ATR) over the specified period.
+    
+    2. Calculate Basic Upper and Lower Bands:
+       Basic Upper Band = (High + Low) / 2 + (Multiplier * ATR)
+       Basic Lower Band = (High + Low) / 2 - (Multiplier * ATR)
+       
+    3. Calculate Final Bands (with Ratchet Effect):
+       - If Price < Previous Final Upper Band, Final Upper Band = Min(Basic Upper Band, Previous Final Upper Band)
+       - If Price > Previous Final Lower Band, Final Lower Band = Max(Basic Lower Band, Previous Final Lower Band)
+       
+    4. Determine SuperTrend:
+       - If Previous Trend was Down and Close > Previous Final Upper Band: Trend flips to Up. SuperTrend = Final Lower Band.
+       - If Previous Trend was Up and Close < Previous Final Lower Band: Trend flips to Down. SuperTrend = Final Upper Band.
+    
+    Interpretation:
+    - Price above SuperTrend line: Uptrend (Bullish).
+    - Price below SuperTrend line: Downtrend (Bearish).
+    - The line changes color (Green/Red) based on direction in most charting software.
     
     Use Cases:
-    
     - Trend detection: SuperTrend helps identify the current market trend direction.
-    - Trade filtering: Use SuperTrend to only take trades in the direction of the trend.
     - Stop loss placement: The SuperTrend line can serve as a trailing stop level.
-    - Swing trading: SuperTrend is effective for identifying entry and exit points in swing trading.
-    - Support/resistance: The indicator acts as dynamic support in uptrends and resistance in downtrends.
+    - Trade filtering: Use SuperTrend to only take trades in the direction of the trend.
     """
     # Set default values
     if parameters is None:

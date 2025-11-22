@@ -1,5 +1,5 @@
 # Import from data module
-from .indicator_handler import download_data, compute_indicator
+from .indicator_handler import download_data, compute_indicator, list_indicators
 from .core import INDICATORS
 
 # Import all indicators from core
@@ -7,15 +7,19 @@ from .core import (
     # Trend indicators
     sma, ema, wma, hma, adx, psa, tri, aro, str, vid,
     ich, ama, eit, fma, gma, htt, jma, kma, soa, tma, zma,
+    ads, alm, dem, eac, lsm, mgd, swm, tem,
 
     # Momentum indicators
     rsi, mac, sto, cci, roc, wil, cmo, ult, dpo, eri, rmi, tsi, qst, crs, msi, fis, stc, ttm, kst, cog, vor, lsi,
+    awo, bop, imi, pgo, ppo, psy, rvg, sri,
 
     # Volatility indicators
-    bollinger_bands, atr, keltner_channels, donchian_channels, chaikin_volatility,
+    bol, atr, kel, don, cha,
+    acb, atp, bbw, cho, dvi, efr, fdi, grv, hav, hiv, mad, mai, nat, pav, pcw, pro, rsv, rvi, std, svi, uli, vhf, vqi, vsi,
 
     # Volume indicators
-    obv, vma, adline, cmf, vpt
+    obv, vma, adl, cmf, vpt,
+    vwa, mfi, foi, emv, pvo, vro, nvi, pvi, kvo, ado, vfi, bwm, fve, wad, voo
 )
 
 # Import backtesting components
@@ -51,7 +55,7 @@ __all__ = [
     "plot_resistance_support",
     
     # Data functions
-    "download_data", "compute_indicator",
+    "download_data", "compute_indicator", "list_indicators",
     
     # Indicators dictionary
     "INDICATORS",
@@ -59,13 +63,17 @@ __all__ = [
     # Trend indicators
     "sma", "ema", "wma", "hma", "adx", "psa", "tri", "aro", "str", "vid",
     "ich", "ama", "eit", "fma", "gma", "htt", "jma", "kma", "soa", "tma", "zma",
+    "ads", "alm", "dem", "eac", "lsm", "mgd", "swm", "tem",
     
     # Momentum indicators
-    'rsi', 'mac', 'sto', 'cci', 'roc', 'wil', 'cmo', 'ult', 'dpo', 'eri', 'rmi', 'tsi', 'qst', 'crs', 'msi', 'fis', 'stc', 'ttm', 'kst', 'cog', 'vor', 'lsi',
+    "rsi", "mac", "sto", "cci", "roc", "wil", "cmo", "ult", "dpo", "eri", "rmi", "tsi", "qst", "crs", "msi", "fis", "stc", "ttm", "kst", "cog", "vor", "lsi",
+    "awo", "bop", "imi", "pgo", "ppo", "psy", "rvg", "sri",
     
     # Volatility indicators
-    "bollinger_bands", "atr", "keltner_channels", "donchian_channels", "chaikin_volatility",
+    "bol", "atr", "kel", "don", "cha",
+    "acb", "atp", "bbw", "cho", "dvi", "efr", "fdi", "grv", "hav", "hiv", "mad", "mai", "nat", "pav", "pcw", "pro", "rsv", "rvi", "std", "svi", "uli", "vhf", "vqi", "vsi",
     
     # Volume indicators
-    "obv", "vma", "adline", "cmf", "vpt"
+    "obv", "vma", "adl", "cmf", "vpt",
+    "vwa", "mfi", "foi", "emv", "pvo", "vro", "nvi", "pvi", "kvo", "ado", "vfi", "bwm", "fve", "wad", "voo"
 ]

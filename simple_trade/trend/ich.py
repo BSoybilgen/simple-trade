@@ -5,50 +5,46 @@ import numpy as np
 def ich(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Ichimoku Cloud indicators (Ichimoku Kinko Hyo).
-
-    Ichimoku Kinko Hyo, or the Ichimoku Cloud, is a versatile indicator that defines
-    support and resistance, identifies trend direction, gauges momentum, and provides
-    trading signals.
+    Ichimoku Kinko Hyo is a versatile indicator that defines support and resistance, 
+    identifies trend direction, gauges momentum, and provides trading signals.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have high, low, and close columns.
-        parameter (dict): The parameter dictionary that includes period for Tenkan-sen (Conversion Line),
-        period for Kijun-sen (Base Line), period for Senkou Span B, and displacement period.
-        columns (dict): The column dictionary that includes high, low, and close column names.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - tenkan_period (int): Period for Tenkan-sen. Default is 9.
+            - kijun_period (int): Period for Kijun-sen. Default is 26.
+            - senkou_b_period (int): Period for Senkou Span B. Default is 52.
+            - displacement (int): Displacement for spans. Default is 26.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - high_col (str): The column name for high prices. Default is 'High'.
+            - low_col (str): The column name for low prices. Default is 'Low'.
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing a DataFrame with Ichimoku components and a list of column names:
+        tuple: A tuple containing a DataFrame with Ichimoku components and a list of column names.
 
-    The Ichimoku Cloud consists of five components:
-
+    Calculation Steps:
     1. Tenkan-sen (Conversion Line):
-       (highest high + lowest low) / 2 for the specified period (default: 9)
-
+       (Highest High + Lowest Low) / 2 over tenkan_period
     2. Kijun-sen (Base Line):
-       (highest high + lowest low) / 2 for the specified period (default: 26)
-
+       (Highest High + Lowest Low) / 2 over kijun_period
     3. Senkou Span A (Leading Span A):
-       (Tenkan-sen + Kijun-sen) / 2, plotted ahead by the displacement period
-
+       (Tenkan-sen + Kijun-sen) / 2, plotted ahead by displacement
     4. Senkou Span B (Leading Span B):
-       (highest high + lowest low) / 2 for the specified period (default: 52),
-       plotted ahead by the displacement period
-
+       (Highest High + Lowest Low) / 2 over senkou_b_period, plotted ahead by displacement
     5. Chikou Span (Lagging Span):
-       Close price plotted back by the displacement period
+       Close price plotted back by displacement
+
+    Interpretation:
+    - Trend: Price > Cloud = Uptrend; Price < Cloud = Downtrend.
+    - Signals: Tenkan-sen crossing Kijun-sen (Golden/Death Cross).
+    - Support/Resistance: The Cloud (Kumo) acts as dynamic S/R.
+    - Cloud Thickness: Thicker cloud means stronger S/R.
 
     Use Cases:
-
-    - Trend identification: When price is above the cloud, the trend is up.
-      When price is below the cloud, the trend is down.
-
-    - Support and resistance: The cloud serves as dynamic support and resistance areas.
-
-    - Signal generation:
-      - Bullish signal: When Tenkan-sen crosses above Kijun-sen
-      - Bearish signal: When Tenkan-sen crosses below Kijun-sen
-
-    - Strength confirmation: The thicker the cloud, the stronger the support/resistance.
+    - Trend identification: Determine overall market direction.
+    - Entry/Exit: Crossovers and cloud breakouts.
+    - Stop Loss: Placing stops on the other side of the Kijun-sen or Cloud.
     """
     # Set default values
     if parameters is None:

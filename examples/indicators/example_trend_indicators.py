@@ -48,6 +48,31 @@ if fig is not None:
     plt.show(block=True)
     plt.close(fig)
 
+# ### The Adaptive Deviation-Scaled Moving Average (ADSMA)
+# Step 1: Download data
+symbol = 'AAPL'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 40
+parameters["sensitivity"] = 50.0
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='ads',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
 # ### The Aroon indicator (AROON)
 # Step 1: Download data
 symbol = 'ETH-USD'
@@ -100,6 +125,32 @@ if fig is not None:
     plt.show(block=True)
     plt.close(fig)
 
+# ### The Arnaud Legoux Moving Average (ALMA)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 9
+parameters["sigma"] = 6
+parameters["offset"] = 0.85
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='alm',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
 # ### The Exponential Moving Average (EMA)
 # Step 1: Download data
 symbol = 'ETH-USD'
@@ -141,6 +192,54 @@ columns["close_col"] = 'Close'
 data, columns, fig = compute_indicator(
     data=data,
     indicator='eit',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The Double Exponential Moving Average (DEMA)
+# Step 1: Download data
+symbol = 'GOOG'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 20
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='dem',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The Ehlers Adaptive CyberCycle (EAC)
+# Step 1: Download data
+symbol = 'TSLA'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["alpha"] = 0.07
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='eac',
     parameters=parameters,
     columns=columns,
 )
@@ -345,6 +444,54 @@ if fig is not None:
     plt.show(block=True)
     plt.close(fig)
 
+# ### The Least Squares Moving Average (LSMA)
+# Step 1: Download data
+symbol = 'ETH-USD'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 20
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='lsm',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The McGinley Dynamic (MGD)
+# Step 1: Download data
+symbol = 'AAPL'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 20
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='mgd',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
 # ### The Parabolic SAR (PSAR)
 # Step 1: Download data
 symbol = 'MSFT'
@@ -434,6 +581,30 @@ if fig is not None:
     plt.show(block=True)
     plt.close(fig)
 
+# ### The Sine Weighted Moving Average (SWMA)
+# Step 1: Download data
+symbol = 'GOOG'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 20
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='swm',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
 # ### The SuperTrend (STREND)
 # Step 1: Download data
 symbol = 'GOOG'
@@ -504,6 +675,30 @@ columns["close_col"] = 'Close'
 data, columns, fig = compute_indicator(
     data=data,
     indicator='tma',
+    parameters=parameters,
+    columns=columns,
+)
+if fig is not None:
+    plt.show(block=True)
+    plt.close(fig)
+
+# ### The Triple Exponential Moving Average (TEMA)
+# Step 1: Download data
+symbol = 'MSFT'
+start = '2024-01-01'
+end = '2025-01-01'
+interval = '1d'
+print(f"\nDownloading data for {symbol}...")
+data = download_data(symbol, start, end, interval=interval)
+
+# Step 2: Calculate indicator
+parameters = dict()
+columns = dict()
+parameters["window"] = 20
+columns["close_col"] = 'Close'
+data, columns, fig = compute_indicator(
+    data=data,
+    indicator='tem',
     parameters=parameters,
     columns=columns,
 )

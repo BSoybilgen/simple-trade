@@ -2,20 +2,52 @@ import pandas as pd
 
 
 def stc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
-    """Calculate the Schaff Trend Cycle (STC) indicator.
+    """
+    Calculates the Schaff Trend Cycle (STC), an indicator developed by Doug Schaff.
+    It is a product of combining the MACD with the Stochastic Oscillator to identify faster, 
+    more accurate trends with less lag.
 
     Args:
-        df (pd.DataFrame): Input price data containing close prices.
-        parameters (dict, optional): Calculation parameters.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
             - window_fast (int): Fast EMA length used in MACD. Default is 23.
             - window_slow (int): Slow EMA length used in MACD. Default is 50.
             - cycle (int): Look-back window for stochastic calculations. Default is 10.
             - smooth (int): EMA smoothing factor for the cycle. Default is 3.
-        columns (dict, optional): Column overrides.
-            - close_col (str): Column name for closing prices. Default is 'Close'.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: (stc_series, [column_name])
+        tuple: A tuple containing the STC series and a list of column names.
+
+    The Schaff Trend Cycle is calculated in multiple steps:
+
+    1. Calculate MACD Line:
+       MACD = EMA(Close, window_fast) - EMA(Close, window_slow)
+
+    2. Calculate Stochastic of MACD (%K):
+       %K = (MACD - Min(MACD)) / (Max(MACD) - Min(MACD)) * 100
+       (Min/Max over 'cycle' period)
+
+    3. Smooth %K (First Smoothing):
+       Smoothed %K = EMA(%K, smooth)
+
+    4. Calculate Stochastic of Smoothed %K (%D-ish):
+       %D = (Smoothed %K - Min) / (Max - Min) * 100
+
+    5. Smooth %D (Second Smoothing - Final STC):
+       STC = EMA(%D, smooth)
+
+    Interpretation:
+    - Range: 0 to 100.
+    - Overbought: Values above 75 indicate overbought conditions.
+    - Oversold: Values below 25 indicate oversold conditions.
+    - Trend: Rising STC suggests an uptrend; falling STC suggests a downtrend.
+
+    Use Cases:
+    - Early Trend Detection: STC is designed to identify trends earlier than MACD.
+    - Cycle Tops and Bottoms: Identifying cyclical turning points.
+    - Filters: Using STC direction to filter trades from other strategies.
     """
     if parameters is None:
         parameters = {}

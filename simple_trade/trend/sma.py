@@ -3,35 +3,39 @@ import pandas as pd
 def sma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Simple Moving Average (SMA) of a series.
-
     The SMA is a moving average that is calculated by taking the arithmetic
     mean of a given set of values over a specified period.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        parameters (dict): The parameter dictionary that includes window size for the SMA calculation.
-        columns (dict): The column dictionary that includes close column name.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The window size for the SMA calculation. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the SMA series and its column names list.
+        tuple: A tuple containing the SMA series and a list of column names.
 
-    The Simple Moving Average (SMA) is a type of moving average that is calculated
-    by taking the arithmetic mean of a given set of values over a specified
-    period. It is the simplest form of moving average and is often used to
-    smooth out price data or other time series data.
+    The Simple Moving Average is calculated as follows:
 
-    The formula for calculating the SMA is as follows:
+    1. Sum the values over the specified window.
+    2. Divide the sum by the window size.
+       SMA = Sum(Price, window) / window
 
-    SMA = (Sum of values in the period) / (Number of values in the period)
+    Interpretation:
+    - Rising SMA: Uptrend.
+    - Falling SMA: Downtrend.
+    - Price > SMA: Bullish.
+    - Price < SMA: Bearish.
 
     Use Cases:
-
     - Identifying trends: The SMA can be used to identify the direction of a
       price trend.
     - Smoothing price data: The SMA can smooth out short-term price fluctuations
       to provide a clearer view of the underlying trend.
     - Generating buy and sell signals: The SMA can be used in crossover systems
-      to generate buy and sell signals.
+      to generate buy and sell signals (e.g. Price crosses SMA).
+    - Support/Resistance: Often acts as dynamic support or resistance.
     """
     # Set default values
     if parameters is None:

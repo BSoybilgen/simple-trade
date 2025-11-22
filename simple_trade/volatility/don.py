@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 
 
-def donchian_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def don(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Donchian Channels, a volatility indicator that plots the highest high and lowest low
     over a specified period.
-    
+
     Args:
         df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
@@ -14,26 +14,28 @@ def donchian_channels(df: pd.DataFrame, parameters: dict = None, columns: dict =
         columns (dict, optional): Dictionary containing column name mappings:
             - high_col (str): The column name for high prices. Default is 'High'.
             - low_col (str): The column name for low prices. Default is 'Low'.
-    
+
     Returns:
         tuple: A tuple containing the Donchian Channels DataFrame and a list of column names.
-    
-    Donchian Channels consist of three lines:
-    
-    1. Upper Band: The highest high over the specified period.
-    2. Lower Band: The lowest low over the specified period.
-    3. Middle Band: The average of the upper and lower bands.
-    
+
+    Calculation Steps:
+    1. Upper Band:
+       Highest High over the specified window.
+    2. Lower Band:
+       Lowest Low over the specified window.
+    3. Middle Band:
+       (Upper Band + Lower Band) / 2
+
+    Interpretation:
+    - Price breaking Upper Band: Bullish breakout.
+    - Price breaking Lower Band: Bearish breakout.
+    - Middle Band direction: Indicates overall trend.
+
     Use Cases:
-    
-    - Breakout trading: A break above the upper band or below the lower band can signal a potential breakout.
-    - Trend identification: The direction of the middle band can indicate the overall trend.
-    - Support and resistance: The upper and lower bands can serve as dynamic resistance and support levels.
-    - Range definition: The bands clearly define the trading range over the specified period.
-    - Volatility measurement: The width between the upper and lower bands can indicate market volatility.
-    
-    Notably, Donchian Channels are a key component of the original "Turtle Trading" system, a trend-following
-    strategy developed by Richard Dennis and William Eckhardt in the 1980s.
+    - Breakout trading: Basis of the "Turtle Trading" system.
+    - Trend identification: Middle band slope.
+    - Support and resistance: Dynamic S/R levels.
+    - Volatility measurement: Width between bands.
     """
     # Set default values
     if parameters is None:

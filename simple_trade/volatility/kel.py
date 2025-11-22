@@ -4,7 +4,7 @@ from ..trend.ema import ema
 from .atr import atr
 
 
-def keltner_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def kel(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates Keltner Channels, a volatility-based envelope set above and below an exponential moving average.
     
@@ -22,22 +22,26 @@ def keltner_channels(df: pd.DataFrame, parameters: dict = None, columns: dict = 
     Returns:
         tuple: A tuple containing the Keltner Channels DataFrame and a list of column names.
     
-    Keltner Channels consist of three lines:
+    Calculation Steps:
+    1. Middle Line:
+       Exponential Moving Average (EMA) of the closing price over ema_window.
+    2. Average True Range (ATR):
+       ATR calculated over atr_window.
+    3. Upper Band:
+       Middle Line + (ATR * atr_multiplier)
+    4. Lower Band:
+       Middle Line - (ATR * atr_multiplier)
     
-    1. Middle Line: An Exponential Moving Average (EMA) of the typical price or closing price.
-    2. Upper Band: EMA + (ATR * multiplier)
-    3. Lower Band: EMA - (ATR * multiplier)
-    
-    The ATR multiplier determines the width of the channels. Higher multipliers create wider channels.
+    Interpretation:
+    - Price above Upper Band: Strong uptrend, potential overbought.
+    - Price below Lower Band: Strong downtrend, potential oversold.
+    - Middle Line slope indicates trend direction.
     
     Use Cases:
-    
-    - Identifying trend direction: Price consistently above or below the middle line can confirm trend direction.
-    - Spotting breakouts: Price moving outside the channels may signal a potential breakout.
-    - Overbought/oversold conditions: Price reaching the upper band may be overbought, while price reaching 
-      the lower band may be oversold.
-    - Range identification: Narrow channels suggest consolidation, while wide channels indicate volatility.
-    - Support and resistance: The upper and lower bands can act as dynamic support and resistance levels.
+    - Identifying trend direction.
+    - Spotting breakouts (price closing outside channels).
+    - Overbought/oversold conditions (mean reversion to middle line).
+    - Support and resistance (bands act as dynamic levels).
     """
     # Set default values
     if parameters is None:

@@ -46,10 +46,17 @@ def compute_indicator(
         df = _add_indicator_to_dataframe(df, indicator_result, indicator_kwargs)
 
         if indicator in ('adx', 'aro', 'tri', 'cci', 'mac', 'roc', 
-                         'rsi', 'sto', 'atr', 'chaik', 'adline', 'cmf',
+                         'rsi', 'sto', 'atr', 'cha', 'adl', 'cmf',
                          'obv', 'vpt', 'cmo', 'cog', 'crs', 'dpo', 'eri',
                          'fis', 'kst', 'lsi', 'msi', 'qst', 'rmi', 'stc',
-                         'tsi', 'ttm', 'ult', 'vor', 'wil'):
+                         'tsi', 'ttm', 'ult', 'vor', 'wil', 'awo', 'bop',
+                         'imi', 'pgo', 'ppo', 'psy', 'rvg', 'sri', 'atp', 'bbw',
+                         'cho', 'dvi', 'efr', 'fdi', 'grv', 'hav', 'hiv',
+                         'mad', 'mai', 'nat', 'pav', 'pcw', 'pro', 'rsv',
+                         'rvi', 'std', 'svi', 'uli', 'vhf', 'vqi', 'vsi',
+                         'ado', 'bwm', 'emv', 'fve', 'foi', 'kvo', 'mfi',
+                         'nvi', 'pvo', 'pvi', 'vfi', 'voo', 'vro', 'wad', 
+                         'htt'):
             plot_on_subplot=True
         else:
             plot_on_subplot=False
@@ -142,3 +149,129 @@ def download_data(symbol: str, start_date: str, end_date: str = None, interval: 
     df.attrs['symbol'] = symbol
 
     return df
+
+
+def list_indicators(category: str = None, return_dict: bool = False) -> dict | None:
+    """List all available technical indicators with their descriptions.
+    
+    This function provides a comprehensive catalog of all indicators available in the
+    simple_trade library, organized by category (momentum, trend, volatility, volume).
+    
+    Args:
+        category: Optional filter by category. Options: 'momentum', 'trend', 'volatility', 'volume'.
+                 If None, returns all indicators.
+        return_dict: If True, returns a dictionary instead of printing. Default is False.
+    
+    Returns:
+        dict or None: If return_dict=True, returns a nested dictionary with structure:
+                     {category: {indicator_name: description}}
+                     Otherwise, prints the indicators and returns None.
+    
+    Example:
+        >>> list_indicators()  # Print all indicators
+        >>> list_indicators(category='momentum')  # Print only momentum indicators
+        >>> indicators = list_indicators(return_dict=True)  # Get dictionary of all indicators
+    """
+    from . import momentum, trend, volatility, volume
+    import inspect
+    
+    # Define indicator categories and their modules
+    categories = {
+        'momentum': momentum,
+        'trend': trend,
+        'volatility': volatility,
+        'volume': volume
+    }
+    
+    # Filter by category if specified
+    if category:
+        if category.lower() not in categories:
+            valid_categories = ', '.join(categories.keys())
+            raise ValueError(f"Invalid category '{category}'. Valid options: {valid_categories}")
+        categories = {category.lower(): categories[category.lower()]}
+    
+    # Collect all indicators with their descriptions
+    all_indicators = {}
+    
+    for cat_name, module in categories.items():
+        all_indicators[cat_name] = {}
+        
+        # Get all functions from the module's __all__ list
+        if hasattr(module, '__all__'):
+            for indicator_name in module.__all__:
+                # Get the function object
+                indicator_func = getattr(module, indicator_name, None)
+                if indicator_func and callable(indicator_func):
+                    # Extract the first line of the docstring as description
+                    doc = inspect.getdoc(indicator_func)
+                    if doc:
+                        # Get the first meaningful line (skip empty lines)
+                        lines = [line.strip() for line in doc.split('\n') if line.strip()]
+                        description = lines[0] if lines else "No description available"
+                    else:
+                        description = "No description available"
+                    
+                    all_indicators[cat_name][indicator_name] = description
+    
+    # Return dictionary if requested
+    if return_dict:
+        return all_indicators
+    
+    # Otherwise, print formatted output
+    print("\n" + "="*80)
+    print("AVAILABLE TECHNICAL INDICATORS")
+    print("="*80 + "\n")
+    
+    for cat_name, indicators in all_indicators.items():
+        print(f"\n{'─'*80}")
+        print(f"{cat_name.upper()} INDICATORS ({len(indicators)} total)")
+        print(f"{'─'*80}\n")
+        
+        for indicator_name, description in sorted(indicators.items()):
+            # Format the output with indicator name and description
+            print(f"  • {indicator_name.upper()}")
+            # Wrap long descriptions
+            desc_lines = _wrap_text(description, width=72, indent=4)
+            for line in desc_lines:
+                print(f"    {line}")
+            print()
+    
+    print("="*80)
+    print(f"Total: {sum(len(indicators) for indicators in all_indicators.values())} indicators")
+    print("="*80 + "\n")
+    
+    return None
+
+
+def _wrap_text(text: str, width: int = 70, indent: int = 0) -> list:
+    """Wrap text to a specified width with optional indentation.
+    
+    Args:
+        text: The text to wrap
+        width: Maximum line width
+        indent: Number of spaces to indent wrapped lines
+    
+    Returns:
+        list: List of wrapped text lines
+    """
+    words = text.split()
+    lines = []
+    current_line = []
+    current_length = 0
+    
+    for word in words:
+        word_length = len(word)
+        # +1 for the space
+        if current_length + word_length + len(current_line) > width:
+            if current_line:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+                current_length = word_length
+        else:
+            current_line.append(word)
+            current_length += word_length
+    
+    if current_line:
+        lines.append(' '.join(current_line))
+    
+    return lines
