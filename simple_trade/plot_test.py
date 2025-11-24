@@ -25,7 +25,10 @@ class BacktestPlotter:
         price_col: str = 'Close',
         indicator_cols: Optional[List[str]] = None, # Accept list of columns directly
         title: Optional[str] = None,
-        show_indicator_panel: bool = True
+        show_indicator_panel: bool = True,
+        show_extra_panel: bool = False,
+        extra_panel_cols: Optional[List[str]] = None,
+        extra_panel_title: Optional[str] = "Price vs Indicator"
         # **indicator_kwargs # Remove kwargs
     ) -> plt.Figure:
         """
@@ -35,8 +38,12 @@ class BacktestPlotter:
             data_df (pd.DataFrame): The original data DataFrame with prices and indicators.
             history_df (pd.DataFrame): The portfolio history DataFrame.
             price_col (str): The name of the column containing the price data.
-            indicator_cols (Optional[List[str]]): List of indicator column names to plot.
+            indicator_cols (Optional[List[str]]): List of indicator column names to plot in panel 3.
             title (Optional[str]): Optional title for the plot.
+            show_indicator_panel (bool): Whether to show the 3rd panel.
+            show_extra_panel (bool): Whether to show a 4th panel at the bottom.
+            extra_panel_cols (Optional[List[str]]): List of columns to plot in the 4th panel.
+            extra_panel_title (Optional[str]): Title for the 4th panel.
 
         Returns:
             plt.Figure: The generated matplotlib Figure object.
@@ -61,12 +68,22 @@ class BacktestPlotter:
         data_df = data_df.loc[plot_index]
         history_df = history_df.loc[plot_index]
 
-        if show_indicator_panel:
+        # Determine layout
+        if show_extra_panel:
+             # 4 panels
+            fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(12, 12), sharex=True,
+                                                gridspec_kw={'height_ratios': [3, 1, 1.5, 1.5]})
+        elif show_indicator_panel:
+            # 3 panels
             fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 10), sharex=True,
                                                 gridspec_kw={'height_ratios': [3, 1, 2]})
+            ax4 = None
         else:
+            # 2 panels
             fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True,
                                             gridspec_kw={'height_ratios': [3, 1]})
+            ax3 = None
+            ax4 = None
 
         # --- Plot 1: Price and Trades --- 
         ax1.plot(plot_index, data_df[price_col], label=f'{price_col} Price', color='skyblue', linewidth=1.5)
@@ -102,7 +119,7 @@ class BacktestPlotter:
         # Move legend outside plot to the right
         ax2.legend(loc='center left', bbox_to_anchor=(1.02, 0.5))
 
-        if show_indicator_panel:
+        if show_indicator_panel and ax3 is not None:
             # --- Plot 3: Indicators --- 
             # Use the directly provided indicator_cols list
             valid_indicator_cols = []
@@ -127,6 +144,30 @@ class BacktestPlotter:
             else:
                 ax3.set_title('No Indicators Specified/Found for Plotting')
                 ax3.grid(False)
+
+        if show_extra_panel and ax4 is not None:
+            # --- Plot 4: Extra Panel (e.g. Price vs SMA) ---
+            valid_extra_cols = []
+            if extra_panel_cols:
+                for col in extra_panel_cols:
+                    if col in data_df.columns:
+                        valid_extra_cols.append(col)
+                    else:
+                        print(f"Warning: Extra panel column '{col}' not found in data_df.")
+            
+            if valid_extra_cols:
+                # Define contrasting colors for extra panel lines
+                contrast_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+                for i, col in enumerate(valid_extra_cols):
+                    color_idx = i % len(contrast_colors)
+                    ax4.plot(plot_index, data_df[col], label=col, linewidth=1.5, color=contrast_colors[color_idx])
+                ax4.set_ylabel('Value')
+                ax4.set_title(extra_panel_title)
+                ax4.legend(loc='center left', bbox_to_anchor=(1.02, 0.5))
+                ax4.grid(True, linestyle='--', alpha=0.6)
+            else:
+                ax4.set_title('No Columns Specified for Extra Panel')
+                ax4.grid(False)
 
         # --- Final Touches ---        
         plt.xlabel('Date')

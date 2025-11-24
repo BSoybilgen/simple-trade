@@ -1,4 +1,4 @@
-"""Example usage of trend indicators originally provided in the notebook version."""
+"""Example usage of trend indicators."""
 
 import matplotlib.pyplot as plt
 import pandas as pd

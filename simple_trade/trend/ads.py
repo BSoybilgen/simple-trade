@@ -10,7 +10,7 @@ def ads(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
             - window (int): Base period for EMA calculation. Default is 20.
-            - sensitivity (float): Multiplier for price change impact. Default is 2.0.
+            - sensitivity (float): Multiplier for price change impact. Default is 0.5.
         columns (dict, optional): Dictionary containing column name mappings:
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
@@ -48,7 +48,7 @@ def ads(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     close_col = columns.get('close_col', 'Close')
     window = int(parameters.get('window', 20))
-    sensitivity = float(parameters.get('sensitivity', 2.0))
+    sensitivity = float(parameters.get('sensitivity', 0.5))
 
     series = df[close_col].copy()
     
@@ -67,9 +67,18 @@ def ads(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             
             # Convert to alpha: larger changes = higher alpha (more responsive)
             # Smaller changes = lower alpha (more smoothing)
-            alpha = 2.0 / (window + 1)  # Base EMA alpha
-            adaptive_alpha = alpha * (1.0 + scaled_change)
-            adaptive_alpha = min(adaptive_alpha, 1.0)  # Cap at 1.0
+            base_alpha = 2.0 / (window + 1)  # Base EMA alpha
+            
+            # Adaptive multiplier: ranges from 1.0 (no change) to higher values (large changes)
+            # Use a bounded multiplier to prevent convergence of different windows
+            adaptive_multiplier = 1.0 + scaled_change
+            
+            # Calculate adaptive alpha with bounds that respect the window parameter
+            # Min bound: half of base alpha (more smoothing during consolidation)
+            # Max bound: 3x base alpha or 0.9, whichever is smaller (prevents hitting 1.0 too easily)
+            adaptive_alpha = base_alpha * adaptive_multiplier
+            adaptive_alpha = max(adaptive_alpha, base_alpha * 0.5)
+            adaptive_alpha = min(adaptive_alpha, min(base_alpha * 3.0, 0.9))
             
             # Apply adaptive EMA formula
             adsma.iloc[i] = adaptive_alpha * series.iloc[i] + (1 - adaptive_alpha) * adsma.iloc[i-1]

@@ -428,7 +428,9 @@ class CrossTradeBacktester(Backtester):
         # --- Calculate Benchmark and Performance Metrics using Base Class Methods ---
         # The earlier 'if df.empty:' check ensures we don't reach here with an effectively empty trading period.
         # The portfolio_df created from the log will have at least the initial state row.
-        benchmark_results = self.compute_benchmark_return(data, price_col=price_col) # Use original data for benchmark
+        # Filter data to only include the actual trading period (after indicator warmup)
+        data_traded = data.loc[portfolio_df.index]
+        benchmark_results = self.compute_benchmark_return(data_traded, price_col=price_col)
         performance_metrics = self.calculate_performance_metrics(portfolio_df.copy(), risk_free_rate) # Pass a copy to avoid inplace modification issues
 
         # Update the main results dictionary

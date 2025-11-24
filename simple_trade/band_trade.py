@@ -169,6 +169,7 @@ class BandTradeBacktester(Backtester):
         results, portfolio_df = self._prepare_results(
             portfolio_log=portfolio_log, 
             final_df=final_df, 
+            data=df,
             indicator_col=indicator_col, 
             upper_band_col=upper_band_col, 
             lower_band_col=lower_band_col, 
@@ -495,13 +496,15 @@ class BandTradeBacktester(Backtester):
         
         return portfolio_log, end_state
         
-    def _prepare_results(self, portfolio_log: list, final_df: pd.DataFrame, indicator_col: str, upper_band_col: str, lower_band_col: str,
+    def _prepare_results(self, portfolio_log: list, final_df: pd.DataFrame, data: pd.DataFrame, indicator_col: str, upper_band_col: str, lower_band_col: str,
                          strategy_type: int, trading_type: str, day1_position: str, risk_free_rate: float) -> tuple:
         portfolio_df = pd.DataFrame(portfolio_log).set_index('Date')
         portfolio_df = portfolio_df.drop(columns=['Cash']) # Drop the cash column
         
         # Calculate benchmark and improved results
-        benchmark_results = self.compute_benchmark_return(final_df, price_col='Close')
+        # Filter data to only include the actual trading period (after indicator warmup)
+        data_traded = data.loc[portfolio_df.index]
+        benchmark_results = self.compute_benchmark_return(data_traded, price_col='Close')
         improved_results = self.calculate_performance_metrics(portfolio_df, risk_free_rate)
 
         # Calculate total fees

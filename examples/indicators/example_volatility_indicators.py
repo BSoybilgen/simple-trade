@@ -1,4 +1,4 @@
-"""Example usage of volatility indicators originally provided in the notebook version."""
+"""Example usage of volatility indicators."""
 
 import matplotlib.pyplot as plt
 import pandas as pd

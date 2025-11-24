@@ -1,4 +1,4 @@
-"""Example usage of momentum indicators originally provided in the notebook version."""
+"""Example usage of momentum indicators."""
 
 import matplotlib.pyplot as plt
 import pandas as pd

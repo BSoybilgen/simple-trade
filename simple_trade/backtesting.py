@@ -93,31 +93,46 @@ class Backtester:
         final_value = portfolio_df['PortfolioValue'].iloc[-1]
         total_return_pct = ((final_value - initial_value) / initial_value) * 100
         
-        # Calculate daily returns
+        # Detect data frequency to properly annualize metrics
+        # Check median time delta between rows to determine if data is daily, weekly, etc.
+        time_deltas = portfolio_df.index.to_series().diff().dt.days.dropna()
+        median_delta = time_deltas.median() if len(time_deltas) > 0 else 1
+        
+        # Determine periods per year based on data frequency
+        if median_delta <= 2:  # Daily or near-daily data
+            periods_per_year = 252
+        elif 5 <= median_delta <= 9:  # Weekly data
+            periods_per_year = 52
+        elif 25 <= median_delta <= 35:  # Monthly data
+            periods_per_year = 12
+        else:  # Default to daily
+            periods_per_year = 252
+        
+        # Calculate period returns (daily, weekly, etc.)
         portfolio_df['daily_return'] = portfolio_df['PortfolioValue'].pct_change()
         
         # Annualized return and volatility
-        days_in_backtest = len(portfolio_df)
-        years = days_in_backtest / 252  # Assuming 252 trading days per year
-        annualized_return = ((final_value / initial_value) ** (1 / years)) - 1
+        periods_in_backtest = len(portfolio_df)
+        years = periods_in_backtest / periods_per_year
+        annualized_return = ((final_value / initial_value) ** (1 / years)) - 1 if years > 0 else 0
         
         # Volatility (annualized standard deviation of returns)
-        daily_volatility = portfolio_df['daily_return'].std()
-        annualized_volatility = daily_volatility * np.sqrt(252)
+        period_volatility = portfolio_df['daily_return'].std()
+        annualized_volatility = period_volatility * np.sqrt(periods_per_year)
         
         # Sharpe Ratio
-        daily_risk_free = ((1 + risk_free_rate) ** (1/252)) - 1
-        excess_return = portfolio_df['daily_return'] - daily_risk_free
+        period_risk_free = ((1 + risk_free_rate) ** (1/periods_per_year)) - 1
+        excess_return = portfolio_df['daily_return'] - period_risk_free
         # Handle zero or NaN volatility case for Sharpe Ratio
-        if daily_volatility > 1e-10 and not np.isnan(daily_volatility):  # Use a small threshold and check for NaN
-            sharpe_ratio = excess_return.mean() / daily_volatility * np.sqrt(252)
+        if period_volatility > 1e-10 and not np.isnan(period_volatility):  # Use a small threshold and check for NaN
+            sharpe_ratio = excess_return.mean() / period_volatility * np.sqrt(periods_per_year)
         else:
             # Assign NaN if volatility is essentially zero or NaN (Sharpe is undefined with zero risk)
             sharpe_ratio = np.nan 
         
         # Sortino Ratio (uses downside deviation instead of total volatility)
         negative_returns = portfolio_df['daily_return'][portfolio_df['daily_return'] < 0]
-        downside_deviation = negative_returns.std() * np.sqrt(252) if len(negative_returns) > 0 else 0
+        downside_deviation = negative_returns.std() * np.sqrt(periods_per_year) if len(negative_returns) > 0 else 0
         sortino_ratio = (annualized_return - risk_free_rate) / downside_deviation if downside_deviation > 0 else np.inf
             
         # Total Commissions
@@ -170,7 +185,7 @@ class Backtester:
             "start_date": start_date,
             "end_date": end_date,
             "duration_days": duration_days,
-            "days_in_backtest": days_in_backtest,
+            "trading_periods": periods_in_backtest,
             "years": round(years, 2),
             "total_return_pct": round(total_return_pct, 2),
             "annualized_return_pct": round(annualized_return * 100, 2),
@@ -208,8 +223,8 @@ class Backtester:
             
             if 'duration_days' in results:
                 print(f"  • Duration: {results['duration_days']} days")
-            if 'days_in_backtest' in results:
-                print(f"  • Trading Days: {results['days_in_backtest']}")
+            if 'trading_periods' in results:
+                print(f"  • Trading Periods: {results['trading_periods']}")
         
         # Basic metrics section
         print("\n📊 BASIC METRICS:")
