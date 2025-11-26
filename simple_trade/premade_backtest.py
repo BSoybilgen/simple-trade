@@ -4065,6 +4065,785 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
         indicator_cols_to_plot = [f'VSI_{short_period}_{long_period}_{threshold}', 'lower', 'upper']
 
+
+
+    # ==================== VOLUME STRATEGIES ====================
+
+    elif strategy_name=='adl':
+        # ADL (Accumulation/Distribution Line) - Trend Confirmation Strategy
+        # -------------------------------------------------------------------
+        # LOGIC: Buy when ADL crosses above its SMA (accumulation),
+        #        sell when ADL crosses below its SMA (distribution).
+        # WHY: ADL measures cumulative money flow. Rising ADL indicates buying pressure,
+        #      falling ADL indicates selling pressure. Divergence with price signals reversals.
+        # BEST MARKETS: Stocks, ETFs. Good for confirming price trends with volume.
+        # TIMEFRAME: Daily charts. Good for swing trading and trend confirmation.
+        sma_period = int(parameters.get('sma_period', 20))
+        parameters_indicators["sma_period"] = sma_period
+        indicator_col = 'ADLINE'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='adl',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate SMA of ADL for crossover signals
+        data[f'ADLINE_SMA_{sma_period}'] = data['ADLINE'].rolling(window=sma_period).mean()
+
+        # Use cross trade: buy when ADL crosses above SMA, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator='ADLINE',
+        long_window_indicator=f'ADLINE_SMA_{sma_period}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['ADLINE', f'ADLINE_SMA_{sma_period}']
+
+    
+    elif strategy_name=='ado':
+        # ADO (Accumulation/Distribution Oscillator) - Zero Line Cross Strategy
+        # ----------------------------------------------------------------------
+        # LOGIC: Buy when ADO crosses above zero (accumulation momentum),
+        #        sell when ADO crosses below zero (distribution momentum).
+        # WHY: ADO measures the rate of change of the A/D Line. Positive values indicate
+        #      increasing accumulation, negative values indicate increasing distribution.
+        # BEST MARKETS: Stocks, ETFs. Good for momentum-based volume analysis.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 14))
+        parameters_indicators["period"] = period
+        indicator_col = f'ADO_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='ado',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover
+        data['zero'] = 0
+
+        # Use cross trade: buy when ADO crosses above zero, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'ADO_{period}', 'zero']
+
+    
+    elif strategy_name=='bwm':
+        # BWM (Bill Williams Market Facilitation Index) - Percentile Strategy
+        # --------------------------------------------------------------------
+        # LOGIC: Buy when BWMFI drops below lower percentile (low facilitation),
+        #        sell when rises above upper percentile (high facilitation).
+        # WHY: BWMFI measures price movement efficiency per unit of volume.
+        #      Low values indicate consolidation, high values indicate strong moves.
+        # BEST MARKETS: All markets. Good for identifying breakout potential.
+        # TIMEFRAME: Daily charts. Good for swing trading.
+        # NOTE: Uses rolling percentile bands since BWMFI values vary by asset.
+        upper_pct = float(parameters.get('upper_pct', 80))
+        lower_pct = float(parameters.get('lower_pct', 20))
+        lookback = int(parameters.get('lookback', 100))
+        indicator_col = 'BWMFI'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='bwm',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate rolling percentile bands
+        data['upper'] = data[indicator_col].rolling(window=lookback, min_periods=20).quantile(upper_pct / 100)
+        data['lower'] = data[indicator_col].rolling(window=lookback, min_periods=20).quantile(lower_pct / 100)
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['BWMFI', 'lower', 'upper']
+
+    
+    elif strategy_name=='cmf':
+        # CMF (Chaikin Money Flow) - Zero Line Cross Strategy
+        # ----------------------------------------------------
+        # LOGIC: Buy when CMF crosses above zero (buying pressure),
+        #        sell when CMF crosses below zero (selling pressure).
+        # WHY: CMF measures money flow over a period. Positive CMF indicates accumulation,
+        #      negative CMF indicates distribution. Good for trend confirmation.
+        # BEST MARKETS: Stocks, ETFs. Good for confirming breakouts and trends.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 20))
+        parameters_indicators["period"] = period
+        indicator_col = f'CMF_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='cmf',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover
+        data['zero'] = 0
+
+        # Use cross trade: buy when CMF crosses above zero, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'CMF_{period}', 'zero']
+
+    
+    elif strategy_name=='emv':
+        # EMV (Ease of Movement) - Zero Line Cross Strategy
+        # --------------------------------------------------
+        # LOGIC: Buy when EMV crosses above zero (price rising easily),
+        #        sell when EMV crosses below zero (price falling easily).
+        # WHY: EMV relates price change to volume. Positive EMV means price moves up
+        #      with ease, negative EMV means price moves down with ease.
+        # BEST MARKETS: Stocks, ETFs. Good for volume-weighted momentum analysis.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 14))
+        parameters_indicators["period"] = period
+        indicator_col = f'EMV_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='emv',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover
+        data['zero'] = 0
+
+        # Use cross trade: buy when EMV crosses above zero, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'EMV_{period}', 'zero']
+
+    
+    elif strategy_name=='foi':
+        # FOI (Force Index) - Zero Line Cross Strategy
+        # ---------------------------------------------
+        # LOGIC: Buy when Force Index crosses above zero (buying pressure),
+        #        sell when Force Index crosses below zero (selling pressure).
+        # WHY: Force Index combines price change and volume to measure the power
+        #      behind price moves. Positive values indicate bulls in control.
+        # BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
+        # TIMEFRAME: Daily charts. 13-period EMA is standard. Good for swing trading.
+        period = int(parameters.get('period', 13))
+        parameters_indicators["period"] = period
+        indicator_col = f'FI_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='foi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover
+        data['zero'] = 0
+
+        # Use cross trade: buy when FI crosses above zero, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'FI_{period}', 'zero']
+
+    
+    elif strategy_name=='fve':
+        # FVE (Finite Volume Elements) - Zero Line Cross Strategy
+        # --------------------------------------------------------
+        # LOGIC: Buy when FVE crosses above zero (bullish money flow),
+        #        sell when FVE crosses below zero (bearish money flow).
+        # WHY: FVE separates volume into bullish/bearish components based on price action.
+        #      Positive FVE indicates net buying, negative indicates net selling.
+        # BEST MARKETS: Stocks, ETFs. Good for money flow analysis with volatility filter.
+        # TIMEFRAME: Daily charts. 22-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 22))
+        factor = float(parameters.get('factor', 0.3))
+        parameters_indicators["period"] = period
+        parameters_indicators["factor"] = factor
+        indicator_col = f'FVE_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='fve',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover
+        data['zero'] = 0
+
+        # Use cross trade: buy when FVE crosses above zero, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'FVE_{period}', 'zero']
+
+    
+    elif strategy_name=='kvo':
+        # KVO (Klinger Volume Oscillator) - Signal Line Cross Strategy
+        # -------------------------------------------------------------
+        # LOGIC: Buy when KVO crosses above Signal line (bullish momentum),
+        #        sell when KVO crosses below Signal line (bearish momentum).
+        # WHY: KVO is a long-term money flow indicator comparing fast and slow volume EMAs.
+        #      Signal line crossovers indicate changes in money flow momentum.
+        # BEST MARKETS: Stocks, ETFs. Good for long-term trend identification.
+        # TIMEFRAME: Daily charts. 34/55/13 periods are standard. Good for position trading.
+        fast_period = int(parameters.get('fast_period', 34))
+        slow_period = int(parameters.get('slow_period', 55))
+        signal_period = int(parameters.get('signal_period', 13))
+        parameters_indicators["fast_period"] = fast_period
+        parameters_indicators["slow_period"] = slow_period
+        parameters_indicators["signal_period"] = signal_period
+        indicator_col = f'KVO_{fast_period}_{slow_period}'
+        signal_col = f'KVO_SIGNAL_{signal_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='kvo',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Use cross trade: buy when KVO crosses above Signal, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator=signal_col,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'KVO_{fast_period}_{slow_period}', f'KVO_SIGNAL_{signal_period}']
+
+    
+    elif strategy_name=='mfi':
+        # MFI (Money Flow Index) - Overbought/Oversold Strategy
+        # ------------------------------------------------------
+        # LOGIC: Buy when MFI drops below lower threshold (oversold),
+        #        sell when MFI rises above upper threshold (overbought).
+        # WHY: MFI is volume-weighted RSI. Values below 20 indicate oversold conditions,
+        #      above 80 indicate overbought. Good for mean reversion trading.
+        # BEST MARKETS: Stocks, ETFs. Good for range-bound markets and reversals.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 14))
+        upper = float(parameters.get('upper', 80))
+        lower = float(parameters.get('lower', 20))
+        parameters_indicators["period"] = period
+        indicator_col = f'MFI_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='mfi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'MFI_{period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='nvi':
+        # NVI (Negative Volume Index) - SMA Cross Strategy
+        # -------------------------------------------------
+        # LOGIC: Buy when NVI crosses above its SMA (smart money accumulating),
+        #        sell when NVI crosses below its SMA (smart money distributing).
+        # WHY: NVI tracks price changes on low volume days, believed to reflect
+        #      "smart money" activity. Rising NVI indicates institutional accumulation.
+        # BEST MARKETS: Stocks, ETFs. Good for long-term trend identification.
+        # TIMEFRAME: Daily charts. 255-period SMA is traditional. Good for position trading.
+        sma_period = int(parameters.get('sma_period', 255))
+        parameters_indicators["sma_period"] = sma_period
+        indicator_col = 'NVI'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='nvi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate SMA of NVI for crossover signals
+        data[f'NVI_SMA_{sma_period}'] = data['NVI'].rolling(window=sma_period).mean()
+
+        # Use cross trade: buy when NVI crosses above SMA, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator='NVI',
+        long_window_indicator=f'NVI_SMA_{sma_period}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['NVI', f'NVI_SMA_{sma_period}']
+
+    
+    elif strategy_name=='obv':
+        # OBV (On-Balance Volume) - SMA Cross Strategy
+        # ---------------------------------------------
+        # LOGIC: Buy when OBV crosses above its SMA (accumulation),
+        #        sell when OBV crosses below its SMA (distribution).
+        # WHY: OBV measures buying/selling pressure by adding volume on up days
+        #      and subtracting on down days. Rising OBV confirms uptrend.
+        # BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
+        # TIMEFRAME: Daily charts. Good for swing trading and trend following.
+        sma_period = int(parameters.get('sma_period', 20))
+        parameters_indicators["sma_period"] = sma_period
+        indicator_col = 'OBV'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='obv',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate SMA of OBV for crossover signals
+        data[f'OBV_SMA_{sma_period}'] = data['OBV'].rolling(window=sma_period).mean()
+
+        # Use cross trade: buy when OBV crosses above SMA, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator='OBV',
+        long_window_indicator=f'OBV_SMA_{sma_period}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['OBV', f'OBV_SMA_{sma_period}']
+
+    
+    elif strategy_name=='pvi':
+        # PVI (Positive Volume Index) - SMA Cross Strategy
+        # -------------------------------------------------
+        # LOGIC: Buy when PVI crosses above its SMA (crowd buying),
+        #        sell when PVI crosses below its SMA (crowd selling).
+        # WHY: PVI tracks price changes on high volume days, reflecting
+        #      "crowd" or uninformed investor activity. Used with NVI for confirmation.
+        # BEST MARKETS: Stocks, ETFs. Good for sentiment analysis.
+        # TIMEFRAME: Daily charts. 255-period SMA is traditional. Good for position trading.
+        sma_period = int(parameters.get('sma_period', 255))
+        parameters_indicators["sma_period"] = sma_period
+        indicator_col = 'PVI'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='pvi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate SMA of PVI for crossover signals
+        data[f'PVI_SMA_{sma_period}'] = data['PVI'].rolling(window=sma_period).mean()
+
+        # Use cross trade: buy when PVI crosses above SMA, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator='PVI',
+        long_window_indicator=f'PVI_SMA_{sma_period}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['PVI', f'PVI_SMA_{sma_period}']
+
+    
+    elif strategy_name=='pvo':
+        # PVO (Percentage Volume Oscillator) - Signal Line Cross Strategy
+        # ----------------------------------------------------------------
+        # LOGIC: Buy when PVO crosses above Signal line (volume momentum increasing),
+        #        sell when PVO crosses below Signal line (volume momentum decreasing).
+        # WHY: PVO is like MACD but for volume. It shows the relationship between
+        #      fast and slow volume EMAs. Signal crossovers indicate volume trend changes.
+        # BEST MARKETS: Stocks, ETFs. Good for confirming breakouts and trends.
+        # TIMEFRAME: Daily charts. 12/26/9 periods are standard. Good for swing trading.
+        fast_period = int(parameters.get('fast_period', 12))
+        slow_period = int(parameters.get('slow_period', 26))
+        signal_period = int(parameters.get('signal_period', 9))
+        parameters_indicators["fast_period"] = fast_period
+        parameters_indicators["slow_period"] = slow_period
+        parameters_indicators["signal_period"] = signal_period
+        indicator_col = f'PVO_{fast_period}_{slow_period}'
+        signal_col = f'PVO_SIGNAL_{signal_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='pvo',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Use cross trade: buy when PVO crosses above Signal, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator=signal_col,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'PVO_{fast_period}_{slow_period}', f'PVO_SIGNAL_{signal_period}']
+
+    
+    elif strategy_name=='vfi':
+        # VFI (Volume Flow Indicator) - Zero Line Cross Strategy
+        # -------------------------------------------------------
+        # LOGIC: Buy when VFI crosses above zero (bullish money flow),
+        #        sell when VFI crosses below zero (bearish money flow).
+        # WHY: VFI is a long-term trend-following indicator based on OBV but with
+        #      noise reduction. Positive VFI indicates accumulation.
+        # BEST MARKETS: Stocks, ETFs. Good for long-term trend identification.
+        # TIMEFRAME: Daily charts. 130-period is standard. Good for position trading.
+        period = int(parameters.get('period', 130))
+        coef = float(parameters.get('coef', 0.2))
+        vcoef = float(parameters.get('vcoef', 2.5))
+        smoothing_period = int(parameters.get('smoothing_period', 3))
+        parameters_indicators["period"] = period
+        parameters_indicators["coef"] = coef
+        parameters_indicators["vcoef"] = vcoef
+        parameters_indicators["smoothing_period"] = smoothing_period
+        indicator_col = f'VFI_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vfi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover
+        data['zero'] = 0
+
+        # Use cross trade: buy when VFI crosses above zero, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'VFI_{period}', 'zero']
+
+    
+    elif strategy_name=='vma':
+        # VMA (Volume Moving Average) - Price Cross Strategy
+        # ---------------------------------------------------
+        # LOGIC: Buy when Close crosses above VMA (bullish, price above fair value),
+        #        sell when Close crosses below VMA (bearish, price below fair value).
+        # WHY: VMA is a volume-weighted moving average that gives more weight to
+        #      prices with higher volume. Acts as dynamic support/resistance.
+        # BEST MARKETS: Stocks, ETFs. Good for trend following with volume confirmation.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        window = int(parameters.get('window', 20))
+        parameters_indicators["window"] = window
+        indicator_col = f'VMA_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vma',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Use cross trade: buy when Close crosses above VMA, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator='Close',
+        long_window_indicator=indicator_col,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['Close', f'VMA_{window}']
+
+    
+    elif strategy_name=='voo':
+        # VOO (Volume Oscillator) - Zero Line Cross Strategy
+        # ---------------------------------------------------
+        # LOGIC: Buy when VO crosses above zero (volume increasing),
+        #        sell when VO crosses below zero (volume decreasing).
+        # WHY: VO shows the difference between fast and slow volume SMAs.
+        #      Positive VO indicates increasing market participation.
+        # BEST MARKETS: Stocks, ETFs. Good for confirming breakouts.
+        # TIMEFRAME: Daily charts. 5/10 periods are standard. Good for swing trading.
+        fast_period = int(parameters.get('fast_period', 5))
+        slow_period = int(parameters.get('slow_period', 10))
+        parameters_indicators["fast_period"] = fast_period
+        parameters_indicators["slow_period"] = slow_period
+        indicator_col = f'VO_{fast_period}_{slow_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='voo',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover
+        data['zero'] = 0
+
+        # Use cross trade: buy when VO crosses above zero, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'VO_{fast_period}_{slow_period}', 'zero']
+
+    
+    elif strategy_name=='vpt':
+        # VPT (Volume Price Trend) - SMA Cross Strategy
+        # ----------------------------------------------
+        # LOGIC: Buy when VPT crosses above its SMA (accumulation),
+        #        sell when VPT crosses below its SMA (distribution).
+        # WHY: VPT relates volume to percentage price change. Rising VPT indicates
+        #      buying pressure, falling VPT indicates selling pressure.
+        # BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
+        # TIMEFRAME: Daily charts. Good for swing trading.
+        sma_period = int(parameters.get('sma_period', 20))
+        parameters_indicators["sma_period"] = sma_period
+        indicator_col = 'VPT'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vpt',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate SMA of VPT for crossover signals
+        data[f'VPT_SMA_{sma_period}'] = data['VPT'].rolling(window=sma_period).mean()
+
+        # Use cross trade: buy when VPT crosses above SMA, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator='VPT',
+        long_window_indicator=f'VPT_SMA_{sma_period}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['VPT', f'VPT_SMA_{sma_period}']
+
+    
+    elif strategy_name=='vro':
+        # VRO (Volume Rate of Change) - Zero Line Cross Strategy
+        # -------------------------------------------------------
+        # LOGIC: Buy when VROC crosses above zero (volume increasing),
+        #        sell when VROC crosses below zero (volume decreasing).
+        # WHY: VROC measures the rate of change in volume. Positive VROC indicates
+        #      increasing trading activity, often accompanying breakouts.
+        # BEST MARKETS: Stocks, ETFs. Good for breakout confirmation.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 14))
+        parameters_indicators["period"] = period
+        indicator_col = f'VROC_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vro',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover
+        data['zero'] = 0
+
+        # Use cross trade: buy when VROC crosses above zero, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'VROC_{period}', 'zero']
+
+    
+    elif strategy_name=='vwa':
+        # VWA (Volume Weighted Average Price) - Rolling VWAP Cross Strategy
+        # ------------------------------------------------------------------
+        # LOGIC: Buy when Close crosses above rolling VWAP (bullish, price above fair value),
+        #        sell when Close crosses below rolling VWAP (bearish, price below fair value).
+        # WHY: Rolling VWAP gives the average price weighted by volume over a lookback period.
+        #      Price above VWAP indicates buyers are in control, below indicates sellers.
+        # NOTE: Standard cumulative VWAP becomes too smooth for swing trading. We use a
+        #       rolling window VWAP to generate meaningful crossover signals.
+        # BEST MARKETS: Stocks, ETFs. Good for intraday and swing trading.
+        # TIMEFRAME: Daily charts. 20-period rolling window is standard for swing trading.
+        window = int(parameters.get('window', 20))
+        parameters_indicators["window"] = window
+        price_col = 'Close'
+
+        # Calculate rolling VWAP manually since the indicator uses cumulative
+        typical_price = (data['High'] + data['Low'] + data['Close']) / 3
+        tpv = typical_price * data['Volume']
+        rolling_tpv = tpv.rolling(window=window).sum()
+        rolling_volume = data['Volume'].rolling(window=window).sum()
+        data[f'VWAP_{window}'] = rolling_tpv / rolling_volume
+
+        # Use cross trade: buy when Close crosses above rolling VWAP, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator='Close',
+        long_window_indicator=f'VWAP_{window}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['Close', f'VWAP_{window}']
+
+    
+    elif strategy_name=='wad':
+        # WAD (Williams Accumulation/Distribution) - SMA Cross Strategy
+        # --------------------------------------------------------------
+        # LOGIC: Buy when WAD crosses above its SMA (accumulation),
+        #        sell when WAD crosses below its SMA (distribution).
+        # WHY: WAD uses True Range to measure accumulation/distribution pressure.
+        #      Rising WAD indicates buying pressure, falling indicates selling.
+        # BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
+        # TIMEFRAME: Daily charts. Good for swing trading.
+        sma_period = int(parameters.get('sma_period', 20))
+        parameters_indicators["sma_period"] = sma_period
+        indicator_col = 'WAD'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='wad',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate SMA of WAD for crossover signals
+        data[f'WAD_SMA_{sma_period}'] = data['WAD'].rolling(window=sma_period).mean()
+
+        # Use cross trade: buy when WAD crosses above SMA, sell when crosses below
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator='WAD',
+        long_window_indicator=f'WAD_SMA_{sma_period}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['WAD', f'WAD_SMA_{sma_period}']
+
+
     # Generic plotting for strategies that don't have custom plotting
     if fig_control==1 and fig is None and 'indicator_cols_to_plot' in locals():
         fig = plotter.plot_results(

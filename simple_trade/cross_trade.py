@@ -1,3 +1,5 @@
+import warnings
+
 import pandas as pd
 import numpy as np
 from .backtesting import Backtester
@@ -111,7 +113,7 @@ class CrossTradeBacktester(Backtester):
 
         # --- Check if DataFrame is empty AFTER potential drops ---
         if df.empty:
-            self.log.warning(f"DataFrame is empty after generating signals and dropping NaNs for indicators '{short_window_indicator}' and '{long_window_indicator}'. No trades executed.")
+            warnings.warn(f"DataFrame is empty after generating signals and dropping NaNs for indicators '{short_window_indicator}' and '{long_window_indicator}'. No trades executed.")
             # Return minimal results, NO performance metrics calculated
             strategy_name_early = f"Cross Trade ({short_window_indicator}/{long_window_indicator}){' [Shorts Allowed]' if trading_type in ['short', 'mixed'] else ''}{' [Day1 ' + day1_position.capitalize() + ']' if day1_position != 'none' else ''}"
             early_results = {
