@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def vor(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def vra(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Volatility Ratio (VR), which compares short-term volatility to
     long-term volatility to identify changes in volatility regimes. A ratio above 1

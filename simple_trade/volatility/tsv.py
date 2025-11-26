@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def tsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+def tsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the True Strength Index (TSI) Volatility, which applies the TSI momentum
     indicator formula to volatility measures (ATR or standard deviation) to create a

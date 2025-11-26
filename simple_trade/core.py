@@ -95,6 +95,8 @@ from simple_trade.volatility.uli import uli
 from simple_trade.volatility.vhf import vhf
 from simple_trade.volatility.vqi import vqi
 from simple_trade.volatility.vsi import vsi
+from simple_trade.volatility.tsv import tsv
+from simple_trade.volatility.vra import vra
 
 # Import volume indicators
 from simple_trade.volume.obv import obv
@@ -228,12 +230,14 @@ INDICATORS = {
     'mgd': mgd,
     'swm': swm,
     'tem': tem,
+    'vra': vra,
+    'tsv': tsv,
 }
 
 # Export all indicators
 __all__ = [
     'sma', 'ema', 'wma', 'hma', 'adx', 'psa', 'tri', 'aro', 'str', 'vid', 'ama', 'eit', 'fma', 'gma', 'htt', 'jma', 'kma', 'soa', 'tma', 'zma', 'ich', 'ads', 'alm', 'dem', 'eac', 'lsm', 'mgd', 'swm', 'tem',  # Trend indicators
     'rsi', 'mac', 'sto', 'cci', 'roc', 'wil', 'cmo', 'ult', 'dpo', 'eri', 'rmi', 'tsi', 'qst', 'crs', 'msi', 'fis', 'stc', 'ttm', 'kst', 'cog', 'vor', 'lsi', 'awo', 'bop', 'imi', 'pgo', 'ppo', 'psy', 'rvg', 'sri',   # Momentum indicators
-    'acb', 'atr', 'atp', 'bbw', 'bol', 'cha', 'cho', 'don', 'dvi', 'efr', 'fdi', 'grv', 'hav', 'hiv', 'kel', 'mad', 'mai', 'nat', 'pav', 'pcw', 'pro', 'rsv', 'rvi', 'std', 'svi', 'uli', 'vhf', 'vqi', 'vsi',  # Volatility indicators
+    'acb', 'atr', 'atp', 'bbw', 'bol', 'cha', 'cho', 'don', 'dvi', 'efr', 'fdi', 'grv', 'hav', 'hiv', 'kel', 'mad', 'mai', 'nat', 'pav', 'pcw', 'pro', 'rsv', 'rvi', 'std', 'svi', 'uli', 'vhf', 'vqi', 'vsi', 'vra', 'tsv',  # Volatility indicators
     'obv', 'vma', 'adl', 'cmf', 'vpt', 'vwa', 'mfi', 'foi', 'emv', 'pvo', 'vro', 'nvi', 'pvi', 'kvo', 'ado', 'vfi', 'bwm', 'fve', 'wad', 'voo',  # Volume indicators
 ]

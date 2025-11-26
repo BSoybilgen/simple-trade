@@ -40,7 +40,98 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
 
     # ==================== MOMENTUM STRATEGIES ====================
-    if strategy_name=='cci':
+    if strategy_name=='awo':
+        # AWO (Awesome Oscillator) - Zero Line Crossover Strategy
+        # -------------------------------------------------------
+        # LOGIC: Buy when AO crosses above zero (bullish momentum), sell when crosses below zero.
+        # WHY: AO measures market momentum by comparing recent price action to historical.
+        #      Positive AO = fast momentum > slow momentum (bullish), negative = bearish.
+        # BEST MARKETS: Trending markets with clear directional moves. Works well on stocks,
+        #               forex, and commodities. Less effective in choppy/ranging markets.
+        # TIMEFRAME: Daily or weekly charts preferred. Intraday can generate false signals.
+        fast_window = int(parameters.get('fast_window', 5))
+        slow_window = int(parameters.get('slow_window', 34))
+        parameters_indicators["fast_window"] = fast_window
+        parameters_indicators["slow_window"] = slow_window
+        short_window_indicator=f'AO_{fast_window}_{slow_window}'
+        price_col='Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='awo',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='bop':
+        # BOP (Balance of Power) - Zero Line Crossover Strategy
+        # ------------------------------------------------------
+        # LOGIC: Buy when BOP crosses above zero (buyers in control), sell when crosses below.
+        # WHY: BOP measures the strength of buyers vs sellers by comparing close-open to high-low.
+        #      Positive BOP = buyers driving prices up, negative = sellers in control.
+        # BEST MARKETS: Stocks and indices with clear institutional participation.
+        #               Works well in trending markets with strong volume.
+        # TIMEFRAME: Daily charts. Smoothed version (default) reduces noise.
+        window = int(parameters.get('window', 14))
+        smooth = parameters.get('smooth', True)
+        parameters_indicators["window"] = window
+        parameters_indicators["smooth"] = smooth
+        
+        if smooth:
+            short_window_indicator = f'BOP_{window}'
+        else:
+            short_window_indicator = 'BOP'
+        
+        price_col='Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='bop',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='cci':
+        # CCI (Commodity Channel Index) - Mean Reversion Strategy
+        # --------------------------------------------------------
+        # LOGIC: Buy when CCI drops below lower threshold (oversold), sell when rises above upper.
+        # WHY: CCI measures deviation from statistical mean. Extreme readings suggest price
+        #      has moved too far and is likely to revert. Originally designed for commodities.
+        # BEST MARKETS: Ranging/sideways markets. Commodities, forex pairs, and stocks in
+        #               consolidation phases. Avoid strong trending markets.
+        # TIMEFRAME: Works on all timeframes. Higher thresholds (±150-200) for volatile assets.
         window = int(parameters.get('window', 20))
         constant = float(parameters.get('constant', 0.015))
         upper = int(parameters.get('upper', 150))
@@ -76,7 +167,374 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
         indicator_cols_to_plot = [f'CCI_{window}_{constant}', 'lower', 'upper']
 
     
+    elif strategy_name=='cmo':
+        # CMO (Chande Momentum Oscillator) - Mean Reversion Strategy
+        # -----------------------------------------------------------
+        # LOGIC: Buy when CMO drops below -50 (oversold), sell when rises above +50 (overbought).
+        # WHY: CMO compares sum of gains to losses, oscillating between -100 and +100.
+        #      Unlike RSI, it's not bounded by smoothing, making it more responsive.
+        # BEST MARKETS: Range-bound markets and mean-reverting assets. Stocks in consolidation,
+        #               forex pairs, and ETFs. Less effective in strong trends.
+        # TIMEFRAME: Daily or 4-hour charts. Adjust thresholds based on asset volatility.
+        window = int(parameters.get('window', 14))
+        upper = int(parameters.get('upper', 50))
+        lower = int(parameters.get('lower', -50))
+        parameters_indicators["window"] = window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col=f'CMO_{window}'
+        price_col='Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='cmo',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'CMO_{window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='cog':
+        # COG (Center of Gravity) - Signal Line Crossover Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when COG crosses above its signal line, sell when crosses below.
+        # WHY: COG is a zero-lag indicator designed to identify turning points early.
+        #      It acts like a leading indicator, spotting reversals before they happen.
+        # BEST MARKETS: Cyclical markets and assets with regular oscillations. Works well
+        #               on forex, indices, and stocks with predictable cycles.
+        # TIMEFRAME: Short-term trading (intraday to daily). Sensitive to noise on very short TFs.
+        window = int(parameters.get('window', 10))
+        signal_window = int(parameters.get('signal_window', 3))
+        parameters_indicators["window"] = window
+        short_window_indicator=f'COG_{window}'
+        price_col='Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='cog',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create signal line as SMA of COG
+        data['COG_Signal'] = data[short_window_indicator].rolling(window=signal_window).mean()
+        long_window_indicator = 'COG_Signal'
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+
+    
+    elif strategy_name=='crs':
+        # CRS (Connors RSI) - Mean Reversion Strategy
+        # --------------------------------------------
+        # LOGIC: Buy when CRSI drops below 10 (extreme oversold), sell when rises above 90.
+        # WHY: CRSI combines 3 components (RSI, streak RSI, percent rank) for short-term
+        #      mean reversion. Designed by Larry Connors for identifying pullback opportunities.
+        # BEST MARKETS: Liquid stocks and ETFs in uptrends. Best for buying dips in bull markets.
+        #               SPY, QQQ, and large-cap stocks. Avoid in bear markets or downtrends.
+        # TIMEFRAME: Daily charts. Designed for short-term trades (2-5 day holding periods).
+        rsi_window = int(parameters.get('rsi_window', 3))
+        streak_window = int(parameters.get('streak_window', 2))
+        rank_window = int(parameters.get('rank_window', 100))
+        upper = int(parameters.get('upper', 90))
+        lower = int(parameters.get('lower', 10))
+        parameters_indicators["rsi_window"] = rsi_window
+        parameters_indicators["streak_window"] = streak_window
+        parameters_indicators["rank_window"] = rank_window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col=f'CRSI_{rsi_window}_{streak_window}_{rank_window}'
+        price_col='Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='crs',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'CRSI_{rsi_window}_{streak_window}_{rank_window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='dpo':
+        # DPO (Detrended Price Oscillator) - Zero Line Crossover Strategy
+        # ----------------------------------------------------------------
+        # LOGIC: Buy when DPO crosses above zero (price above displaced MA), sell when crosses below.
+        # WHY: DPO removes trend to isolate cycles. Positive DPO = price above its historical average,
+        #      negative = below. Zero crossings signal cycle turning points.
+        # BEST MARKETS: Cyclical markets and assets with regular oscillations. Stocks, commodities,
+        #               and indices with identifiable cycles. Less effective in strong trending markets.
+        # TIMEFRAME: Daily charts. 20-period is standard. Useful for identifying cycle peaks/troughs.
+        window = int(parameters.get('window', 20))
+        parameters_indicators["window"] = window
+        short_window_indicator = f'DPO_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='dpo',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='eri':
+        # ERI (Elder-Ray Index) - Bear Power Zero Line Crossover Strategy
+        # ----------------------------------------------------------------
+        # LOGIC: Buy when Bear Power crosses above zero (buyers gaining control), sell when crosses below.
+        # WHY: Elder-Ray measures buying/selling pressure. Bear Power above zero means lows are above
+        #      the EMA (bullish). Below zero means sellers pushing prices below consensus value.
+        # BEST MARKETS: Trending stocks and indices with clear institutional participation.
+        #               Works well when combined with EMA trend filter.
+        # TIMEFRAME: Daily charts. 13-period EMA is standard (Elder's recommendation).
+        window = int(parameters.get('window', 13))
+        parameters_indicators["window"] = window
+        short_window_indicator = f'ERI_BEAR_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='eri',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'ERI_BULL_{window}', f'ERI_BEAR_{window}', 'zero_line']
+
+    
+    elif strategy_name=='fis':
+        # FIS (Fisher Transform) - Zero Line Crossover Strategy
+        # ------------------------------------------------------
+        # LOGIC: Buy when Fisher crosses above zero (bullish), sell when crosses below.
+        # WHY: Fisher Transform converts prices to Gaussian distribution, creating sharp
+        #      turning points. Zero crossings indicate momentum shifts with clear signals.
+        # BEST MARKETS: Trending markets with clear reversals. Forex, stocks, and futures.
+        #               Creates sharp peaks/troughs making reversals easier to identify.
+        # TIMEFRAME: Daily or 4-hour charts. 9-period is common. Good for swing trading.
+        window = int(parameters.get('window', 9))
+        parameters_indicators["window"] = window
+        short_window_indicator = f'FISH_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='fis',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='imi':
+        # IMI (Intraday Momentum Index) - Mean Reversion Strategy
+        # --------------------------------------------------------
+        # LOGIC: Buy when IMI drops below lower threshold (oversold), sell when above upper.
+        # WHY: IMI combines candlestick analysis with RSI logic. Measures buying vs selling
+        #      pressure within each bar. High IMI = strong intraday buyers, low = sellers.
+        # BEST MARKETS: Stocks and ETFs with significant intraday range. Range-bound markets.
+        #               Good for identifying exhaustion in short-term moves.
+        # TIMEFRAME: Daily charts. 14-period is standard. Works well for swing trading reversals.
+        window = int(parameters.get('window', 14))
+        upper = int(parameters.get('upper', 70))
+        lower = int(parameters.get('lower', 30))
+        parameters_indicators["window"] = window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'IMI_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='imi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'IMI_{window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='kst':
+        # KST (Know Sure Thing) - Signal Line Crossover Strategy
+        # -------------------------------------------------------
+        # LOGIC: Buy when KST crosses above its signal line, sell when crosses below.
+        # WHY: KST combines 4 ROC timeframes with smoothing, capturing momentum across
+        #      multiple cycles. Signal crossovers indicate momentum shifts confirmed by
+        #      multiple timeframes.
+        # BEST MARKETS: Trending markets across all asset classes. Stocks, forex, commodities.
+        #               Excellent for confirming trend changes with multiple timeframe confirmation.
+        # TIMEFRAME: Daily or weekly charts. Good for position trading and trend confirmation.
+        signal_period = int(parameters.get('signal', 9))
+        parameters_indicators["signal"] = signal_period
+        short_window_indicator = 'KST'
+        long_window_indicator = f'KST_Signal_{signal_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='kst',
+        parameters=parameters_indicators,
+        figure=False)
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+
+    
+    elif strategy_name=='lsi':
+        # LSI (Laguerre RSI) - Mean Reversion Strategy
+        # ---------------------------------------------
+        # LOGIC: Buy when LRSI drops below lower threshold (oversold), sell when above upper.
+        # WHY: Laguerre filter creates an RSI with less lag and noise. Reacts faster to price
+        #      changes than standard RSI. Gamma controls smoothing (higher = smoother).
+        # BEST MARKETS: Short-term trading and scalping. Forex, futures, and liquid stocks.
+        #               Popular for quick reversal detection due to low lag.
+        # TIMEFRAME: Intraday to daily. Gamma 0.5 is common. Lower gamma = faster response.
+        gamma = float(parameters.get('gamma', 0.5))
+        upper = int(parameters.get('upper', 80))
+        lower = int(parameters.get('lower', 20))
+        parameters_indicators["gamma"] = gamma
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        gamma_str = f"{gamma:g}"
+        indicator_col = f'LRSI_{gamma_str}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='lsi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'LRSI_{gamma_str}', 'lower', 'upper']
+
+    
     elif strategy_name=='mac':
+        # MAC (MACD) - Signal Line Crossover Strategy
+        # --------------------------------------------
+        # LOGIC: Buy when MACD line crosses above signal line, sell when crosses below.
+        # WHY: MACD captures momentum shifts by comparing fast and slow EMAs. Signal line
+        #      crossovers indicate changes in trend momentum. Classic trend-following indicator.
+        # BEST MARKETS: Trending markets across all asset classes. Stocks, forex, crypto,
+        #               commodities. One of the most versatile and widely-used indicators.
+        # TIMEFRAME: All timeframes. Daily/weekly for position trading, 4H/1H for swing trading.
         window_fast = int(parameters.get('window_fast', 12))
         window_slow = int(parameters.get('window_slow', 26))
         window_signal = int(parameters.get('window_signal', 26))
@@ -107,7 +565,300 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
         indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
 
     
+    elif strategy_name=='msi':
+        # MSI (Momentum Strength Index) - Mean Reversion Strategy
+        # --------------------------------------------------------
+        # LOGIC: Buy when MSI drops below lower threshold (oversold), sell when above upper.
+        # WHY: MSI quantifies momentum strength with optional power scaling to emphasize
+        #      strong moves. Similar to RSI but with configurable sensitivity to volatility.
+        # BEST MARKETS: Range-bound markets. Power > 1 filters noise in volatile markets.
+        #               Stocks, forex, and ETFs with regular mean-reverting behavior.
+        # TIMEFRAME: Daily charts. 14-period is standard. Adjust power for volatility.
+        window = int(parameters.get('window', 14))
+        power = float(parameters.get('power', 1.0))
+        upper = int(parameters.get('upper', 70))
+        lower = int(parameters.get('lower', 30))
+        parameters_indicators["window"] = window
+        parameters_indicators["power"] = power
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'MSI_{window}_{power}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='msi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'MSI_{window}_{power}', 'lower', 'upper']
+
+    
+    elif strategy_name=='pgo':
+        # PGO (Pretty Good Oscillator) - Mean Reversion Strategy
+        # -------------------------------------------------------
+        # LOGIC: Buy when PGO drops below -3 (oversold), sell when rises above +3 (overbought).
+        # WHY: PGO normalizes price deviation from SMA by ATR. Values beyond ±3 indicate
+        #      price has moved significantly relative to recent volatility.
+        # BEST MARKETS: Range-bound and mean-reverting markets. Stocks, forex, commodities.
+        #               Good for identifying overextended moves in volatile assets.
+        # TIMEFRAME: Daily charts. 14-period is common. Thresholds adjustable for volatility.
+        window = int(parameters.get('window', 14))
+        upper = float(parameters.get('upper', 3.0))
+        lower = float(parameters.get('lower', -3.0))
+        parameters_indicators["window"] = window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'PGO_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='pgo',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'PGO_{window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='ppo':
+        # PPO (Percentage Price Oscillator) - Signal Line Crossover Strategy
+        # -------------------------------------------------------------------
+        # LOGIC: Buy when PPO line crosses above signal line, sell when crosses below.
+        # WHY: PPO is MACD expressed as a percentage, allowing comparison across different
+        #      priced securities. Signal crossovers indicate momentum shifts.
+        # BEST MARKETS: Trending markets across all asset classes. Excellent for comparing
+        #               momentum across different stocks regardless of price level.
+        # TIMEFRAME: All timeframes. Standard settings: 12/26/9 (same as MACD).
+        fast_window = int(parameters.get('fast_window', 12))
+        slow_window = int(parameters.get('slow_window', 26))
+        signal_window = int(parameters.get('signal_window', 9))
+        parameters_indicators["fast_window"] = fast_window
+        parameters_indicators["slow_window"] = slow_window
+        parameters_indicators["signal_window"] = signal_window
+        short_window_indicator = f'PPO_{fast_window}_{slow_window}'
+        long_window_indicator = f'PPO_SIG_{signal_window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='ppo',
+        parameters=parameters_indicators,
+        figure=False)
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+
+    
+    elif strategy_name=='psy':
+        # PSY (Psychological Line) - Mean Reversion Strategy
+        # ---------------------------------------------------
+        # LOGIC: Buy when PSY drops below 25 (oversold), sell when rises above 75 (overbought).
+        # WHY: PSY measures the ratio of up days to total days. Extreme values indicate
+        #      overextended sentiment - too many up/down days suggests reversal is likely.
+        # BEST MARKETS: Range-bound markets and mean-reverting assets. Stocks, indices,
+        #               and ETFs. Good sentiment indicator for contrarian trading.
+        # TIMEFRAME: Daily charts. 12-period is common. Good for swing trading.
+        window = int(parameters.get('window', 12))
+        upper = int(parameters.get('upper', 75))
+        lower = int(parameters.get('lower', 25))
+        parameters_indicators["window"] = window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'PSY_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='psy',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'PSY_{window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='qst':
+        # QST (Qstick) - Zero Line Crossover Strategy
+        # --------------------------------------------
+        # LOGIC: Buy when Qstick crosses above zero (buying pressure), sell when crosses below.
+        # WHY: Qstick averages candle bodies (Close-Open). Positive = buyers dominating,
+        #      negative = sellers. Zero crossings signal shift in intraday sentiment.
+        # BEST MARKETS: Markets with significant candle body variation. Stocks, forex.
+        #               Good for confirming trend direction via candlestick analysis.
+        # TIMEFRAME: Daily charts. 10-period is common. Works well for swing trading.
+        window = int(parameters.get('window', 10))
+        parameters_indicators["window"] = window
+        short_window_indicator = f'QSTICK_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='qst',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='rmi':
+        # RMI (Relative Momentum Index) - Mean Reversion Strategy
+        # --------------------------------------------------------
+        # LOGIC: Buy when RMI drops below lower threshold (oversold), sell when above upper.
+        # WHY: RMI is RSI calculated over a momentum period instead of 1-day changes.
+        #      Smoother than RSI, better for identifying cyclical turns.
+        # BEST MARKETS: Cyclical markets and assets with regular oscillations. Stocks,
+        #               forex, commodities. Good for identifying overbought/oversold in trends.
+        # TIMEFRAME: Daily charts. 20-period window with 5-period momentum is common.
+        window = int(parameters.get('window', 20))
+        momentum_period = int(parameters.get('momentum_period', 5))
+        upper = int(parameters.get('upper', 70))
+        lower = int(parameters.get('lower', 30))
+        parameters_indicators["window"] = window
+        parameters_indicators["momentum_period"] = momentum_period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'RMI_{window}_{momentum_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='rmi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'RMI_{window}_{momentum_period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='roc':
+        # ROC (Rate of Change) - Zero Line Crossover Strategy
+        # ----------------------------------------------------
+        # LOGIC: Buy when ROC crosses above zero (upward momentum), sell when crosses below.
+        # WHY: ROC measures percentage price change over a period. Positive ROC = price rising,
+        #      negative = falling. Zero crossings indicate momentum direction change.
+        # BEST MARKETS: Trending markets. Stocks, indices, forex, commodities.
+        #               Simple and effective for trend following and momentum confirmation.
+        # TIMEFRAME: All timeframes. 12-period is common. Longer periods for position trading.
+        window = int(parameters.get('window', 12))
+        parameters_indicators["window"] = window
+        short_window_indicator = f'ROC_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='roc',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
     elif strategy_name=='rsi':
+        # RSI (Relative Strength Index) - Mean Reversion Strategy
+        # --------------------------------------------------------
+        # LOGIC: Buy when RSI drops below lower threshold (oversold), sell when above upper.
+        # WHY: RSI measures speed and magnitude of price changes. Extreme readings suggest
+        #      exhaustion and potential reversal. Most popular momentum oscillator.
+        # BEST MARKETS: Range-bound markets, stocks in consolidation, forex pairs.
+        #               Use wider thresholds (80/20) in trending markets to avoid early exits.
+        # TIMEFRAME: All timeframes. 14-period is standard. Shorter periods = more signals.
         window = int(parameters.get('window', 14))
         upper = int(parameters.get('upper', 80))
         lower = int(parameters.get('lower', 20))
@@ -141,7 +892,146 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
         indicator_cols_to_plot = [f'RSI_{window}', 'lower', 'upper']
 
     
+    elif strategy_name=='rvg':
+        # RVG (Relative Vigor Index) - Signal Line Crossover Strategy
+        # ------------------------------------------------------------
+        # LOGIC: Buy when RVG crosses above its signal line, sell when crosses below.
+        # WHY: RVG measures the conviction of price moves by comparing close-open to high-low.
+        #      Prices tend to close higher than open in uptrends. Signal crossovers confirm momentum.
+        # BEST MARKETS: Trending markets with clear directional moves. Stocks, forex, indices.
+        #               Works well when combined with trend confirmation indicators.
+        # TIMEFRAME: Daily charts. 10-period is standard. Good for swing trading.
+        window = int(parameters.get('window', 10))
+        parameters_indicators["window"] = window
+        short_window_indicator = f'RVG_{window}'
+        long_window_indicator = 'RVG_SIG'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='rvg',
+        parameters=parameters_indicators,
+        figure=False)
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+        
+    
+    elif strategy_name=='sri':
+        # SRI (Stochastic RSI) - Mean Reversion Strategy
+        # -----------------------------------------------
+        # LOGIC: Buy when SRI %D drops below lower threshold (oversold), sell when above upper.
+        # WHY: StochRSI applies Stochastic to RSI, creating a more sensitive oscillator.
+        #      Reaches extremes more frequently than RSI, good for short-term reversals.
+        # BEST MARKETS: Range-bound and volatile markets. Forex, stocks, crypto.
+        #               More sensitive than RSI - use with trend filter to avoid false signals.
+        # TIMEFRAME: Intraday to daily. Good for scalping and short-term swing trades.
+        rsi_window = int(parameters.get('rsi_window', 14))
+        stoch_window = int(parameters.get('stoch_window', 14))
+        k_window = int(parameters.get('k_window', 3))
+        d_window = int(parameters.get('d_window', 3))
+        upper = int(parameters.get('upper', 80))
+        lower = int(parameters.get('lower', 20))
+        parameters_indicators["rsi_window"] = rsi_window
+        parameters_indicators["stoch_window"] = stoch_window
+        parameters_indicators["k_window"] = k_window
+        parameters_indicators["d_window"] = d_window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'SRI_D_{d_window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='sri',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'SRI_K_{rsi_window}_{stoch_window}', f'SRI_D_{d_window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='stc':
+        # STC (Schaff Trend Cycle) - Mean Reversion Strategy
+        # ---------------------------------------------------
+        # LOGIC: Buy when STC drops below 25 (oversold), sell when rises above 75 (overbought).
+        # WHY: STC combines MACD with Stochastic for faster, more accurate trend detection.
+        #      Less lag than MACD, identifies trends earlier with clear overbought/oversold zones.
+        # BEST MARKETS: Trending markets across all asset classes. Stocks, forex, crypto.
+        #               Excellent for early trend detection and cycle identification.
+        # TIMEFRAME: Daily or 4-hour charts. Good for swing trading and position trading.
+        window_fast = int(parameters.get('window_fast', 23))
+        window_slow = int(parameters.get('window_slow', 50))
+        cycle = int(parameters.get('cycle', 10))
+        smooth = int(parameters.get('smooth', 3))
+        upper = int(parameters.get('upper', 75))
+        lower = int(parameters.get('lower', 25))
+        parameters_indicators["window_fast"] = window_fast
+        parameters_indicators["window_slow"] = window_slow
+        parameters_indicators["cycle"] = cycle
+        parameters_indicators["smooth"] = smooth
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'STC_{window_fast}_{window_slow}_{cycle}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='stc',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'STC_{window_fast}_{window_slow}_{cycle}', 'lower', 'upper']
+
+
     elif strategy_name=='sto':
+        # STO (Stochastic Oscillator) - Mean Reversion Strategy
+        # ------------------------------------------------------
+        # LOGIC: Buy when %D drops below lower threshold (oversold), sell when above upper.
+        # WHY: Stochastic compares closing price to price range over a period. Shows where
+        #      price closed relative to its recent range. Good for timing entries/exits.
+        # BEST MARKETS: Range-bound markets, forex pairs, and stocks in consolidation.
+        #               Combine with trend filter for better results in trending markets.
+        # TIMEFRAME: All timeframes. Fast stochastic for short-term, slow for swing trading.
         k_period = int(parameters.get('k_period', 14))
         d_period = int(parameters.get('d_period', 14))
         smooth_k = int(parameters.get('smooth_k', 14))
@@ -179,9 +1069,223 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
         indicator_cols_to_plot = [f'STOCH_D_{k_period}_{d_period}_{smooth_k}', 'lower', 'upper']
 
     
+    elif strategy_name=='tsi':
+        # TSI (True Strength Index) - Zero Line Crossover Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when TSI crosses above zero (bullish momentum), sell when crosses below.
+        # WHY: TSI uses double smoothing to filter noise and highlight true trend strength.
+        #      Zero crossings indicate momentum direction change with reduced false signals.
+        # BEST MARKETS: Trending markets. Stocks, forex, indices. Smoother than single-smoothed
+        #               momentum indicators. Good for confirming trend direction.
+        # TIMEFRAME: Daily charts. 25/13 periods are standard. Good for position trading.
+        slow = int(parameters.get('slow', 25))
+        fast = int(parameters.get('fast', 13))
+        parameters_indicators["slow"] = slow
+        parameters_indicators["fast"] = fast
+        short_window_indicator = f'TSI_{slow}_{fast}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='tsi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='ttm':
+        # TTM (TTM Squeeze) - Momentum Zero Line Crossover Strategy
+        # ----------------------------------------------------------
+        # LOGIC: Buy when TTM momentum crosses above zero (bullish), sell when crosses below.
+        # WHY: TTM Squeeze identifies consolidation (squeeze) followed by breakouts.
+        #      Momentum histogram direction after squeeze release indicates trade direction.
+        # BEST MARKETS: All markets. Excellent for breakout trading. Stocks, forex, futures.
+        #               Combines volatility squeeze with momentum for high-probability setups.
+        # TIMEFRAME: Daily or 4-hour charts. 20-period is standard. Good for swing trading.
+        length = int(parameters.get('length', 20))
+        std_dev = float(parameters.get('std_dev', 2.0))
+        atr_length = int(parameters.get('atr_length', 20))
+        atr_multiplier = float(parameters.get('atr_multiplier', 1.5))
+        smooth = int(parameters.get('smooth', 3))
+        parameters_indicators["length"] = length
+        parameters_indicators["std_dev"] = std_dev
+        parameters_indicators["atr_length"] = atr_length
+        parameters_indicators["atr_multiplier"] = atr_multiplier
+        parameters_indicators["smooth"] = smooth
+        short_window_indicator = f'TTM_MOM_{length}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='ttm',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Create zero line for crossover strategy
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='ult':
+        # ULT (Ultimate Oscillator) - Mean Reversion Strategy
+        # ----------------------------------------------------
+        # LOGIC: Buy when ULT drops below 30 (oversold), sell when rises above 70 (overbought).
+        # WHY: Ultimate Oscillator combines 3 timeframes (7/14/28) to reduce volatility and
+        #      false signals. Weighted average gives more weight to short-term momentum.
+        # BEST MARKETS: Range-bound markets. Stocks, forex, indices. Reduces false signals
+        #               compared to single-timeframe oscillators. Good for divergence trading.
+        # TIMEFRAME: Daily charts. Standard periods: 7/14/28. Good for swing trading.
+        short_window = int(parameters.get('short_window', 7))
+        medium_window = int(parameters.get('medium_window', 14))
+        long_window = int(parameters.get('long_window', 28))
+        upper = int(parameters.get('upper', 70))
+        lower = int(parameters.get('lower', 30))
+        parameters_indicators["short_window"] = short_window
+        parameters_indicators["medium_window"] = medium_window
+        parameters_indicators["long_window"] = long_window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'ULTOSC_{short_window}_{medium_window}_{long_window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='ult',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'ULTOSC_{short_window}_{medium_window}_{long_window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='vor':
+        # VOR (Vortex Indicator) - VI+/VI- Crossover Strategy
+        # ----------------------------------------------------
+        # LOGIC: Buy when VI+ crosses above VI- (bulls in control), sell when VI- crosses above VI+.
+        # WHY: Vortex captures positive and negative trend movements using high-low relationships.
+        #      Crossovers indicate shifts between bullish and bearish control.
+        # BEST MARKETS: Trending markets. Stocks, forex, commodities. Good for identifying
+        #               trend reversals and confirming trend direction.
+        # TIMEFRAME: Daily charts. 14-period is common. Good for swing and position trading.
+        window = int(parameters.get('window', 14))
+        parameters_indicators["window"] = window
+        short_window_indicator = f'VI_Plus_{window}'
+        long_window_indicator = f'VI_Minus_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vor',
+        parameters=parameters_indicators,
+        figure=False)
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+
+    
+    elif strategy_name=='wil':
+        # WIL (Williams %R) - Mean Reversion Strategy
+        # --------------------------------------------
+        # LOGIC: Buy when %R drops below -80 (oversold), sell when rises above -20 (overbought).
+        # WHY: Williams %R measures where close is relative to high-low range. Near 0 = overbought
+        #      (close near highs), near -100 = oversold (close near lows).
+        # BEST MARKETS: Range-bound markets. Stocks, forex, indices. Fast and responsive.
+        #               Good for short-term reversals in consolidating markets.
+        # TIMEFRAME: All timeframes. 14-period is standard. Popular for day and swing trading.
+        window = int(parameters.get('window', 14))
+        upper = int(parameters.get('upper', -20))
+        lower = int(parameters.get('lower', -80))
+        parameters_indicators["window"] = window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'WILLR_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='wil',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'WILLR_{window}', 'lower', 'upper']
+    
 
     # ==================== TREND STRATEGIES ====================
     elif strategy_name == 'ads':
+        # ADS (Adaptive Moving Average - Smoothed) - Dual MA Crossover Strategy
+        # ----------------------------------------------------------------------
+        # LOGIC: Buy when fast ADSMA crosses above slow ADSMA, sell when crosses below.
+        # WHY: Adaptive smoothing reduces lag while filtering noise. Crossovers signal
+        #      trend changes with better timing than traditional MAs.
+        # BEST MARKETS: Trending stocks, forex, and indices. Reduces whipsaws in
+        #               moderately volatile markets compared to SMA/EMA.
+        # TIMEFRAME: Daily or weekly charts for position trading.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -221,6 +1325,15 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'adx':
+        # ADX (Average Directional Index) - Trend Strength Filter Strategy
+        # -----------------------------------------------------------------
+        # LOGIC: Only trade when ADX > threshold (strong trend). Use price vs SMA crossover
+        #        for entry signals, but filter out trades when trend is weak.
+        # WHY: ADX measures trend strength (not direction). High ADX = strong trend worth
+        #      following. Avoids choppy markets where crossover strategies fail.
+        # BEST MARKETS: Any market, but especially useful for filtering false signals.
+        #               Stocks, forex, commodities during trending phases.
+        # TIMEFRAME: Daily or weekly. ADX > 25 typically indicates tradeable trend.
         window = int(parameters.get('window', 14))
         adx_threshold = float(parameters.get('adx_threshold', 25))
         ma_window = int(parameters.get('ma_window', 20))  # Moving average for price crossover
@@ -293,6 +1406,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
             extra_panel_title=f"Price vs SMA-{ma_window}")
 
     elif strategy_name == 'alm':
+        # ALM (ALMA - Arnaud Legoux Moving Average) - Dual MA Crossover Strategy
+        # -----------------------------------------------------------------------
+        # LOGIC: Buy when fast ALMA crosses above slow ALMA, sell when crosses below.
+        # WHY: ALMA uses Gaussian distribution for weighting, reducing lag while maintaining
+        #      smoothness. Offset parameter controls responsiveness vs smoothness tradeoff.
+        # BEST MARKETS: Trending markets. Particularly good for stocks and forex where
+        #               reduced lag is valuable. Less effective in ranging markets.
+        # TIMEFRAME: Daily charts. Can be used on lower TFs with adjusted parameters.
         short_window = int(parameters.get('short_window', 9))
         long_window = int(parameters.get('long_window', 27))
         price_col='Close'
@@ -332,6 +1453,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'ama':
+        # AMA (Kaufman Adaptive Moving Average) - Dual MA Crossover Strategy
+        # -------------------------------------------------------------------
+        # LOGIC: Buy when fast AMA crosses above slow AMA, sell when crosses below.
+        # WHY: AMA adapts its speed based on market efficiency ratio. Fast in trends,
+        #      slow in choppy markets. Automatically adjusts to market conditions.
+        # BEST MARKETS: Works across all market conditions due to adaptive nature.
+        #               Stocks, forex, futures. Reduces whipsaws in ranging markets.
+        # TIMEFRAME: Daily or 4-hour charts. One of the best adaptive MAs available.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         fast_period = int(parameters.get('fast_period', 2))
@@ -373,6 +1502,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'aro':
+        # ARO (Aroon) - Up/Down Crossover Strategy
+        # -----------------------------------------
+        # LOGIC: Buy when Aroon Up crosses above Aroon Down, sell when crosses below.
+        # WHY: Aroon measures time since highest high and lowest low. Crossovers indicate
+        #      which extreme is more recent, signaling trend direction changes.
+        # BEST MARKETS: Trending markets with clear highs and lows. Stocks, commodities,
+        #               and forex. Good for identifying new trends early.
+        # TIMEFRAME: Daily or weekly. 25-period is common. Longer periods = fewer signals.
         period = int(parameters.get('period', 14))
         parameters_indicators["period"] = period
         short_window_indicator=f'AROON_UP_{period}'
@@ -400,6 +1537,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'dem':
+        # DEM (DEMA - Double Exponential Moving Average) - Dual MA Crossover Strategy
+        # ----------------------------------------------------------------------------
+        # LOGIC: Buy when fast DEMA crosses above slow DEMA, sell when crosses below.
+        # WHY: DEMA reduces lag by applying EMA twice and adjusting. Faster response to
+        #      price changes while maintaining smoothness. Good for trend following.
+        # BEST MARKETS: Trending stocks, forex, and indices. Faster signals than EMA
+        #               but more prone to whipsaws in choppy markets.
+        # TIMEFRAME: Daily or 4-hour charts. Popular for swing trading.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -439,6 +1584,15 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'eac':
+        # EAC (Exponential Adaptive Close) - Alpha-Based Crossover Strategy
+        # ------------------------------------------------------------------
+        # LOGIC: Buy when fast EAC crosses above slow EAC, sell when crosses below.
+        #        Note: Lower alpha = more smoothing (slower), so parameters are swapped.
+        # WHY: Alpha-based smoothing allows fine-tuned control over responsiveness.
+        #      Different from window-based MAs, directly controls decay rate.
+        # BEST MARKETS: Trending markets. Good for traders who want precise control
+        #               over indicator sensitivity. Forex and stocks.
+        # TIMEFRAME: Daily or weekly charts. Adjust alpha based on volatility.
         short_alpha = float(parameters.get('short_alpha', 0.07))
         long_alpha = float(parameters.get('long_alpha', 0.14))
         price_col='Close'
@@ -487,6 +1641,15 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'eit':
+        # EIT (Ehlers Instantaneous Trendline) - Alpha-Based Crossover Strategy
+        # ----------------------------------------------------------------------
+        # LOGIC: Buy when fast EIT crosses above slow EIT, sell when crosses below.
+        #        Note: Lower alpha = more smoothing (slower), so parameters are swapped.
+        # WHY: Ehlers' filter design minimizes lag while reducing noise. Based on
+        #      digital signal processing principles for cleaner trend identification.
+        # BEST MARKETS: Cyclical markets and assets with regular patterns. Forex,
+        #               indices, and commodities. Good for identifying trend changes.
+        # TIMEFRAME: Daily charts. Works well on 4-hour for active trading.
         short_alpha = float(parameters.get('short_alpha', 0.07))
         long_alpha = float(parameters.get('long_alpha', 0.14))
         price_col='Close'
@@ -535,6 +1698,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'ema':
+        # EMA (Exponential Moving Average) - Dual MA Crossover Strategy
+        # --------------------------------------------------------------
+        # LOGIC: Buy when fast EMA crosses above slow EMA, sell when crosses below.
+        # WHY: EMA gives more weight to recent prices, responding faster than SMA.
+        #      Classic trend-following approach used by traders worldwide.
+        # BEST MARKETS: Trending markets across all asset classes. The most widely
+        #               used MA type. Stocks, forex, crypto, commodities.
+        # TIMEFRAME: All timeframes. 12/26 for short-term, 50/200 for long-term trends.
         short_window = int(parameters.get('short_window', 25))
         long_window = int(parameters.get('long_window', 75))
         price_col='Close'
@@ -574,6 +1745,15 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'fma':
+        # FMA (Fibonacci Moving Average) - Dual MA Crossover Strategy
+        # -------------------------------------------------------------
+        # LOGIC: Buy when fast FMA crosses above slow FMA, sell when crosses below.
+        #        Optional ADX filter to only trade in strong trends.
+        # WHY: Uses Fibonacci-weighted smoothing for natural market rhythm alignment.
+        #      ADX filter prevents trading in weak/choppy market conditions.
+        # BEST MARKETS: Trending markets. The Fibonacci weighting may resonate with
+        #               markets that exhibit natural retracement patterns.
+        # TIMEFRAME: Daily or weekly. ADX filter recommended for noisy markets.
         short_window = int(parameters.get('short_window', 8))
         long_window = int(parameters.get('long_window', 24))
         use_adx_filter = bool(parameters.get('use_adx_filter', False))
@@ -675,6 +1855,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'gma':
+        # GMA (Guppy Multiple Moving Average) - Multi-EMA Crossover Strategy
+        # -------------------------------------------------------------------
+        # LOGIC: Buy when fastest short EMA crosses above slowest long EMA, sell when below.
+        # WHY: Uses multiple EMAs to visualize trend strength and trader sentiment.
+        #      Short EMAs = short-term traders, Long EMAs = long-term investors.
+        # BEST MARKETS: Trending markets where you want to see trend conviction.
+        #               Stocks, forex, indices. Compression of EMAs signals consolidation.
+        # TIMEFRAME: Daily or weekly. Visual indicator - good for discretionary trading.
         # Guppy Multiple Moving Average - uses multiple EMAs
         short_windows = parameters.get('short_windows', (3, 5, 8, 10, 12, 15))
         long_windows = parameters.get('long_windows', (30, 35, 40, 45, 50, 60))
@@ -709,6 +1897,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'hma':
+        # HMA (Hull Moving Average) - Dual MA Crossover Strategy
+        # -------------------------------------------------------
+        # LOGIC: Buy when fast HMA crosses above slow HMA, sell when crosses below.
+        # WHY: HMA uses weighted MAs and square root of period to minimize lag while
+        #      maintaining smoothness. One of the fastest-responding MAs available.
+        # BEST MARKETS: Fast-moving markets where lag is costly. Day trading stocks,
+        #               forex, and futures. May generate more signals than other MAs.
+        # TIMEFRAME: All timeframes. Particularly popular for intraday trading.
         short_window = int(parameters.get('short_window', 25))
         long_window = int(parameters.get('long_window', 75))
         price_col='Close'
@@ -748,6 +1944,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'htt':
+        # HTT (Hilbert Transform Trendline) - Dual Crossover Strategy
+        # ------------------------------------------------------------
+        # LOGIC: Buy when fast HTT crosses above slow HTT, sell when crosses below.
+        # WHY: Based on Ehlers' Hilbert Transform, designed to extract trend from
+        #      cyclical components. Provides smooth trendline with minimal lag.
+        # BEST MARKETS: Cyclical markets with regular oscillations. Forex pairs,
+        #               commodities, and indices. Good for identifying dominant cycles.
+        # TIMEFRAME: Daily charts. Based on signal processing theory.
         short_window = int(parameters.get('short_window', 8))
         long_window = int(parameters.get('long_window', 16))
         price_col='Close'
@@ -785,6 +1989,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name=='ich':
+        # ICH (Ichimoku Cloud) - Tenkan/Kijun Crossover Strategy
+        # -------------------------------------------------------
+        # LOGIC: Buy when Tenkan-sen crosses above Kijun-sen, sell when crosses below.
+        # WHY: Ichimoku is a complete trading system. Tenkan = fast line (9-period),
+        #      Kijun = slow line (26-period). Crossovers signal trend changes.
+        # BEST MARKETS: Trending markets. Originally designed for Japanese stocks.
+        #               Works well on forex, indices, and liquid stocks.
+        # TIMEFRAME: Daily or weekly. Traditional settings (9/26/52) work best.
         tenkan_period = int(parameters.get('tenkan_period', 9))
         kijun_period = int(parameters.get('kijun_period', 26))
         senkou_b_period = int(parameters.get('senkou_b_period', 52))
@@ -818,6 +2030,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'jma':
+        # JMA (Jurik Moving Average) - Dual MA Crossover Strategy
+        # --------------------------------------------------------
+        # LOGIC: Buy when fast JMA crosses above slow JMA, sell when crosses below.
+        # WHY: JMA is designed to be smooth with minimal lag. Uses adaptive volatility
+        #      filtering to reduce noise while maintaining responsiveness.
+        # BEST MARKETS: All markets. Particularly good for volatile assets where
+        #               noise reduction is important. Stocks, forex, crypto.
+        # TIMEFRAME: All timeframes. Premium indicator known for quality signals.
         short_length = int(parameters.get('short_length', 14))
         long_length = int(parameters.get('long_length', 42))
         price_col='Close'
@@ -857,6 +2077,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'kma':
+        # KMA (Kaufman Moving Average) - Dual MA Crossover Strategy
+        # ----------------------------------------------------------
+        # LOGIC: Buy when fast KMA crosses above slow KMA, sell when crosses below.
+        # WHY: Similar to AMA, adapts to market efficiency. Faster in trends,
+        #      slower in choppy markets. Reduces whipsaws automatically.
+        # BEST MARKETS: Works across all market conditions. Stocks, forex, futures.
+        #               Good for traders who want adaptive behavior without tuning.
+        # TIMEFRAME: Daily or 4-hour charts. Robust across different conditions.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         fast_period = int(parameters.get('fast_period', 2))
@@ -898,6 +2126,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'lsm':
+        # LSM (Least Squares Moving Average) - Dual MA Crossover Strategy
+        # ----------------------------------------------------------------
+        # LOGIC: Buy when fast LSMA crosses above slow LSMA, sell when crosses below.
+        # WHY: LSMA uses linear regression to project trend. Provides endpoint of
+        #      regression line, which can lead price action in trending markets.
+        # BEST MARKETS: Trending markets with clear directional moves. Stocks,
+        #               forex, commodities. May lead price at turning points.
+        # TIMEFRAME: Daily or 4-hour. Good for identifying trend direction.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -937,6 +2173,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'mgd':
+        # MGD (McGinley Dynamic) - Dual MA Crossover Strategy
+        # ----------------------------------------------------
+        # LOGIC: Buy when fast MGD crosses above slow MGD, sell when crosses below.
+        # WHY: MGD automatically adjusts speed based on market conditions. Designed
+        #      to track price more closely than EMA while avoiding whipsaws.
+        # BEST MARKETS: All markets. Particularly good for volatile conditions.
+        #               Stocks, forex, indices. Self-adjusting nature is valuable.
+        # TIMEFRAME: All timeframes. Robust indicator that adapts automatically.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -976,6 +2220,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name=='psa':
+        # PSA (Parabolic SAR) - Price vs SAR Crossover Strategy
+        # ------------------------------------------------------
+        # LOGIC: Buy when price crosses above PSAR (bullish), sell when below (bearish).
+        # WHY: PSAR provides trailing stop levels that accelerate with trend. When price
+        #      crosses SAR, it signals trend reversal. Good for trend following with stops.
+        # BEST MARKETS: Strongly trending markets. Stocks, forex, commodities in clear
+        #               trends. Generates many signals in ranging markets (use filter).
+        # TIMEFRAME: Daily or 4-hour. Adjust AF parameters for different volatilities.
         af_initial = float(parameters.get('af_initial', 0.03))
         af_step = float(parameters.get('af_step', 0.03))
         af_max = float(parameters.get('af_max', 0.3))
@@ -1007,6 +2259,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'sma':
+        # SMA (Simple Moving Average) - Dual MA Crossover Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when fast SMA crosses above slow SMA, sell when crosses below.
+        # WHY: SMA is the most basic MA, giving equal weight to all prices in window.
+        #      Classic trend-following approach. Golden Cross (50/200) is famous example.
+        # BEST MARKETS: Trending markets across all asset classes. The foundational
+        #               MA type. Stocks, forex, indices, commodities.
+        # TIMEFRAME: All timeframes. 50/200 for long-term, 10/30 for short-term.
         short_window = int(parameters.get('short_window', 25))
         long_window = int(parameters.get('long_window', 75))
         price_col='Close'
@@ -1046,6 +2306,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'soa':
+        # SOA (Second Order Adaptive) - Dual MA Crossover Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when fast SOA crosses above slow SOA, sell when crosses below.
+        # WHY: Second-order adaptive filtering provides smoother output while
+        #      maintaining responsiveness. Reduces noise in volatile markets.
+        # BEST MARKETS: Volatile markets where noise reduction is important.
+        #               Stocks, forex, crypto. Good for swing trading.
+        # TIMEFRAME: Daily or 4-hour charts. Adjust windows based on volatility.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -1085,6 +2353,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'str':
+        # STR (SuperTrend) - Price vs SuperTrend Crossover Strategy
+        # ----------------------------------------------------------
+        # LOGIC: Buy when price crosses above SuperTrend, sell when crosses below.
+        # WHY: SuperTrend combines ATR with price action to create dynamic support/
+        #      resistance levels. Flips direction on breakouts, providing clear signals.
+        # BEST MARKETS: Trending markets. Very popular in Indian markets. Works well
+        #               on stocks, forex, and commodities with clear trends.
+        # TIMEFRAME: Daily or 4-hour. Multiplier controls sensitivity to volatility.
         period = int(parameters.get('period', 7))
         multiplier = float(parameters.get('multiplier', 3.0))
         parameters_indicators["period"] = period
@@ -1114,6 +2390,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'swm':
+        # SWM (Sine-Weighted Moving Average) - Dual MA Crossover Strategy
+        # ----------------------------------------------------------------
+        # LOGIC: Buy when fast SWMA crosses above slow SWMA, sell when crosses below.
+        # WHY: Uses sine wave weighting to emphasize middle of window. Provides
+        #      smooth output that may align with natural market cycles.
+        # BEST MARKETS: Cyclical markets with regular patterns. Forex pairs,
+        #               commodities, and indices. Good for swing trading.
+        # TIMEFRAME: Daily charts. Interesting alternative to traditional MAs.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -1153,6 +2437,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'tem':
+        # TEM (TEMA - Triple Exponential Moving Average) - Dual MA Crossover Strategy
+        # ----------------------------------------------------------------------------
+        # LOGIC: Buy when fast TEMA crosses above slow TEMA, sell when crosses below.
+        # WHY: TEMA applies EMA three times with adjustments to minimize lag further
+        #      than DEMA. Very responsive to price changes while staying smooth.
+        # BEST MARKETS: Fast-moving trending markets. Stocks, forex, futures.
+        #               May generate more signals than slower MAs.
+        # TIMEFRAME: All timeframes. Popular for active trading strategies.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -1192,6 +2484,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'tma':
+        # TMA (Triangular Moving Average) - Dual MA Crossover Strategy
+        # -------------------------------------------------------------
+        # LOGIC: Buy when fast TMA crosses above slow TMA, sell when crosses below.
+        # WHY: TMA is double-smoothed SMA, giving more weight to middle of window.
+        #      Very smooth output, good for identifying underlying trend direction.
+        # BEST MARKETS: Noisy markets where smoothing is valuable. Stocks, forex.
+        #               Slower to react but fewer false signals.
+        # TIMEFRAME: Daily or weekly. Good for position trading.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -1231,6 +2531,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name=='tri':
+        # TRI (TRIX) - TRIX vs Signal Line Crossover Strategy
+        # ----------------------------------------------------
+        # LOGIC: Buy when TRIX crosses above signal line, sell when crosses below.
+        # WHY: TRIX is triple-smoothed EMA rate of change. Filters out short-term
+        #      fluctuations, showing only significant trend changes.
+        # BEST MARKETS: Trending markets where you want to filter noise. Stocks,
+        #               indices, forex. Good for identifying major trend changes.
+        # TIMEFRAME: Daily or weekly. Longer windows = fewer but stronger signals.
         window = int(parameters.get('window', 7))
         parameters_indicators["window"] = window
         short_window_indicator=f'TRIX_{window}'
@@ -1258,6 +2566,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'vid':
+        # VID (Variable Index Dynamic Average) - Dual MA Crossover Strategy
+        # ------------------------------------------------------------------
+        # LOGIC: Buy when fast VIDYA crosses above slow VIDYA, sell when crosses below.
+        # WHY: VIDYA adapts speed based on CMO (volatility measure). Fast in trends,
+        #      slow in consolidation. Automatically adjusts to market conditions.
+        # BEST MARKETS: All market conditions due to adaptive nature. Stocks, forex,
+        #               futures. Reduces whipsaws in ranging markets.
+        # TIMEFRAME: Daily or 4-hour. One of the best adaptive indicators.
         short_window = int(parameters.get('short_window', 14))
         long_window = int(parameters.get('long_window', 42))
         cmo_window = int(parameters.get('cmo_window', 9))
@@ -1298,6 +2614,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'wma':
+        # WMA (Weighted Moving Average) - Dual MA Crossover Strategy
+        # -----------------------------------------------------------
+        # LOGIC: Buy when fast WMA crosses above slow WMA, sell when crosses below.
+        # WHY: WMA gives linearly increasing weight to recent prices. More responsive
+        #      than SMA but smoother than EMA. Good balance of lag and smoothness.
+        # BEST MARKETS: Trending markets across all asset classes. Stocks, forex,
+        #               commodities. Classic indicator with proven track record.
+        # TIMEFRAME: All timeframes. 10/30 for short-term, 50/200 for long-term.
         short_window = int(parameters.get('short_window', 25))
         long_window = int(parameters.get('long_window', 75))
         price_col='Close'
@@ -1337,6 +2661,14 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
 
     
     elif strategy_name == 'zma':
+        # ZMA (Zero-Lag Moving Average) - Dual MA Crossover Strategy
+        # -----------------------------------------------------------
+        # LOGIC: Buy when fast ZMA crosses above slow ZMA, sell when crosses below.
+        # WHY: ZMA attempts to eliminate lag by adding momentum component. Responds
+        #      faster to price changes than traditional MAs.
+        # BEST MARKETS: Fast-moving markets where lag is costly. Day trading,
+        #               forex, futures. May overshoot in volatile conditions.
+        # TIMEFRAME: All timeframes. Popular for short-term trading.
         short_window = int(parameters.get('short_window', 10))
         long_window = int(parameters.get('long_window', 30))
         price_col='Close'
@@ -1377,7 +2709,185 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
     
 
     # ==================== VOLATILITY STRATEGIES ====================
+    elif strategy_name=='acb':
+        # ACB (Acceleration Bands) - Band Breakout Strategy
+        # --------------------------------------------------
+        # LOGIC: Buy when price breaks above upper band (bullish breakout), sell when below lower band.
+        # WHY: Acceleration Bands use percentage-based bands around price. Price breaking above
+        #      upper band indicates strong uptrend momentum, below lower band indicates downtrend.
+        # BEST MARKETS: Trending markets. Stocks, forex, futures. Good for breakout trading
+        #               and trend following. Avoid in choppy, range-bound markets.
+        # TIMEFRAME: Daily or 4-hour charts. 20-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 20))
+        factor = float(parameters.get('factor', 0.001))
+        parameters_indicators["period"] = period
+        parameters_indicators["factor"] = factor
+        indicator_col = 'Close'
+        price_col = 'Close'
+        factor_pct = factor * 100
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='acb',
+        parameters=parameters_indicators,
+        figure=False)
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col=f'ACB_Upper_{period}_{factor_pct:.2f}',
+        lower_band_col=f'ACB_Lower_{period}_{factor_pct:.2f}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = ['Close', f'ACB_Upper_{period}_{factor_pct:.2f}', f'ACB_Middle_{period}', f'ACB_Lower_{period}_{factor_pct:.2f}']
+
+    
+    elif strategy_name=='atp':
+        # ATP (Average True Range Percent) - Volatility Threshold Strategy
+        # -----------------------------------------------------------------
+        # LOGIC: Buy when ATRP drops below lower threshold (low volatility squeeze),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: ATRP normalizes ATR as percentage of price. Low ATRP indicates consolidation
+        #      (potential breakout setup), high ATRP indicates overextension.
+        # BEST MARKETS: All markets. Good for identifying volatility regimes and timing entries.
+        #               Use low ATRP for breakout setups, high ATRP for mean reversion.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        window = int(parameters.get('window', 14))
+        upper = float(parameters.get('upper', 5.0))
+        lower = float(parameters.get('lower', 2.0))
+        parameters_indicators["window"] = window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'ATRP_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='atp',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'ATRP_{window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='atr':
+        # ATR (Average True Range) - Volatility Threshold Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when ATR drops below lower percentile (low volatility squeeze),
+        #        sell when rises above upper percentile (high volatility).
+        # WHY: ATR measures market volatility. Low ATR indicates consolidation and potential
+        #      breakout setup. High ATR indicates strong moves or overextension.
+        # BEST MARKETS: All markets. Good for volatility-based position sizing and timing.
+        #               Combine with trend indicators for directional trades.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        # NOTE: Uses rolling percentile bands since ATR is in price units and varies by stock.
+        window = int(parameters.get('window', 14))
+        upper_pct = float(parameters.get('upper_pct', 80))  # Upper percentile threshold
+        lower_pct = float(parameters.get('lower_pct', 20))  # Lower percentile threshold
+        lookback = int(parameters.get('lookback', 100))  # Lookback for percentile calculation
+        parameters_indicators["window"] = window
+        indicator_col = f'ATR_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='atr',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate rolling percentile bands for ATR
+        data['upper'] = data[indicator_col].rolling(window=lookback, min_periods=window).quantile(upper_pct / 100)
+        data['lower'] = data[indicator_col].rolling(window=lookback, min_periods=window).quantile(lower_pct / 100)
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'ATR_{window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='bbw':
+        # BBW (Bollinger Band Width) - Volatility Squeeze Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when BBW drops below lower threshold (squeeze/consolidation),
+        #        sell when rises above upper threshold (volatility expansion).
+        # WHY: BBW measures the width of Bollinger Bands. Low BBW indicates "The Squeeze" -
+        #      a period of low volatility that often precedes significant breakouts.
+        # BEST MARKETS: All markets. Excellent for identifying pre-breakout setups.
+        #               Combine with price action for breakout direction.
+        # TIMEFRAME: Daily charts. 20-period with 2 std dev is standard. Good for swing trading.
+        window = int(parameters.get('window', 20))
+        num_std = float(parameters.get('num_std', 2.0))
+        upper = float(parameters.get('upper', 10.0))
+        lower = float(parameters.get('lower', 4.0))
+        parameters_indicators["window"] = window
+        parameters_indicators["num_std"] = num_std
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'BBW_{window}_{num_std}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='bbw',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'BBW_{window}_{num_std}', 'lower', 'upper']
+
+    
     elif strategy_name=='bol':
+        # BOL (Bollinger Bands) - Mean Reversion Strategy
+        # ------------------------------------------------
+        # LOGIC: Buy when price drops below middle band (oversold), sell when above upper band.
+        # WHY: Bollinger Bands measure volatility using standard deviations. Price tends to
+        #      revert to the mean (middle band). Touches of outer bands suggest extremes.
+        # BEST MARKETS: Range-bound markets and mean-reverting assets. Stocks, forex,
+        #               indices. In trends, use as trailing stop rather than reversal signal.
+        # TIMEFRAME: All timeframes. 20-period with 2 std dev is standard.
         window = int(parameters.get('window', 20))
         num_std = float(parameters.get('num_std', 2))
         parameters_indicators["window"] = window
@@ -1406,7 +2916,422 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
         indicator_cols_to_plot = ['Close', f'BB_Upper_{window}_{num_std}', f'BB_Middle_{window}']
 
     
+    elif strategy_name=='cha':
+        # CHA (Chaikin Volatility) - Volatility Threshold Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when Chaikin Volatility drops below lower threshold (low volatility),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: Chaikin Volatility measures rate of change of the high-low range. Rising values
+        #      indicate increasing volatility (often at tops/bottoms), falling values indicate
+        #      decreasing volatility (consolidation).
+        # BEST MARKETS: All markets. Good for identifying volatility expansion/contraction.
+        #               Peaks often correlate with market turning points.
+        # TIMEFRAME: Daily charts. 10-period is standard. Good for swing trading.
+        ema_window = int(parameters.get('ema_window', 10))
+        roc_window = int(parameters.get('roc_window', 10))
+        upper = float(parameters.get('upper', 20.0))
+        lower = float(parameters.get('lower', -20.0))
+        parameters_indicators["ema_window"] = ema_window
+        parameters_indicators["roc_window"] = roc_window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'CHAIK_{ema_window}_{roc_window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='cha',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'CHAIK_{ema_window}_{roc_window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='cho':
+        # CHO (Choppiness Index) - Market Regime Strategy
+        # ------------------------------------------------
+        # LOGIC: Buy when CHOP drops below lower threshold (trending market),
+        #        sell when rises above upper threshold (choppy market).
+        # WHY: Choppiness Index measures whether market is trending or consolidating.
+        #      Low values (<38.2) indicate trending, high values (>61.8) indicate choppy.
+        # BEST MARKETS: All markets. Use to filter trend-following strategies.
+        #               Avoid trend trades when CHOP is high.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for regime identification.
+        period = int(parameters.get('period', 14))
+        upper = float(parameters.get('upper', 61.8))
+        lower = float(parameters.get('lower', 38.2))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'CHOP_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='cho',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'CHOP_{period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='don':
+        # DON (Donchian Channels) - Breakout Strategy
+        # --------------------------------------------
+        # LOGIC: Buy when price breaks above upper band (bullish breakout),
+        #        sell when price breaks below middle band (bearish breakout).
+        # WHY: Donchian Channels plot highest high and lowest low over a period.
+        #      Breakouts above/below these levels indicate strong momentum.
+        #      Basis of the famous "Turtle Trading" system.
+        # BEST MARKETS: Trending markets. Stocks, forex, commodities, futures.
+        #               Excellent for breakout and trend-following strategies.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing/position trading.
+        # NOTE: Bands are swapped because band_backtester buys when indicator < lower_band.
+        #       By swapping, we get: buy when Close < Upper (i.e., Close breaks above Upper),
+        #       sell when Close > Middle (i.e., Close breaks below Middle).
+        window = int(parameters.get('window', 20))
+        parameters_indicators["window"] = window
+        indicator_col = 'Close'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='don',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Shift bands by 1 to compare Close against PREVIOUS period's High/Low
+        # Otherwise Close <= High <= Upper_Band (current), so Close > Upper is impossible
+        data[f'DONCH_Upper_{window}'] = data[f'DONCH_Upper_{window}'].shift(1)
+        data[f'DONCH_Middle_{window}'] = data[f'DONCH_Middle_{window}'].shift(1)
+        data[f'DONCH_Lower_{window}'] = data[f'DONCH_Lower_{window}'].shift(1)
+
+        # Use band_backtester with strategy_type=2 (Breakout)
+        # Logic: Buy when Indicator > Upper, Sell when Indicator < Lower
+        # We map: Indicator=Close, Upper=DONCH_Upper, Lower=DONCH_Middle
+        # Result: Buy when Close > Upper (Breakout), Sell when Close < Middle (Trend Change)
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col=f'DONCH_Upper_{window}',
+        lower_band_col=f'DONCH_Middle_{window}',
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate,
+        strategy_type=2)
+
+        indicator_cols_to_plot = ['Close', f'DONCH_Upper_{window}', f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
+
+    
+    elif strategy_name=='dvi':
+        # DVI (Dynamic Volatility Index) - Mean Reversion Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when DVI drops below lower threshold (oversold),
+        #        sell when rises above upper threshold (overbought).
+        # WHY: DVI combines magnitude and stretch components to identify overbought/oversold
+        #      conditions based on volatility-adjusted price movements.
+        # BEST MARKETS: Range-bound markets. Stocks, ETFs. Good for mean reversion trading.
+        #               Counter-trend entries at extremes.
+        # TIMEFRAME: Daily charts. Good for short-term swing trading.
+        magnitude_period = int(parameters.get('magnitude_period', 5))
+        stretch_period = int(parameters.get('stretch_period', 100))
+        smooth_period = int(parameters.get('smooth_period', 3))
+        upper = float(parameters.get('upper', 70))
+        lower = float(parameters.get('lower', 30))
+        parameters_indicators["magnitude_period"] = magnitude_period
+        parameters_indicators["stretch_period"] = stretch_period
+        parameters_indicators["smooth_period"] = smooth_period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'DVI_{magnitude_period}_{stretch_period}_{smooth_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='dvi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'DVI_{magnitude_period}_{stretch_period}_{smooth_period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='efr':
+        # EFR (Efficiency Ratio) - Trend Strength Strategy
+        # -------------------------------------------------
+        # LOGIC: Buy when ER rises above upper threshold (strong trend),
+        #        sell when drops below lower threshold (choppy market).
+        # WHY: Efficiency Ratio measures how efficiently price moves. High ER (near 1)
+        #      indicates trending, low ER (near 0) indicates choppy/sideways.
+        # BEST MARKETS: All markets. Use to filter trend-following strategies.
+        #               Trade trends when ER is high, avoid when low.
+        # TIMEFRAME: Daily charts. 10-period is standard. Good for regime identification.
+        period = int(parameters.get('period', 10))
+        upper = float(parameters.get('upper', 0.7))
+        lower = float(parameters.get('lower', 0.3))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'ER_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='efr',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'ER_{period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='fdi':
+        # FDI (Fractal Dimension Index) - Market Structure Strategy
+        # ----------------------------------------------------------
+        # LOGIC: Buy when FDI drops below lower threshold (trending/persistent),
+        #        sell when rises above upper threshold (mean-reverting/jagged).
+        # WHY: FDI measures market complexity. Near 1.0 = trending, near 1.5 = random,
+        #      near 2.0 = mean-reverting. Helps identify market structure.
+        # BEST MARKETS: All markets. Use for strategy selection based on market structure.
+        #               Trend-follow when FDI < 1.5, mean-revert when FDI > 1.5.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for regime identification.
+        period = int(parameters.get('period', 20))
+        upper = float(parameters.get('upper', 1.6))
+        lower = float(parameters.get('lower', 1.4))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'FDI_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='fdi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'FDI_{period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='grv':
+        # GRV (Garman-Klass Volatility) - Volatility Threshold Strategy
+        # --------------------------------------------------------------
+        # LOGIC: Buy when GK Volatility drops below lower threshold (low volatility),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: Garman-Klass uses OHLC data for more efficient volatility estimation.
+        #      Low volatility often precedes breakouts, high volatility may indicate
+        #      overextension.
+        # BEST MARKETS: All markets. Superior volatility estimation for options pricing,
+        #               risk management, and position sizing.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 20))
+        upper = float(parameters.get('upper', 30.0))
+        lower = float(parameters.get('lower', 15.0))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'GK_VOL_{period}_Ann'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='grv',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'GK_VOL_{period}_Ann', 'lower', 'upper']
+
+    
+    elif strategy_name=='hav':
+        # HAV (Heikin-Ashi Volatility) - Volatility Threshold Strategy
+        # -------------------------------------------------------------
+        # LOGIC: Buy when HAV drops below lower percentile (low volatility/consolidation),
+        #        sell when rises above upper percentile (high volatility).
+        # WHY: HAV applies Heikin-Ashi smoothing to filter noise before measuring volatility.
+        #      Provides cleaner volatility signals than standard ATR.
+        # BEST MARKETS: All markets. Good for trend identification and breakout detection.
+        #               Smoother signals reduce false breakouts.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        # NOTE: Uses rolling percentile bands since HAV is in price units and varies by stock.
+        period = int(parameters.get('period', 14))
+        method = parameters.get('method', 'atr')
+        upper_pct = float(parameters.get('upper_pct', 80))  # Upper percentile threshold
+        lower_pct = float(parameters.get('lower_pct', 20))  # Lower percentile threshold
+        lookback = int(parameters.get('lookback', 100))  # Lookback for percentile calculation
+        parameters_indicators["period"] = period
+        parameters_indicators["method"] = method
+        indicator_col = f'HAV_{period}_{method.upper()}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='hav',
+        parameters=parameters_indicators,
+        figure=False)
+
+        # Calculate rolling percentile bands for HAV
+        data['upper'] = data[indicator_col].rolling(window=lookback, min_periods=period).quantile(upper_pct / 100)
+        data['lower'] = data[indicator_col].rolling(window=lookback, min_periods=period).quantile(lower_pct / 100)
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'HAV_{period}_{method.upper()}', 'lower', 'upper']
+
+    
+    elif strategy_name=='hiv':
+        # HIV (Historical Volatility) - Volatility Threshold Strategy
+        # ------------------------------------------------------------
+        # LOGIC: Buy when HV drops below lower threshold (low volatility),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: Historical Volatility measures realized volatility using log returns.
+        #      Low HV indicates consolidation (potential breakout), high HV indicates
+        #      active trending or overextension.
+        # BEST MARKETS: All markets. Essential for options pricing, risk management,
+        #               and position sizing. Compare with implied volatility.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 20))
+        upper = float(parameters.get('upper', 30.0))
+        lower = float(parameters.get('lower', 15.0))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'HV_{period}_Ann'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='hiv',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'HV_{period}_Ann', 'lower', 'upper']
+
+    
     elif strategy_name=='kel':
+        # KEL (Keltner Channel) - Mean Reversion Strategy
+        # ------------------------------------------------
+        # LOGIC: Buy when price drops below middle band, sell when above upper band.
+        # WHY: Keltner uses ATR instead of standard deviation, making it less sensitive
+        #      to price spikes. Smoother bands than Bollinger, good for trend following.
+        # BEST MARKETS: Trending markets with moderate volatility. Stocks, forex,
+        #               commodities. Often used with Bollinger for squeeze detection.
+        # TIMEFRAME: Daily or 4-hour. ATR-based bands adapt to volatility.
         ema_window = int(parameters.get('ema_window', 20))
         atr_window = int(parameters.get('atr_window', 10))
         atr_multiplier = float(parameters.get('atr_multiplier', 2.0))
@@ -1443,6 +3368,702 @@ def premade_backtest(data:pd.DataFrame, strategy_name:str, parameters:dict=None)
             price_col=price_col,
             indicator_cols=indicator_cols_to_plot, 
             title=f"Keltner Channel Strategy")
+
+    
+    elif strategy_name=='mad':
+        # MAD (Median Absolute Deviation) - Volatility Threshold Strategy
+        # ----------------------------------------------------------------
+        # LOGIC: Buy when MAD drops below lower threshold (low volatility),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: MAD is a robust volatility measure less sensitive to outliers than
+        #      standard deviation. Better for non-normal distributions.
+        # BEST MARKETS: All markets, especially those with fat-tailed distributions.
+        #               Good for risk management and position sizing.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 20))
+        upper = float(parameters.get('upper', 2.0))
+        lower = float(parameters.get('lower', 0.5))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'MAD_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='mad',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'MAD_{period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='mai':
+        # MAI (Mass Index) - Reversal Bulge Strategy
+        # ------------------------------------------
+        # LOGIC: Buy when MI rises above upper threshold then drops below it (reversal bulge),
+        #        sell when MI drops below lower threshold.
+        # WHY: Mass Index identifies trend reversals by measuring range expansion/contraction.
+        #      The "reversal bulge" (above 27, then below 26.5) signals potential reversal.
+        # BEST MARKETS: All markets. Good for identifying trend exhaustion and reversals.
+        #               Does not indicate direction, only potential reversal.
+        # TIMEFRAME: Daily charts. 9-period EMA, 25-period sum is standard.
+        ema_period = int(parameters.get('ema_period', 9))
+        sum_period = int(parameters.get('sum_period', 25))
+        upper = float(parameters.get('upper', 27.0))
+        lower = float(parameters.get('lower', 26.5))
+        parameters_indicators["ema_period"] = ema_period
+        parameters_indicators["sum_period"] = sum_period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'MI_{ema_period}_{sum_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='mai',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'MI_{ema_period}_{sum_period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='nat':
+        # NAT (Normalized ATR) - Volatility Threshold Strategy
+        # -----------------------------------------------------
+        # LOGIC: Buy when NATR drops below lower threshold (low volatility),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: NATR normalizes ATR as percentage of price, allowing cross-asset comparison.
+        #      Low NATR indicates consolidation, high NATR indicates active movement.
+        # BEST MARKETS: All markets. Good for cross-asset volatility comparison,
+        #               position sizing, and stop-loss placement.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        window = int(parameters.get('window', 14))
+        upper = float(parameters.get('upper', 5.0))
+        lower = float(parameters.get('lower', 2.0))
+        parameters_indicators["window"] = window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'NATR_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='nat',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'NATR_{window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='pav':
+        # PAV (Parkinson Volatility) - Volatility Threshold Strategy
+        # -----------------------------------------------------------
+        # LOGIC: Buy when Parkinson Volatility drops below lower threshold (low volatility),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: Parkinson uses high-low range for more efficient volatility estimation.
+        #      Better than close-to-close when no overnight gaps.
+        # BEST MARKETS: All markets. Superior volatility estimation for risk management.
+        #               Good for options pricing and position sizing.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 20))
+        upper = float(parameters.get('upper', 30.0))
+        lower = float(parameters.get('lower', 15.0))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'PARK_VOL_{period}_Ann'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='pav',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'PARK_VOL_{period}_Ann', 'lower', 'upper']
+
+    
+    elif strategy_name=='pcw':
+        # PCW (Price Channel Width) - Volatility Threshold Strategy
+        # ----------------------------------------------------------
+        # LOGIC: Buy when PCW drops below lower threshold (narrow channel/consolidation),
+        #        sell when rises above upper threshold (wide channel/trending).
+        # WHY: PCW measures Donchian-style channel width as percentage of price.
+        #      Low PCW indicates consolidation (potential breakout setup).
+        # BEST MARKETS: All markets. Good for breakout identification and volatility
+        #               comparison across assets.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 20))
+        upper = float(parameters.get('upper', 15.0))
+        lower = float(parameters.get('lower', 5.0))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'PCW_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='pcw',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'PCW_{period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='pro':
+        # PRO (Projection Oscillator) - Zero Line Crossover Strategy
+        # -----------------------------------------------------------
+        # LOGIC: Buy when PO crosses above zero (upward trend), sell when crosses below.
+        # WHY: Projection Oscillator measures normalized slope of price movement.
+        #      Positive = uptrend, negative = downtrend. Zero crossovers signal trend changes.
+        # BEST MARKETS: Trending markets. Stocks, forex, indices. Good for trend
+        #               strength measurement and direction identification.
+        # TIMEFRAME: Daily charts. 10-period with 3-period smoothing is standard.
+        period = int(parameters.get('period', 10))
+        smooth_period = int(parameters.get('smooth_period', 3))
+        parameters_indicators["period"] = period
+        parameters_indicators["smooth_period"] = smooth_period
+        short_window_indicator = f'PO_{period}_{smooth_period}'
+        long_window_indicator = 'zero_line'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='pro',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='rsv':
+        # RSV (Rogers-Satchell Volatility) - Volatility Threshold Strategy
+        # -----------------------------------------------------------------
+        # LOGIC: Buy when RS Volatility drops below lower threshold (low volatility),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: Rogers-Satchell accounts for drift in price movements, better for trending
+        #      markets than Garman-Klass. Uses all OHLC components.
+        # BEST MARKETS: Trending markets. Superior volatility estimation for options
+        #               pricing and risk management in trending conditions.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 20))
+        upper = float(parameters.get('upper', 30.0))
+        lower = float(parameters.get('lower', 15.0))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'RS_VOL_{period}_Ann'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='rsv',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'RS_VOL_{period}_Ann', 'lower', 'upper']
+
+    
+    elif strategy_name=='rvi':
+        # RVI (Relative Volatility Index) - Mean Reversion Strategy
+        # ----------------------------------------------------------
+        # LOGIC: Buy when RVI drops below lower threshold (oversold volatility),
+        #        sell when rises above upper threshold (overbought volatility).
+        # WHY: RVI applies RSI formula to standard deviation. RVI > 50 means volatility
+        #      is associated with rising prices (bullish), < 50 with falling (bearish).
+        # BEST MARKETS: All markets. Good for trend confirmation and divergence detection.
+        #               Use for volatility direction analysis.
+        # TIMEFRAME: Daily charts. 10-period std, 14-period smoothing is standard.
+        window = int(parameters.get('window', 10))
+        rvi_period = int(parameters.get('rvi_period', 14))
+        upper = float(parameters.get('upper', 70))
+        lower = float(parameters.get('lower', 30))
+        parameters_indicators["window"] = window
+        parameters_indicators["rvi_period"] = rvi_period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'RVI_{window}_{rvi_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='rvi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'RVI_{window}_{rvi_period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='std':
+        # STD (Standard Deviation) - Volatility Threshold Strategy
+        # ---------------------------------------------------------
+        # LOGIC: Buy when STD drops below lower threshold (low volatility),
+        #        sell when rises above upper threshold (high volatility).
+        # WHY: Standard deviation is the classic volatility measure. Low STD indicates
+        #      consolidation (potential breakout), high STD indicates active movement.
+        # BEST MARKETS: All markets. Fundamental volatility measure for risk assessment,
+        #               position sizing, and Bollinger Bands component.
+        # TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
+        window = int(parameters.get('window', 20))
+        upper = float(parameters.get('upper', 5.0))
+        lower = float(parameters.get('lower', 2.0))
+        parameters_indicators["window"] = window
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'STD_{window}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='std',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'STD_{window}', 'lower', 'upper']
+
+    
+    elif strategy_name=='svi':
+        # SVI (Stochastic Volatility Index) - Mean Reversion Strategy
+        # ------------------------------------------------------------
+        # LOGIC: Buy when SVI drops below lower threshold (low volatility regime),
+        #        sell when rises above upper threshold (high volatility regime).
+        # WHY: SVI applies stochastic formula to ATR, creating normalized 0-100 oscillator.
+        #      Low SVI indicates low volatility (potential breakout), high SVI indicates
+        #      high volatility regime.
+        # BEST MARKETS: All markets. Good for volatility regime identification and
+        #               breakout prediction from low volatility.
+        # TIMEFRAME: Daily charts. 14-period ATR, 14-period stochastic is standard.
+        atr_period = int(parameters.get('atr_period', 14))
+        stoch_period = int(parameters.get('stoch_period', 14))
+        smooth_k = int(parameters.get('smooth_k', 3))
+        smooth_d = int(parameters.get('smooth_d', 3))
+        upper = float(parameters.get('upper', 80))
+        lower = float(parameters.get('lower', 20))
+        parameters_indicators["atr_period"] = atr_period
+        parameters_indicators["stoch_period"] = stoch_period
+        parameters_indicators["smooth_k"] = smooth_k
+        parameters_indicators["smooth_d"] = smooth_d
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'SVI_K_{atr_period}_{stoch_period}_{smooth_k}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='svi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'SVI_K_{atr_period}_{stoch_period}_{smooth_k}', f'SVI_D_{atr_period}_{stoch_period}_{smooth_d}', 'lower', 'upper']
+
+    
+    elif strategy_name=='tsv':
+        # TSI_VOL (TSI Volatility) - Zero Line Crossover Strategy
+        # --------------------------------------------------------
+        # LOGIC: Buy when TSI Volatility crosses above zero (rising volatility momentum),
+        #        sell when crosses below zero (falling volatility momentum).
+        # WHY: TSI Volatility applies double-smoothed momentum to ATR. Positive = rising
+        #      volatility, negative = falling volatility. Zero crossovers signal changes.
+        # BEST MARKETS: All markets. Good for volatility trend identification and
+        #               divergence detection between price and volatility momentum.
+        # TIMEFRAME: Daily charts. 14-period ATR, 25/13 smoothing is standard.
+        atr_period = int(parameters.get('atr_period', 14))
+        long_period = int(parameters.get('long_period', 25))
+        short_period = int(parameters.get('short_period', 13))
+        parameters_indicators["atr_period"] = atr_period
+        parameters_indicators["long_period"] = long_period
+        parameters_indicators["short_period"] = short_period
+        short_window_indicator = f'TSI_VOL_{atr_period}_{long_period}_{short_period}'
+        long_window_indicator = 'zero_line'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='tsv',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='uli':
+        # ULI (Ulcer Index) - Downside Risk Strategy
+        # ------------------------------------------
+        # LOGIC: Buy when UI drops below lower threshold (low drawdown risk),
+        #        sell when rises above upper threshold (high drawdown risk).
+        # WHY: Ulcer Index measures downside risk by focusing on depth and duration of
+        #      drawdowns. Unlike STD, it doesn't penalize upside volatility.
+        # BEST MARKETS: All markets. Essential for downside risk measurement, portfolio
+        #               optimization, and drawdown monitoring.
+        # TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
+        period = int(parameters.get('period', 14))
+        upper = float(parameters.get('upper', 5.0))
+        lower = float(parameters.get('lower', 1.0))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'UI_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='uli',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'UI_{period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='vhf':
+        # VHF (Vertical Horizontal Filter) - Trend Strength Strategy
+        # -----------------------------------------------------------
+        # LOGIC: Buy when VHF rises above upper threshold (strong trend),
+        #        sell when drops below lower threshold (congestion).
+        # WHY: VHF determines if prices are trending or in congestion by comparing
+        #      price range to sum of price changes. High VHF = trending, low = choppy.
+        # BEST MARKETS: All markets. Use for trend identification and indicator selection.
+        #               Use moving averages when VHF high, oscillators when VHF low.
+        # TIMEFRAME: Daily charts. 28-period is standard. Good for regime identification.
+        period = int(parameters.get('period', 28))
+        upper = float(parameters.get('upper', 0.40))
+        lower = float(parameters.get('lower', 0.25))
+        parameters_indicators["period"] = period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'VHF_{period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vhf',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'VHF_{period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='vra':
+        # VOR_VOL (Volatility Ratio) - Regime Change Strategy
+        # ----------------------------------------------------
+        # LOGIC: Buy when VR rises above upper threshold (volatility expansion),
+        #        sell when drops below lower threshold (volatility contraction).
+        # WHY: Volatility Ratio compares short-term to long-term volatility. VR > 1
+        #      indicates expanding volatility (potential breakout), < 1 indicates contraction.
+        # BEST MARKETS: All markets. Good for volatility regime detection and breakout
+        #               confirmation. Strategy switching between breakout and mean reversion.
+        # TIMEFRAME: Daily charts. 5/20 periods is standard. Good for swing trading.
+        short_period = int(parameters.get('short_period', 5))
+        long_period = int(parameters.get('long_period', 20))
+        upper = float(parameters.get('upper', 1.5))
+        lower = float(parameters.get('lower', 0.8))
+        parameters_indicators["short_period"] = short_period
+        parameters_indicators["long_period"] = long_period
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'VR_{short_period}_{long_period}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vra',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'VR_{short_period}_{long_period}', 'lower', 'upper']
+
+    
+    elif strategy_name=='vqi':
+        # VQI (Volatility Quality Index) - Zero Line Crossover Strategy
+        # --------------------------------------------------------------
+        # LOGIC: Buy when VQI crosses above zero (quality uptrend), sell when crosses below.
+        # WHY: VQI measures quality of price movements by analyzing price changes, volume,
+        #      and volatility. Positive = quality uptrend, negative = quality downtrend.
+        # BEST MARKETS: Markets with volume data. Good for trend quality assessment and
+        #               filtering false moves. Divergence detection.
+        # TIMEFRAME: Daily charts. 9-period with 9-period smoothing is standard.
+        period = int(parameters.get('period', 9))
+        smooth_period = int(parameters.get('smooth_period', 9))
+        parameters_indicators["period"] = period
+        parameters_indicators["smooth_period"] = smooth_period
+        short_window_indicator = f'VQI_{period}_{smooth_period}'
+        long_window_indicator = 'zero_line'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vqi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['zero_line'] = 0
+
+        results, portfolio = cross_backtester.run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+
+    
+    elif strategy_name=='vsi':
+        # VSI (Volatility Switch Index) - Binary Regime Strategy
+        # -------------------------------------------------------
+        # LOGIC: Buy when VSI switches to 0 (low volatility regime),
+        #        sell when switches to 1 (high volatility regime).
+        # WHY: VSI is a binary indicator that identifies volatility regime changes.
+        #      VSI = 1 means elevated volatility, VSI = 0 means baseline volatility.
+        # BEST MARKETS: All markets. Good for binary regime identification and strategy
+        #               switching. Reduce size when VSI = 1.
+        # TIMEFRAME: Daily charts. 10/50 periods with 1.2 threshold is standard.
+        short_period = int(parameters.get('short_period', 10))
+        long_period = int(parameters.get('long_period', 50))
+        threshold = float(parameters.get('threshold', 1.2))
+        upper = float(parameters.get('upper', 0.5))
+        lower = float(parameters.get('lower', 0.5))
+        parameters_indicators["short_period"] = short_period
+        parameters_indicators["long_period"] = long_period
+        parameters_indicators["threshold"] = threshold
+        parameters_indicators["upper"] = upper
+        parameters_indicators["lower"] = lower
+        indicator_col = f'VSI_{short_period}_{long_period}_{threshold}'
+        price_col = 'Close'
+
+        data, columns, fig = compute_indicator(
+        data=data,
+        indicator='vsi',
+        parameters=parameters_indicators,
+        figure=False)
+
+        data['upper'] = upper
+        data['lower'] = lower
+
+        results, portfolio = band_backtester.run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate)
+
+        indicator_cols_to_plot = [f'VSI_{short_period}_{long_period}_{threshold}', 'lower', 'upper']
 
     # Generic plotting for strategies that don't have custom plotting
     if fig_control==1 and fig is None and 'indicator_cols_to_plot' in locals():

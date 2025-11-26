@@ -15,7 +15,7 @@ from .core import (
 
     # Volatility indicators
     bol, atr, kel, don, cha,
-    acb, atp, bbw, cho, dvi, efr, fdi, grv, hav, hiv, mad, mai, nat, pav, pcw, pro, rsv, rvi, std, svi, uli, vhf, vqi, vsi,
+    acb, atp, bbw, cho, dvi, efr, fdi, grv, hav, hiv, mad, mai, nat, pav, pcw, pro, rsv, rvi, std, svi, uli, vhf, vqi, vsi, vra, tsv,
 
     # Volume indicators
     obv, vma, adl, cmf, vpt,
@@ -71,7 +71,7 @@ __all__ = [
     
     # Volatility indicators
     "bol", "atr", "kel", "don", "cha",
-    "acb", "atp", "bbw", "cho", "dvi", "efr", "fdi", "grv", "hav", "hiv", "mad", "mai", "nat", "pav", "pcw", "pro", "rsv", "rvi", "std", "svi", "uli", "vhf", "vqi", "vsi",
+    "acb", "atp", "bbw", "cho", "dvi", "efr", "fdi", "grv", "hav", "hiv", "mad", "mai", "nat", "pav", "pcw", "pro", "rsv", "rvi", "std", "svi", "uli", "vhf", "vqi", "vsi", 'vra', 'tsv',
     
     # Volume indicators
     "obv", "vma", "adl", "cmf", "vpt",

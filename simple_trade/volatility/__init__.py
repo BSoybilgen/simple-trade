@@ -19,10 +19,10 @@ from .hiv import hiv
 from .bbw import bbw
 from .atp import atp
 from .acb import acb
-from .tsi import tsi
+from .tsv import tsv
 from .nat import nat
 from .pcw import pcw
-from .vor import vor
+from .vra import vra
 from .efr import efr
 from .vhf import vhf
 from .pro import pro
@@ -33,4 +33,4 @@ from .fdi import fdi
 from .vsi import vsi
 from .mad import mad
 
-__all__ = ['bol', 'atr', 'kel', 'don', 'cha', 'std', 'rvi', 'mai', 'svi', 'dvi', 'vqi', 'hav', 'cho', 'uli', 'hiv', 'bbw', 'atp', 'acb', 'tsi', 'nat', 'pcw', 'vor', 'efr', 'vhf', 'pro', 'grv', 'pav', 'rsv', 'fdi', 'vsi', 'mad']
+__all__ = ['bol', 'atr', 'kel', 'don', 'cha', 'std', 'rvi', 'mai', 'svi', 'dvi', 'vqi', 'hav', 'cho', 'uli', 'hiv', 'bbw', 'atp', 'acb', 'tsv', 'nat', 'pcw', 'vra', 'efr', 'vhf', 'pro', 'grv', 'pav', 'rsv', 'fdi', 'vsi', 'mad']
