@@ -1,4 +1,4 @@
-"""Example usage of momentum indicator backtesting strategies."""
+"""Example usage of pre-made momentum indicator backtesting strategies."""
 
 import matplotlib.pyplot as plt
 import pandas as pd
