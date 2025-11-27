@@ -62,9 +62,23 @@ def crs(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         loss = -delta.clip(upper=0)
         avg_gain = gain.rolling(window=window, min_periods=window).mean()
         avg_loss = loss.rolling(window=window, min_periods=window).mean()
-        rs = avg_gain / avg_loss.replace({0: np.nan})
-        rsi_values = 100 - (100 / (1 + rs))
-        return rsi_values.astype(float)
+        # Handle edge cases: when avg_loss is 0, RSI should be 100 (all gains)
+        # When avg_gain is 0, RSI should be 0 (all losses)
+        # When both are 0, RSI should be 50 (neutral)
+        rsi_values = pd.Series(index=series.index, dtype=float)
+        for i in range(len(series)):
+            ag = avg_gain.iloc[i]
+            al = avg_loss.iloc[i]
+            if pd.isna(ag) or pd.isna(al):
+                rsi_values.iloc[i] = np.nan
+            elif al == 0 and ag == 0:
+                rsi_values.iloc[i] = 50.0  # Neutral when no movement
+            elif al == 0:
+                rsi_values.iloc[i] = 100.0  # All gains
+            else:
+                rs = ag / al
+                rsi_values.iloc[i] = 100 - (100 / (1 + rs))
+        return rsi_values
 
     # Component 1: RSI of closing prices
     price_rsi = _rsi(close, rsi_window)
