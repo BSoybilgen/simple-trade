@@ -2,7 +2,9 @@ import pytest
 import pandas as pd
 import numpy as np
 from simple_trade.trend import (
-    ema, sma, wma, hma, adx, aroon, psar, trix, ichimoku, supertrend
+    ema, sma, wma, hma, adx, aro, psa, tri, ich, str,
+    soa, ama, kma, tma, fma, gma, jma, zma, htt, eit,
+    dem, tem, alm, mgd, lsm, swm, ads, eac, vid
 )
 
 # Fixture for sample data
@@ -274,7 +276,7 @@ class TestAroon:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result_data, _ = aroon(df, parameters={'period': period}, columns=None)
+        result_data, _ = aro(df, parameters={'period': period}, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -309,7 +311,7 @@ class TestAroon:
             'High': sample_data['high'],
             'Low': sample_data['low']
         })
-        result_data, _ = aroon(df, parameters={'period': period}, columns=None)
+        result_data, _ = aro(df, parameters={'period': period}, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -343,7 +345,7 @@ class TestPSAR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result_data, _ = psar(df, parameters=None, columns=None)
+        result_data, _ = psa(df, parameters=None, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -372,7 +374,7 @@ class TestPSAR:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result_data, _ = psar(df, parameters={'af_initial': custom_af_initial, 'af_step': custom_af_step, 'af_max': custom_af_max}, columns=None)
+        result_data, _ = psa(df, parameters={'af_initial': custom_af_initial, 'af_step': custom_af_step, 'af_max': custom_af_max}, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert len(result_data) == len(sample_data['close'])
         
@@ -392,7 +394,7 @@ class TestTRIX:
         """Test TRIX calculation structure and properties"""
         window = 15 # Default
         df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, _ = trix(df, parameters={'window': window}, columns=None)
+        result_data, _ = tri(df, parameters={'window': window}, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -410,7 +412,7 @@ class TestTRIX:
         """Test TRIX with custom window parameters"""
         window = 10
         df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, _ = trix(df, parameters={'window': window}, columns=None)
+        result_data, _ = tri(df, parameters={'window': window}, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -431,7 +433,7 @@ class TestIchimoku:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result_data, _ = ichimoku(df, parameters=None, columns=None)
+        result_data, _ = ich(df, parameters=None, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -470,7 +472,7 @@ class TestIchimoku:
             'Close': sample_data['close']
         })
 
-        result_data, _ = ichimoku(df, parameters={'tenkan_period': tenkan_period, 'kijun_period': kijun_period}, columns=None)
+        result_data, _ = ich(df, parameters={'tenkan_period': tenkan_period, 'kijun_period': kijun_period}, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -503,7 +505,7 @@ class TestSuperTrend:
             'Close': sample_data['close']
         })
         
-        result_data, _ = supertrend(df, parameters={'period': period, 'multiplier': multiplier}, columns=None)
+        result_data, _ = str(df, parameters={'period': period, 'multiplier': multiplier}, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -542,7 +544,7 @@ class TestSuperTrend:
             'Close': sample_data['close']
         })
         
-        result_data, _ = supertrend(df, parameters={'period': period, 'multiplier': multiplier}, columns=None)
+        result_data, _ = str(df, parameters={'period': period, 'multiplier': multiplier}, columns=None)
         assert isinstance(result_data, pd.DataFrame)
         assert len(result_data) == len(sample_data['close'])
         
@@ -569,7 +571,7 @@ class TestSuperTrend:
         })
         
         # Calculate SuperTrend with custom column names
-        result_data, _ = supertrend(df, parameters={'period': period, 'multiplier': multiplier}, columns={'high_col': 'h', 'low_col': 'l', 'close_col': 'c'})
+        result_data, _ = str(df, parameters={'period': period, 'multiplier': multiplier}, columns={'high_col': 'h', 'low_col': 'l', 'close_col': 'c'})
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         assert len(result_data) == len(sample_data['close'])
@@ -577,3 +579,464 @@ class TestSuperTrend:
         # Check the column names
         expected_columns = [f'Supertrend_{period}_{multiplier}', f'Direction_{period}_{multiplier}']
         assert all(col in result_data.columns for col in expected_columns)
+
+
+# --- Additional Moving Average Tests ---
+
+class TestSOA:
+    """Tests for the Smoothed Moving Average (SmMA)"""
+
+    def test_soa_calculation(self, sample_data):
+        """Test basic SmMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = soa(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'SOA_20' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_soa_custom_window(self, sample_data):
+        """Test SmMA with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = soa(df, parameters={'window': window})
+        
+        assert f'SOA_{window}' in columns
+        assert not result_data.isna().all()
+
+
+class TestTMA:
+    """Tests for the Triangular Moving Average"""
+
+    def test_tma_calculation(self, sample_data):
+        """Test basic TMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tma(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'TMA_20' in columns
+        
+        # TMA should have some NaN values at the start
+        assert result_data.iloc[-1:].notna().all()
+
+    def test_tma_custom_window(self, sample_data):
+        """Test TMA with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tma(df, parameters={'window': window})
+        
+        assert f'TMA_{window}' in columns
+
+
+class TestDEMA:
+    """Tests for the Double Exponential Moving Average"""
+
+    def test_dem_calculation(self, sample_data):
+        """Test basic DEMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = dem(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'DEMA_20' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_dem_custom_window(self, sample_data):
+        """Test DEMA with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = dem(df, parameters={'window': window})
+        
+        assert f'DEMA_{window}' in columns
+
+
+class TestTEMA:
+    """Tests for the Triple Exponential Moving Average"""
+
+    def test_tem_calculation(self, sample_data):
+        """Test basic TEMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tem(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'TEMA_20' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_tem_custom_window(self, sample_data):
+        """Test TEMA with custom window"""
+        window = 15
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tem(df, parameters={'window': window})
+        
+        assert f'TEMA_{window}' in columns
+
+
+class TestAMA:
+    """Tests for the Adaptive Moving Average (KAMA)"""
+
+    def test_ama_calculation(self, sample_data):
+        """Test basic AMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = ama(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'AMA_10_2_30' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_ama_custom_params(self, sample_data):
+        """Test AMA with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = ama(df, parameters={
+            'window': 14,
+            'fast_period': 3,
+            'slow_period': 20
+        })
+        
+        assert 'AMA_14_3_20' in columns
+
+
+class TestKMA:
+    """Tests for the Kaufman Adaptive Moving Average"""
+
+    def test_kma_calculation(self, sample_data):
+        """Test basic KAMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = kma(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'KMA_10_2_30' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_kma_custom_params(self, sample_data):
+        """Test KAMA with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = kma(df, parameters={
+            'window': 20,
+            'fast_period': 2,
+            'slow_period': 40
+        })
+        
+        assert 'KMA_20_2_40' in columns
+
+
+class TestFMA:
+    """Tests for the Fractal Adaptive Moving Average"""
+
+    def test_fma_calculation(self, sample_data):
+        """Test basic FRAMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = fma(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'FMA_16' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_fma_custom_window(self, sample_data):
+        """Test FRAMA with custom window"""
+        window = 20
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = fma(df, parameters={'window': window})
+        
+        assert f'FMA_{window}' in columns
+
+
+class TestGMA:
+    """Tests for the Guppy Multiple Moving Average"""
+
+    def test_gma_calculation(self, sample_data):
+        """Test basic GMMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = gma(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        # Check for short-term EMAs
+        assert 'GMA_short_3' in columns
+        assert 'GMA_short_15' in columns
+        # Check for long-term EMAs
+        assert 'GMA_long_30' in columns
+        assert 'GMA_long_60' in columns
+
+    def test_gma_custom_windows(self, sample_data):
+        """Test GMMA with custom windows"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = gma(df, parameters={
+            'short_windows': (5, 10),
+            'long_windows': (20, 40)
+        })
+        
+        assert 'GMA_short_5' in columns
+        assert 'GMA_short_10' in columns
+        assert 'GMA_long_20' in columns
+        assert 'GMA_long_40' in columns
+
+
+class TestJMA:
+    """Tests for the Jurik Moving Average"""
+
+    def test_jma_calculation(self, sample_data):
+        """Test basic JMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = jma(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'JMA_21' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_jma_custom_params(self, sample_data):
+        """Test JMA with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = jma(df, parameters={
+            'length': 14,
+            'phase': 50
+        })
+        
+        assert 'JMA_14' in columns
+
+
+class TestZMA:
+    """Tests for the Zero-Lag Moving Average"""
+
+    def test_zma_calculation(self, sample_data):
+        """Test basic ZLEMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = zma(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'ZMA_20' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_zma_custom_window(self, sample_data):
+        """Test ZLEMA with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = zma(df, parameters={'window': window})
+        
+        assert f'ZMA_{window}' in columns
+
+
+class TestHTT:
+    """Tests for the Hilbert Transform Trendline"""
+
+    def test_htt_calculation(self, sample_data):
+        """Test basic HTT calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = htt(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'HTT_16' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_htt_custom_window(self, sample_data):
+        """Test HTT with custom window"""
+        window = 20
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = htt(df, parameters={'window': window})
+        
+        assert f'HTT_{window}' in columns
+
+
+class TestEIT:
+    """Tests for the Ehlers Instantaneous Trendline"""
+
+    def test_eit_calculation(self, sample_data):
+        """Test basic EIT calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = eit(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'EIT_0.07' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_eit_custom_alpha(self, sample_data):
+        """Test EIT with custom alpha"""
+        alpha = 0.1
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = eit(df, parameters={'alpha': alpha})
+        
+        assert f'EIT_{alpha}' in columns
+
+
+class TestALMA:
+    """Tests for the Arnaud Legoux Moving Average"""
+
+    def test_alm_calculation(self, sample_data):
+        """Test basic ALMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = alm(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'ALMA_9' in columns
+        
+        # ALMA should have NaN values at the start
+        valid_result = result_data.dropna()
+        assert len(valid_result) > 0
+
+    def test_alm_custom_params(self, sample_data):
+        """Test ALMA with custom parameters"""
+        window = 14
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = alm(df, parameters={
+            'window': window,
+            'sigma': 5,
+            'offset': 0.9
+        })
+        
+        assert f'ALMA_{window}' in columns
+
+
+class TestMGD:
+    """Tests for the McGinley Dynamic"""
+
+    def test_mgd_calculation(self, sample_data):
+        """Test basic McGinley Dynamic calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = mgd(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'MGD_20' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_mgd_custom_window(self, sample_data):
+        """Test McGinley Dynamic with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = mgd(df, parameters={'window': window})
+        
+        assert f'MGD_{window}' in columns
+
+
+class TestLSM:
+    """Tests for the Least Squares Moving Average"""
+
+    def test_lsm_calculation(self, sample_data):
+        """Test basic LSMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = lsm(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'LSMA_20' in columns
+        
+        # LSMA should have NaN values at the start
+        valid_result = result_data.dropna()
+        assert len(valid_result) > 0
+
+    def test_lsm_custom_window(self, sample_data):
+        """Test LSMA with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = lsm(df, parameters={'window': window})
+        
+        assert f'LSMA_{window}' in columns
+
+
+class TestSWM:
+    """Tests for the Sine Weighted Moving Average"""
+
+    def test_swm_calculation(self, sample_data):
+        """Test basic SWMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = swm(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'SWMA_20' in columns
+        
+        # SWMA should have NaN values at the start
+        valid_result = result_data.dropna()
+        assert len(valid_result) > 0
+
+    def test_swm_custom_window(self, sample_data):
+        """Test SWMA with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = swm(df, parameters={'window': window})
+        
+        assert f'SWMA_{window}' in columns
+
+
+class TestADS:
+    """Tests for the Adaptive Deviation-Scaled Moving Average"""
+
+    def test_ads_calculation(self, sample_data):
+        """Test basic ADSMA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = ads(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'ADSMA_20' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_ads_custom_params(self, sample_data):
+        """Test ADSMA with custom parameters"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = ads(df, parameters={
+            'window': window,
+            'sensitivity': 0.8
+        })
+        
+        assert f'ADSMA_{window}' in columns
+
+
+class TestEAC:
+    """Tests for the Ehlers Adaptive CyberCycle"""
+
+    def test_eac_calculation(self, sample_data):
+        """Test basic EAC calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = eac(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'EAC_7' in columns  # 0.07 * 100 = 7
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_eac_custom_alpha(self, sample_data):
+        """Test EAC with custom alpha"""
+        alpha = 0.1
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = eac(df, parameters={'alpha': alpha})
+        
+        assert f'EAC_{int(alpha*100)}' in columns
+
+
+class TestVID:
+    """Tests for the Variable Index Dynamic Average (VIDYA)"""
+
+    def test_vid_calculation(self, sample_data):
+        """Test basic VIDYA calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = vid(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'VID_21_9' in columns
+        
+        # VIDYA should have some valid values
+        valid_result = result_data.dropna()
+        assert len(valid_result) > 0
+
+    def test_vid_custom_params(self, sample_data):
+        """Test VIDYA with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = vid(df, parameters={
+            'window': 14,
+            'cmo_window': 7
+        })
+        
+        assert 'VID_14_7' in columns

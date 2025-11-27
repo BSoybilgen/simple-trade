@@ -1,7 +1,11 @@
 import pytest
 import pandas as pd
 import numpy as np
-from simple_trade.momentum import rsi, macd, stoch, cci, roc
+from simple_trade.momentum import (
+    rsi, mac, sto, cci, roc, wil, cmo, ult, dpo, eri,
+    rmi, tsi, qst, crs, msi, fis, stc, ttm, kst, cog,
+    vor, lsi, awo, ppo, sri, rvg, bop, psy, imi, pgo
+)
 
 @pytest.fixture
 def sample_data():
@@ -117,15 +121,15 @@ class TestMACD:
         """Test basic MACD calculation"""
         # Create DataFrame with Close column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, _ = macd(df)
+        result_data, _ = mac(df)
         
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
         
         # Check column names (with default parameters)
-        assert f'MACD_12_26' in result_data.columns
+        assert 'MACD_12_26' in result_data.columns
         assert 'Signal_9' in result_data.columns
-        assert f'Hist_12_26_9' in result_data.columns
+        assert 'Hist_12_26_9' in result_data.columns
         
         # Verify result has same index as input
         assert result_data.index.equals(sample_data['close'].index)
@@ -138,7 +142,7 @@ class TestMACD:
         
         # Create DataFrame with Close column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, _ = macd(df, parameters={
+        result_data, _ = mac(df, parameters={
                      'window_slow': window_slow, 
                      'window_fast': window_fast, 
                      'window_signal': window_signal
@@ -153,7 +157,7 @@ class TestMACD:
         """Test that MACD line crosses the signal line during trend changes"""
         # Create DataFrame with Close column
         df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, _ = macd(df)
+        result_data, _ = mac(df)
         
         # Extract MACD and Signal lines
         macd_line = result_data.iloc[:, 0]
@@ -176,7 +180,7 @@ class TestStoch:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result_data, _ = stoch(df, parameters=None, columns=None)
+        result_data, _ = sto(df, parameters=None, columns=None)
         
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
@@ -208,7 +212,7 @@ class TestStoch:
             'Low': sample_data['low'],
             'Close': sample_data['close']
         })
-        result_data, _ = stoch(df, parameters={'k_period': k_period, 'd_period': d_period, 'smooth_k': smooth_k}, columns=None)
+        result_data, _ = sto(df, parameters={'k_period': k_period, 'd_period': d_period, 'smooth_k': smooth_k}, columns=None)
         
         # Create column names with the custom parameters
         k_col = f'STOCH_K_{k_period}_{d_period}_{smooth_k}'
@@ -358,3 +362,754 @@ class TestROC:
         sign_match = np.sign(valid_roc_subset) == np.sign(valid_changes)
         # At least 70% of the signs should match
         assert sign_match.mean() > 0.7
+
+
+class TestWilliamsR:
+    """Tests for the Williams %R indicator"""
+
+    def test_wil_calculation(self, sample_data):
+        """Test basic Williams %R calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = wil(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'WILLR_14' in columns
+        
+        # Williams %R should be between -100 and 0
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= -100
+        assert valid_result.max() <= 0
+
+    def test_wil_custom_window(self, sample_data):
+        """Test Williams %R with custom window"""
+        window = 7
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = wil(df, parameters={'window': window})
+        
+        assert f'WILLR_{window}' in columns
+        # First window-1 values should be NaN
+        assert result_data.iloc[:window-1].isna().all()
+
+
+class TestCMO:
+    """Tests for the Chande Momentum Oscillator"""
+
+    def test_cmo_calculation(self, sample_data):
+        """Test basic CMO calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = cmo(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'CMO_14' in columns
+        
+        # CMO should be between -100 and 100
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= -100
+        assert valid_result.max() <= 100
+
+    def test_cmo_custom_window(self, sample_data):
+        """Test CMO with custom window"""
+        window = 20
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = cmo(df, parameters={'window': window})
+        
+        assert f'CMO_{window}' in columns
+
+
+class TestUltimateOscillator:
+    """Tests for the Ultimate Oscillator"""
+
+    def test_ult_calculation(self, sample_data):
+        """Test basic Ultimate Oscillator calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = ult(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'ULTOSC_7_14_28' in columns
+        
+        # Ultimate Oscillator should be between 0 and 100
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= 0
+        assert valid_result.max() <= 100
+
+    def test_ult_custom_params(self, sample_data):
+        """Test Ultimate Oscillator with custom parameters"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = ult(df, parameters={
+            'short_window': 5,
+            'medium_window': 10,
+            'long_window': 20
+        })
+        
+        assert 'ULTOSC_5_10_20' in columns
+
+
+class TestDPO:
+    """Tests for the Detrended Price Oscillator"""
+
+    def test_dpo_calculation(self, sample_data):
+        """Test basic DPO calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = dpo(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'DPO_20' in columns
+        
+        # DPO should have both positive and negative values
+        valid_result = result_data.dropna()
+        assert (valid_result > 0).any()
+        assert (valid_result < 0).any()
+
+    def test_dpo_custom_window(self, sample_data):
+        """Test DPO with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = dpo(df, parameters={'window': window})
+        
+        assert f'DPO_{window}' in columns
+
+
+class TestElderRay:
+    """Tests for the Elder-Ray Index"""
+
+    def test_eri_calculation(self, sample_data):
+        """Test basic Elder-Ray calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = eri(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'ERI_BULL_13' in columns
+        assert 'ERI_BEAR_13' in columns
+
+    def test_eri_custom_window(self, sample_data):
+        """Test Elder-Ray with custom window"""
+        window = 20
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = eri(df, parameters={'window': window})
+        
+        assert f'ERI_BULL_{window}' in columns
+        assert f'ERI_BEAR_{window}' in columns
+
+
+class TestRMI:
+    """Tests for the Relative Momentum Index"""
+
+    def test_rmi_calculation(self, sample_data):
+        """Test basic RMI calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = rmi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'RMI_20_5' in columns
+        
+        # RMI should be between 0 and 100
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= 0
+        assert valid_result.max() <= 100
+
+    def test_rmi_custom_params(self, sample_data):
+        """Test RMI with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = rmi(df, parameters={
+            'window': 14,
+            'momentum_period': 3
+        })
+        
+        assert 'RMI_14_3' in columns
+
+
+class TestTSI:
+    """Tests for the True Strength Index"""
+
+    def test_tsi_calculation(self, sample_data):
+        """Test basic TSI calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tsi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'TSI_25_13' in columns
+        
+        # TSI should be between -100 and 100
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= -100
+        assert valid_result.max() <= 100
+
+    def test_tsi_custom_params(self, sample_data):
+        """Test TSI with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tsi(df, parameters={
+            'slow': 20,
+            'fast': 10
+        })
+        
+        assert 'TSI_20_10' in columns
+
+
+class TestQstick:
+    """Tests for the Qstick indicator"""
+
+    def test_qst_calculation(self, sample_data):
+        """Test basic Qstick calculation"""
+        # Need Open prices for Qstick
+        np.random.seed(42)
+        open_prices = sample_data['close'] - np.random.uniform(0, 2, len(sample_data['close']))
+        df = pd.DataFrame({
+            'Open': open_prices,
+            'Close': sample_data['close']
+        })
+        result_data, columns = qst(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'QSTICK_10' in columns
+
+    def test_qst_custom_window(self, sample_data):
+        """Test Qstick with custom window"""
+        np.random.seed(42)
+        open_prices = sample_data['close'] - np.random.uniform(0, 2, len(sample_data['close']))
+        df = pd.DataFrame({
+            'Open': open_prices,
+            'Close': sample_data['close']
+        })
+        result_data, columns = qst(df, parameters={'window': 14})
+        
+        assert 'QSTICK_14' in columns
+
+
+class TestConnorsRSI:
+    """Tests for the Connors RSI"""
+
+    def test_crs_calculation(self, sample_data):
+        """Test basic Connors RSI calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        # Use smaller rank_window to get valid results with 100 data points
+        result_data, columns = crs(df, parameters={'rank_window': 50})
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'CRSI_3_2_50' in columns
+        
+        # CRSI should be between 0 and 100
+        valid_result = result_data.dropna()
+        assert len(valid_result) > 0
+        assert valid_result.min() >= 0
+        assert valid_result.max() <= 100
+
+    def test_crs_custom_params(self, sample_data):
+        """Test Connors RSI with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = crs(df, parameters={
+            'rsi_window': 5,
+            'streak_window': 3,
+            'rank_window': 30
+        })
+        
+        assert 'CRSI_5_3_30' in columns
+
+
+class TestMSI:
+    """Tests for the Momentum Strength Index"""
+
+    def test_msi_calculation(self, sample_data):
+        """Test basic MSI calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = msi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'MSI_14_1.0' in columns
+        
+        # MSI should be between 0 and 100
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= 0
+        assert valid_result.max() <= 100
+
+    def test_msi_custom_params(self, sample_data):
+        """Test MSI with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = msi(df, parameters={
+            'window': 20,
+            'power': 2.0
+        })
+        
+        assert 'MSI_20_2.0' in columns
+
+
+class TestFisherTransform:
+    """Tests for the Fisher Transform"""
+
+    def test_fis_calculation(self, sample_data):
+        """Test basic Fisher Transform calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low']
+        })
+        result_data, columns = fis(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'FISH_9' in columns
+
+    def test_fis_custom_window(self, sample_data):
+        """Test Fisher Transform with custom window"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low']
+        })
+        result_data, columns = fis(df, parameters={'window': 14})
+        
+        assert 'FISH_14' in columns
+
+
+class TestSTC:
+    """Tests for the Schaff Trend Cycle"""
+
+    def test_stc_calculation(self, sample_data):
+        """Test basic STC calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = stc(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'STC_23_50_10' in columns
+        
+        # STC should be between 0 and 100
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= 0
+        assert valid_result.max() <= 100
+
+    def test_stc_custom_params(self, sample_data):
+        """Test STC with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = stc(df, parameters={
+            'window_fast': 12,
+            'window_slow': 26,
+            'cycle': 9
+        })
+        
+        assert 'STC_12_26_9' in columns
+
+
+class TestTTMSqueeze:
+    """Tests for the TTM Squeeze indicator"""
+
+    def test_ttm_calculation(self, sample_data):
+        """Test basic TTM Squeeze calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = ttm(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'TTM_MOM_20' in columns
+        assert 'Squeeze_On_20' in columns
+        assert 'Squeeze_Off_20' in columns
+        
+        # Squeeze columns should be boolean
+        assert result_data['Squeeze_On_20'].dtype == bool
+        assert result_data['Squeeze_Off_20'].dtype == bool
+
+    def test_ttm_custom_params(self, sample_data):
+        """Test TTM Squeeze with custom parameters"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = ttm(df, parameters={'length': 10})
+        
+        assert 'TTM_MOM_10' in columns
+
+
+class TestKST:
+    """Tests for the Know Sure Thing indicator"""
+
+    def test_kst_calculation(self, sample_data):
+        """Test basic KST calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = kst(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'KST' in columns
+        assert 'KST_Signal_9' in columns
+
+    def test_kst_custom_signal(self, sample_data):
+        """Test KST with custom signal period"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = kst(df, parameters={'signal': 12})
+        
+        assert 'KST_Signal_12' in columns
+
+
+class TestCOG:
+    """Tests for the Center of Gravity indicator"""
+
+    def test_cog_calculation(self, sample_data):
+        """Test basic COG calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = cog(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'COG_10' in columns
+
+    def test_cog_custom_window(self, sample_data):
+        """Test COG with custom window"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = cog(df, parameters={'window': 14})
+        
+        assert 'COG_14' in columns
+
+
+class TestVortex:
+    """Tests for the Vortex Indicator"""
+
+    def test_vor_calculation(self, sample_data):
+        """Test basic Vortex calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = vor(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'VI_Plus_14' in columns
+        assert 'VI_Minus_14' in columns
+        
+        # VI values should be positive
+        valid_plus = result_data['VI_Plus_14'].dropna()
+        valid_minus = result_data['VI_Minus_14'].dropna()
+        assert valid_plus.min() >= 0
+        assert valid_minus.min() >= 0
+
+    def test_vor_custom_window(self, sample_data):
+        """Test Vortex with custom window"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = vor(df, parameters={'window': 21})
+        
+        assert 'VI_Plus_21' in columns
+        assert 'VI_Minus_21' in columns
+
+
+class TestLaguerreRSI:
+    """Tests for the Laguerre RSI"""
+
+    def test_lsi_calculation(self, sample_data):
+        """Test basic Laguerre RSI calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = lsi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'LRSI_0.5' in columns
+        
+        # LRSI should be between 0 and 100 (with small tolerance for floating point)
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= -0.01
+        assert valid_result.max() <= 100.01
+
+    def test_lsi_custom_gamma(self, sample_data):
+        """Test Laguerre RSI with custom gamma"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = lsi(df, parameters={'gamma': 0.7})
+        
+        assert 'LRSI_0.7' in columns
+
+
+class TestAWO:
+    """Tests for the Awesome Oscillator"""
+
+    def test_awo_calculation(self, sample_data):
+        """Test basic Awesome Oscillator calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low']
+        })
+        result_data, columns = awo(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'AO_5_34' in columns
+        
+        # AO should have both positive and negative values
+        valid_result = result_data.dropna()
+        assert (valid_result > 0).any()
+        assert (valid_result < 0).any()
+
+    def test_awo_custom_params(self, sample_data):
+        """Test Awesome Oscillator with custom parameters"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low']
+        })
+        result_data, columns = awo(df, parameters={
+            'fast_window': 3,
+            'slow_window': 20
+        })
+        
+        assert 'AO_3_20' in columns
+
+
+class TestPPO:
+    """Tests for the Percentage Price Oscillator"""
+
+    def test_ppo_calculation(self, sample_data):
+        """Test basic PPO calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = ppo(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'PPO_12_26' in columns
+        assert 'PPO_SIG_9' in columns
+        assert 'PPO_HIST' in columns
+
+    def test_ppo_custom_params(self, sample_data):
+        """Test PPO with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = ppo(df, parameters={
+            'fast_window': 8,
+            'slow_window': 21,
+            'signal_window': 5
+        })
+        
+        assert 'PPO_8_21' in columns
+        assert 'PPO_SIG_5' in columns
+
+
+class TestStochRSI:
+    """Tests for the Stochastic RSI"""
+
+    def test_sri_calculation(self, sample_data):
+        """Test basic Stochastic RSI calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = sri(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'SRI_K_14_14' in columns
+        assert 'SRI_D_3' in columns
+        
+        # StochRSI should be between 0 and 100
+        valid_k = result_data['SRI_K_14_14'].dropna()
+        assert valid_k.min() >= 0
+        assert valid_k.max() <= 100
+
+    def test_sri_custom_params(self, sample_data):
+        """Test Stochastic RSI with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = sri(df, parameters={
+            'rsi_window': 10,
+            'stoch_window': 10,
+            'd_window': 5
+        })
+        
+        assert 'SRI_K_10_10' in columns
+        assert 'SRI_D_5' in columns
+
+
+class TestRVG:
+    """Tests for the Relative Vigor Index"""
+
+    def test_rvg_calculation(self, sample_data):
+        """Test basic RVG calculation"""
+        np.random.seed(42)
+        open_prices = sample_data['close'] - np.random.uniform(0, 2, len(sample_data['close']))
+        df = pd.DataFrame({
+            'Open': open_prices,
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = rvg(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'RVG_10' in columns
+        assert 'RVG_SIG' in columns
+
+    def test_rvg_custom_window(self, sample_data):
+        """Test RVG with custom window"""
+        np.random.seed(42)
+        open_prices = sample_data['close'] - np.random.uniform(0, 2, len(sample_data['close']))
+        df = pd.DataFrame({
+            'Open': open_prices,
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = rvg(df, parameters={'window': 14})
+        
+        assert 'RVG_14' in columns
+
+
+class TestBOP:
+    """Tests for the Balance of Power indicator"""
+
+    def test_bop_calculation(self, sample_data):
+        """Test basic BOP calculation"""
+        np.random.seed(42)
+        open_prices = sample_data['close'] - np.random.uniform(0, 2, len(sample_data['close']))
+        df = pd.DataFrame({
+            'Open': open_prices,
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = bop(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'BOP_14' in columns
+        
+        # BOP should be between -1 and 1 (approximately)
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= -1.5
+        assert valid_result.max() <= 1.5
+
+    def test_bop_unsmoothed(self, sample_data):
+        """Test BOP without smoothing"""
+        np.random.seed(42)
+        open_prices = sample_data['close'] - np.random.uniform(0, 2, len(sample_data['close']))
+        df = pd.DataFrame({
+            'Open': open_prices,
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = bop(df, parameters={'smooth': False})
+        
+        assert 'BOP' in columns
+
+
+class TestPSY:
+    """Tests for the Psychological Line"""
+
+    def test_psy_calculation(self, sample_data):
+        """Test basic PSY calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = psy(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'PSY_12' in columns
+        
+        # PSY should be between 0 and 100
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= 0
+        assert valid_result.max() <= 100
+
+    def test_psy_custom_window(self, sample_data):
+        """Test PSY with custom window"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = psy(df, parameters={'window': 20})
+        
+        assert 'PSY_20' in columns
+
+
+class TestIMI:
+    """Tests for the Intraday Momentum Index"""
+
+    def test_imi_calculation(self, sample_data):
+        """Test basic IMI calculation"""
+        np.random.seed(42)
+        open_prices = sample_data['close'] - np.random.uniform(0, 2, len(sample_data['close']))
+        df = pd.DataFrame({
+            'Open': open_prices,
+            'Close': sample_data['close']
+        })
+        result_data, columns = imi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'IMI_14' in columns
+        
+        # IMI should be between 0 and 100
+        valid_result = result_data.dropna()
+        assert valid_result.min() >= 0
+        assert valid_result.max() <= 100
+
+    def test_imi_custom_window(self, sample_data):
+        """Test IMI with custom window"""
+        np.random.seed(42)
+        open_prices = sample_data['close'] - np.random.uniform(0, 2, len(sample_data['close']))
+        df = pd.DataFrame({
+            'Open': open_prices,
+            'Close': sample_data['close']
+        })
+        result_data, columns = imi(df, parameters={'window': 20})
+        
+        assert 'IMI_20' in columns
+
+
+class TestPGO:
+    """Tests for the Pretty Good Oscillator"""
+
+    def test_pgo_calculation(self, sample_data):
+        """Test basic PGO calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = pgo(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'PGO_14' in columns
+        
+        # PGO should have both positive and negative values
+        valid_result = result_data.dropna()
+        assert (valid_result > 0).any() or (valid_result < 0).any()
+
+    def test_pgo_custom_window(self, sample_data):
+        """Test PGO with custom window"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = pgo(df, parameters={'window': 20})
+        
+        assert 'PGO_20' in columns

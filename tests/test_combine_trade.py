@@ -1,8 +1,8 @@
 import pytest
 import pandas as pd
 import numpy as np
-from unittest.mock import patch
-from simple_trade.combine_trade import CombineTradeBacktester
+from unittest.mock import patch, MagicMock
+from simple_trade.combine_trade import CombineTradeBacktester, plot_combined_results
 
 
 @pytest.fixture
@@ -180,7 +180,7 @@ class TestRunCombinedTrade:
         """Test basic run_combined_trade functionality."""
         portfolio_dfs = [sample_portfolio_df_long]
         
-        results, portfolio_df = backtester.run_combined_trade(
+        results, portfolio_df, figures = backtester.run_combined_trade(
             portfolio_dfs=portfolio_dfs,
             price_data=sample_price_data,
             trading_type='long'
@@ -188,6 +188,7 @@ class TestRunCombinedTrade:
         
         assert isinstance(results, dict)
         assert isinstance(portfolio_df, pd.DataFrame)
+        assert figures is None  # fig_control=0 by default
         assert 'strategy' in results
         assert 'final_value' in results
         assert 'num_trades' in results
@@ -197,7 +198,7 @@ class TestRunCombinedTrade:
         portfolio_dfs = [sample_portfolio_df_mixed]
         
         for trading_type in ['long', 'short', 'mixed']:
-            results, portfolio_df = backtester.run_combined_trade(
+            results, portfolio_df, figures = backtester.run_combined_trade(
                 portfolio_dfs=portfolio_dfs,
                 price_data=sample_price_data,
                 trading_type=trading_type
@@ -210,7 +211,7 @@ class TestRunCombinedTrade:
         """Test run_combined_trade with custom parameters."""
         portfolio_dfs = [sample_portfolio_df_long]
         
-        results, portfolio_df = backtester.run_combined_trade(
+        results, portfolio_df, figures = backtester.run_combined_trade(
             portfolio_dfs=portfolio_dfs,
             price_data=sample_price_data,
             price_col='Close',
@@ -223,6 +224,7 @@ class TestRunCombinedTrade:
         
         assert isinstance(results, dict)
         assert isinstance(portfolio_df, pd.DataFrame)
+        assert figures is None  # fig_control=0 by default
 
     def test_run_combined_trade_input_validation(self, backtester, sample_price_data):
         """Test input validation in run_combined_trade."""
@@ -265,13 +267,14 @@ class TestRunCombinedTrade:
         different_dates = pd.date_range('2023-02-01', periods=5, freq='D')
         portfolio_df = pd.DataFrame({'PositionType': ['long'] * 5}, index=different_dates)
         
-        results, portfolio_df_result = backtester.run_combined_trade(
+        results, portfolio_df_result, figures = backtester.run_combined_trade(
             portfolio_dfs=[portfolio_df],
             price_data=price_data
         )
         
         assert 'error' in results
         assert portfolio_df_result.empty
+        assert figures is None  # fig_control=0 by default
 
 
 class TestRunBacktestLoop:
@@ -450,7 +453,7 @@ class TestIntegration:
         portfolio_dfs = [portfolio1, portfolio2]
         price_data = sample_price_data.iloc[:10]
         
-        results, portfolio_df = backtester.run_combined_trade(
+        results, portfolio_df, _ = backtester.run_combined_trade(
             portfolio_dfs=portfolio_dfs,
             price_data=price_data,
             trading_type='long',
@@ -485,7 +488,7 @@ class TestIntegration:
         portfolio_dfs = [portfolio1, portfolio2, portfolio3]
         price_data = sample_price_data.iloc[:8]
         
-        results, portfolio_df = backtester.run_combined_trade(
+        results, portfolio_df, _ = backtester.run_combined_trade(
             portfolio_dfs=portfolio_dfs,
             price_data=price_data,
             trading_type='mixed',
@@ -508,7 +511,7 @@ class TestIntegration:
         portfolio_dfs = [portfolio_df]
         price_data = sample_price_data.iloc[:15]
         
-        results, portfolio_df_result = backtester.run_combined_trade(
+        results, portfolio_df_result, _ = backtester.run_combined_trade(
             portfolio_dfs=portfolio_dfs,
             price_data=price_data,
             trading_type='long',
@@ -535,7 +538,7 @@ class TestEdgeCases:
         """Test with single portfolio DataFrame."""
         portfolio_dfs = [sample_portfolio_df_long]
         
-        results, portfolio_df = backtester.run_combined_trade(
+        results, portfolio_df, _ = backtester.run_combined_trade(
             portfolio_dfs=portfolio_dfs,
             price_data=sample_price_data
         )
@@ -548,7 +551,7 @@ class TestEdgeCases:
         """Test with multiple portfolio DataFrames."""
         portfolio_dfs = [sample_portfolio_df_long, sample_portfolio_df_short, sample_portfolio_df_mixed]
         
-        results, portfolio_df = backtester.run_combined_trade(
+        results, portfolio_df, _ = backtester.run_combined_trade(
             portfolio_dfs=portfolio_dfs,
             price_data=sample_price_data,
             combination_logic='majority'
@@ -571,7 +574,7 @@ class TestEdgeCases:
             'PortfolioValue': np.random.uniform(9000, 11000, 10)
         }, index=portfolio_dates)
         
-        results, portfolio_df_result = backtester.run_combined_trade(
+        results, portfolio_df_result, _ = backtester.run_combined_trade(
             portfolio_dfs=[portfolio_df],
             price_data=price_data
         )
@@ -590,7 +593,7 @@ class TestEdgeCases:
         
         price_data = sample_price_data.iloc[:10]
         
-        results, portfolio_df_result = backtester.run_combined_trade(
+        results, portfolio_df_result, _ = backtester.run_combined_trade(
             portfolio_dfs=[portfolio_df],
             price_data=price_data
         )
@@ -599,3 +602,408 @@ class TestEdgeCases:
         assert isinstance(portfolio_df_result, pd.DataFrame)
         # Should have no trades
         assert results['num_trades'] == 0
+
+
+class TestPlotCombinedResults:
+    """Test plot_combined_results function."""
+
+    @pytest.fixture
+    def sample_strategies(self):
+        """Sample strategies dictionary for plotting tests."""
+        dates = pd.date_range('2023-01-01', periods=20, freq='D')
+        np.random.seed(42)
+        
+        portfolio1 = pd.DataFrame({
+            'PositionType': ['none'] * 5 + ['long'] * 10 + ['none'] * 5,
+            'PortfolioValue': np.linspace(10000, 11000, 20)
+        }, index=dates)
+        
+        portfolio2 = pd.DataFrame({
+            'PositionType': ['none'] * 3 + ['short'] * 8 + ['none'] * 9,
+            'PortfolioValue': np.linspace(10000, 10500, 20)
+        }, index=dates)
+        
+        return {
+            'RSI': {
+                'results': {
+                    'total_return_pct': 10.0,
+                    'sharpe_ratio': 1.5,
+                    'num_trades': 5
+                },
+                'portfolio': portfolio1
+            },
+            'MACD': {
+                'results': {
+                    'total_return_pct': 5.0,
+                    'sharpe_ratio': 0.8,
+                    'num_trades': 3
+                },
+                'portfolio': portfolio2
+            }
+        }
+
+    @pytest.fixture
+    def sample_voting_results(self):
+        """Sample voting results dictionary for plotting tests."""
+        dates = pd.date_range('2023-01-01', periods=20, freq='D')
+        np.random.seed(43)
+        
+        portfolio = pd.DataFrame({
+            'PositionType': ['none'] * 4 + ['long'] * 8 + ['none'] * 8,
+            'PortfolioValue': np.linspace(10000, 10800, 20)
+        }, index=dates)
+        
+        return {
+            'Combined': {
+                'results': {
+                    'total_return_pct': 8.0,
+                    'sharpe_ratio': 1.2,
+                    'num_trades': 4
+                },
+                'portfolio': portfolio
+            }
+        }
+
+    def test_plot_combined_results_fig_control_0(self, sample_price_data, sample_strategies, sample_voting_results):
+        """Test plot_combined_results with fig_control=0 returns None."""
+        result = plot_combined_results(
+            price_data=sample_price_data,
+            strategies=sample_strategies,
+            voting_results=sample_voting_results,
+            fig_control=0
+        )
+        
+        assert result == (None, None, None)
+
+    @patch('simple_trade.combine_trade.plt')
+    def test_plot_combined_results_fig_control_1(self, mock_plt, sample_price_data, sample_strategies, sample_voting_results):
+        """Test plot_combined_results with fig_control=1 creates and shows figures."""
+        # Setup mock figures and axes
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_ax_twin = MagicMock()
+        mock_ax.twinx.return_value = mock_ax_twin
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        
+        fig_perf, fig_signals, fig_table = plot_combined_results(
+            price_data=sample_price_data,
+            strategies=sample_strategies,
+            voting_results=sample_voting_results,
+            fig_control=1
+        )
+        
+        # Verify figures were created
+        assert fig_perf is not None
+        assert fig_signals is not None
+        assert fig_table is not None
+        
+        # Verify plt.show() was called
+        mock_plt.show.assert_called_once()
+        
+        # Verify subplots were created (3 figures)
+        assert mock_plt.subplots.call_count == 3
+
+    @patch('simple_trade.combine_trade.plt')
+    def test_plot_combined_results_fig_control_2(self, mock_plt, sample_price_data, sample_strategies, sample_voting_results):
+        """Test plot_combined_results with fig_control=2 creates but doesn't show figures."""
+        # Setup mock figures and axes
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_ax_twin = MagicMock()
+        mock_ax.twinx.return_value = mock_ax_twin
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        
+        fig_perf, fig_signals, fig_table = plot_combined_results(
+            price_data=sample_price_data,
+            strategies=sample_strategies,
+            voting_results=sample_voting_results,
+            fig_control=2
+        )
+        
+        # Verify figures were created
+        assert fig_perf is not None
+        assert fig_signals is not None
+        assert fig_table is not None
+        
+        # Verify plt.show() was NOT called
+        mock_plt.show.assert_not_called()
+
+    @patch('simple_trade.combine_trade.plt')
+    def test_plot_combined_results_empty_strategies(self, mock_plt, sample_price_data, sample_voting_results):
+        """Test plot_combined_results with empty strategies dict."""
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_ax_twin = MagicMock()
+        mock_ax.twinx.return_value = mock_ax_twin
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        
+        fig_perf, fig_signals, fig_table = plot_combined_results(
+            price_data=sample_price_data,
+            strategies={},
+            voting_results=sample_voting_results,
+            fig_control=2
+        )
+        
+        # Should still create figures
+        assert fig_perf is not None
+        assert fig_signals is not None
+        assert fig_table is not None
+
+    @patch('simple_trade.combine_trade.plt')
+    def test_plot_combined_results_empty_voting_results(self, mock_plt, sample_price_data, sample_strategies):
+        """Test plot_combined_results with empty voting_results dict."""
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_ax_twin = MagicMock()
+        mock_ax.twinx.return_value = mock_ax_twin
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        
+        fig_perf, fig_signals, fig_table = plot_combined_results(
+            price_data=sample_price_data,
+            strategies=sample_strategies,
+            voting_results={},
+            fig_control=2
+        )
+        
+        # Should still create figures
+        assert fig_perf is not None
+        assert fig_signals is not None
+        assert fig_table is not None
+
+    @patch('simple_trade.combine_trade.plt')
+    def test_plot_combined_results_empty_portfolio(self, mock_plt, sample_price_data):
+        """Test plot_combined_results with empty portfolio in strategy."""
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_ax_twin = MagicMock()
+        mock_ax.twinx.return_value = mock_ax_twin
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        
+        strategies = {
+            'EmptyStrategy': {
+                'results': {'total_return_pct': 0, 'sharpe_ratio': 0, 'num_trades': 0},
+                'portfolio': pd.DataFrame()  # Empty portfolio
+            }
+        }
+        
+        voting_results = {
+            'Combined': {
+                'results': {'total_return_pct': 0, 'sharpe_ratio': 0, 'num_trades': 0},
+                'portfolio': pd.DataFrame()  # Empty portfolio
+            }
+        }
+        
+        fig_perf, fig_signals, fig_table = plot_combined_results(
+            price_data=sample_price_data,
+            strategies=strategies,
+            voting_results=voting_results,
+            fig_control=2
+        )
+        
+        # Should handle empty portfolios gracefully
+        assert fig_perf is not None
+        assert fig_signals is not None
+        assert fig_table is not None
+
+    @patch('simple_trade.combine_trade.plt')
+    def test_plot_combined_results_custom_price_col(self, mock_plt, sample_price_data, sample_strategies, sample_voting_results):
+        """Test plot_combined_results with custom price column."""
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_ax_twin = MagicMock()
+        mock_ax.twinx.return_value = mock_ax_twin
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        
+        # Add custom price column
+        sample_price_data['AdjClose'] = sample_price_data['Close'] * 1.01
+        
+        fig_perf, fig_signals, fig_table = plot_combined_results(
+            price_data=sample_price_data,
+            strategies=sample_strategies,
+            voting_results=sample_voting_results,
+            price_col='AdjClose',
+            fig_control=2
+        )
+        
+        assert fig_perf is not None
+        assert fig_signals is not None
+        assert fig_table is not None
+
+    @patch('simple_trade.combine_trade.plt')
+    def test_plot_combined_results_multiple_strategies(self, mock_plt, sample_price_data):
+        """Test plot_combined_results with many strategies to test color cycling."""
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_ax_twin = MagicMock()
+        mock_ax.twinx.return_value = mock_ax_twin
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        
+        dates = pd.date_range('2023-01-01', periods=20, freq='D')
+        
+        # Create more strategies than available colors to test color cycling
+        strategies = {}
+        for i in range(10):
+            strategies[f'Strategy_{i}'] = {
+                'results': {
+                    'total_return_pct': i * 2.0,
+                    'sharpe_ratio': 0.5 + i * 0.1,
+                    'num_trades': i + 1
+                },
+                'portfolio': pd.DataFrame({
+                    'PositionType': ['long'] * 20,
+                    'PortfolioValue': np.linspace(10000, 10000 + i * 100, 20)
+                }, index=dates)
+            }
+        
+        voting_results = {
+            'Unanimous': {
+                'results': {'total_return_pct': 15.0, 'sharpe_ratio': 1.0, 'num_trades': 8},
+                'portfolio': pd.DataFrame({
+                    'PositionType': ['long'] * 20,
+                    'PortfolioValue': np.linspace(10000, 11500, 20)
+                }, index=dates)
+            }
+        }
+        
+        fig_perf, fig_signals, fig_table = plot_combined_results(
+            price_data=sample_price_data,
+            strategies=strategies,
+            voting_results=voting_results,
+            fig_control=2
+        )
+        
+        assert fig_perf is not None
+        assert fig_signals is not None
+        assert fig_table is not None
+
+    @patch('simple_trade.combine_trade.plt')
+    def test_plot_combined_results_sharpe_non_numeric(self, mock_plt, sample_price_data):
+        """Test plot_combined_results handles non-numeric Sharpe ratio."""
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_ax_twin = MagicMock()
+        mock_ax.twinx.return_value = mock_ax_twin
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        
+        dates = pd.date_range('2023-01-01', periods=20, freq='D')
+        
+        strategies = {
+            'TestStrategy': {
+                'results': {
+                    'total_return_pct': 5.0,
+                    'sharpe_ratio': 'N/A',  # Non-numeric Sharpe
+                    'num_trades': 3
+                },
+                'portfolio': pd.DataFrame({
+                    'PositionType': ['long'] * 20,
+                    'PortfolioValue': np.linspace(10000, 10500, 20)
+                }, index=dates)
+            }
+        }
+        
+        voting_results = {}
+        
+        fig_perf, fig_signals, fig_table = plot_combined_results(
+            price_data=sample_price_data,
+            strategies=strategies,
+            voting_results=voting_results,
+            fig_control=2
+        )
+        
+        assert fig_perf is not None
+        assert fig_signals is not None
+        assert fig_table is not None
+
+
+class TestRunCombinedTradeWithFigures:
+    """Test run_combined_trade with figure generation."""
+
+    @patch('simple_trade.combine_trade.plot_combined_results')
+    def test_run_combined_trade_fig_control_1(self, mock_plot, backtester, sample_price_data, sample_portfolio_df_long):
+        """Test run_combined_trade with fig_control=1."""
+        mock_plot.return_value = (MagicMock(), MagicMock(), MagicMock())
+        
+        portfolio_dfs = [sample_portfolio_df_long]
+        
+        results, portfolio_df, figures = backtester.run_combined_trade(
+            portfolio_dfs=portfolio_dfs,
+            price_data=sample_price_data,
+            trading_type='long',
+            fig_control=1
+        )
+        
+        assert isinstance(results, dict)
+        assert isinstance(portfolio_df, pd.DataFrame)
+        assert figures is not None
+        assert len(figures) == 3
+        mock_plot.assert_called_once()
+
+    @patch('simple_trade.combine_trade.plot_combined_results')
+    def test_run_combined_trade_fig_control_2(self, mock_plot, backtester, sample_price_data, sample_portfolio_df_long):
+        """Test run_combined_trade with fig_control=2."""
+        mock_plot.return_value = (MagicMock(), MagicMock(), MagicMock())
+        
+        portfolio_dfs = [sample_portfolio_df_long]
+        
+        results, portfolio_df, figures = backtester.run_combined_trade(
+            portfolio_dfs=portfolio_dfs,
+            price_data=sample_price_data,
+            trading_type='long',
+            fig_control=2
+        )
+        
+        assert isinstance(results, dict)
+        assert isinstance(portfolio_df, pd.DataFrame)
+        assert figures is not None
+        mock_plot.assert_called_once()
+
+    @patch('simple_trade.combine_trade.plot_combined_results')
+    def test_run_combined_trade_with_strategies_dict(self, mock_plot, backtester, sample_price_data, sample_portfolio_df_long):
+        """Test run_combined_trade with strategies dict for plotting."""
+        mock_plot.return_value = (MagicMock(), MagicMock(), MagicMock())
+        
+        portfolio_dfs = [sample_portfolio_df_long]
+        
+        strategies = {
+            'RSI': {
+                'results': {'total_return_pct': 10.0, 'sharpe_ratio': 1.5, 'num_trades': 5},
+                'portfolio': sample_portfolio_df_long
+            }
+        }
+        
+        results, portfolio_df, figures = backtester.run_combined_trade(
+            portfolio_dfs=portfolio_dfs,
+            price_data=sample_price_data,
+            trading_type='long',
+            fig_control=2,
+            strategies=strategies,
+            strategy_name='MyStrategy'
+        )
+        
+        assert isinstance(results, dict)
+        assert figures is not None
+        
+        # Check that plot_combined_results was called with correct arguments
+        call_kwargs = mock_plot.call_args[1]
+        assert 'strategies' in call_kwargs
+        assert call_kwargs['strategies'] == strategies
+        assert 'MyStrategy' in call_kwargs['voting_results']
+
+    def test_run_combined_trade_empty_signals_with_fig_control(self, backtester):
+        """Test run_combined_trade with empty signals and fig_control > 0."""
+        dates = pd.date_range('2023-01-01', periods=5, freq='D')
+        price_data = pd.DataFrame({'Close': [100, 101, 102, 103, 104]}, index=dates)
+        
+        # Portfolio with no overlapping dates
+        different_dates = pd.date_range('2023-02-01', periods=5, freq='D')
+        portfolio_df = pd.DataFrame({'PositionType': ['long'] * 5}, index=different_dates)
+        
+        results, portfolio_df_result, figures = backtester.run_combined_trade(
+            portfolio_dfs=[portfolio_df],
+            price_data=price_data,
+            fig_control=1
+        )
+        
+        assert 'error' in results
+        assert portfolio_df_result.empty
+        assert figures == (None, None, None)
