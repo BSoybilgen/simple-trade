@@ -1,12 +1,8 @@
 """
-Example: RSI + SMA Combination Strategy Example using premade_backtest
+Example: Combination Strategy Example using premade_backtest
 
-This example demonstrates how to combine RSI and SMA trading signals using 
+This example demonstrates how to combine trading signals using 
 the premade_backtest function for cleaner, more maintainable code.
-
-The strategy combines:
-1. RSI band trading (oversold/overbought signals)
-2. SMA crossover trading (trend following signals)
 """
 
 from simple_trade import download_data
