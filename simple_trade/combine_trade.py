@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from .backtesting import Backtester
 
 class CombineTradeBacktester(Backtester):
@@ -16,7 +17,9 @@ class CombineTradeBacktester(Backtester):
     def run_combined_trade(self, portfolio_dfs: list[pd.DataFrame], price_data: pd.DataFrame,
                              price_col: str = 'Close', long_entry_pct_cash: float = 0.9,
                              short_entry_pct_cash: float = 0.9, trading_type: str = 'long',
-                             risk_free_rate: float = 0.0, combination_logic: str = 'unanimous') -> tuple:
+                             risk_free_rate: float = 0.0, combination_logic: str = 'unanimous',
+                             fig_control: int = 0, strategies: dict = None, 
+                             strategy_name: str = 'Combined') -> tuple:
         """
         Runs a backtest based on combined signals from multiple portfolio DataFrames.
 
@@ -31,11 +34,20 @@ class CombineTradeBacktester(Backtester):
             short_entry_pct_cash (float): Pct of cash for short entries (default: 0.1).
             trading_type (str): Defines trading behavior ('long', 'short', 'mixed'). Default: 'mixed'.
             risk_free_rate (float): Annual risk-free rate for Sharpe ratio (default: 0.0).
+            combination_logic (str): Logic for combining signals ('unanimous' or 'majority').
+            fig_control (int): Controls figure generation:
+                              0 = No figures (default)
+                              1 = Create and show figures
+                              2 = Create figures but don't show (return only)
+            strategies (dict): Optional dict of individual strategies for plotting.
+                              Structure: {'Name': {'results': dict, 'portfolio': DataFrame}}
+            strategy_name (str): Name for this combined strategy in plots. Default: 'Combined'.
 
         Returns:
             tuple: A tuple containing:
                 - dict: Dictionary with backtest summary results.
                 - pd.DataFrame: DataFrame tracking daily portfolio evolution.
+                - tuple or None: (fig_performance, fig_signals, fig_table) if fig_control > 0, else None.
         """
         # --- Input Validation ---
         if combination_logic not in ['unanimous', 'majority']:
@@ -51,7 +63,9 @@ class CombineTradeBacktester(Backtester):
         df = self._combine_signals(portfolio_dfs, price_data, price_col, combination_logic)
 
         if df.empty:
-            return self._get_empty_results(), pd.DataFrame()
+            if fig_control > 0:
+                return self._get_empty_results(), pd.DataFrame(), (None, None, None)
+            return self._get_empty_results(), pd.DataFrame(), None
 
         # --- Run Backtest ---
         portfolio_log, end_state = self._run_backtest_loop(
@@ -72,7 +86,25 @@ class CombineTradeBacktester(Backtester):
             trading_type=trading_type
         )
 
-        return results, portfolio_df
+        # --- Generate Figures if requested ---
+        figures = None
+        if fig_control > 0:
+            # Build voting_results dict for this combined strategy
+            voting_results = {
+                strategy_name: {'results': results, 'portfolio': portfolio_df}
+            }
+            # Use provided strategies or empty dict
+            strat_dict = strategies if strategies is not None else {}
+            
+            figures = plot_combined_results(
+                price_data=price_data,
+                strategies=strat_dict,
+                voting_results=voting_results,
+                price_col=price_col,
+                fig_control=fig_control
+            )
+
+        return results, portfolio_df, figures
 
     def _combine_signals(self, portfolio_dfs: list[pd.DataFrame], price_data: pd.DataFrame, price_col: str, combination_logic: str) -> pd.DataFrame:
         """
@@ -311,3 +343,224 @@ class CombineTradeBacktester(Backtester):
             "total_return_pct": 0.0,
             "num_trades": 0,
         }
+
+
+def plot_combined_results(
+    price_data: pd.DataFrame,
+    strategies: dict,
+    voting_results: dict,
+    price_col: str = 'Close',
+    fig_control: int = 1
+) -> tuple:
+    """
+    Create visualization figures for combined trading strategy results.
+    
+    Generates three separate figures:
+    1. Performance figure: Stock price and portfolio values
+    2. Signals timeline figure: Trading signals for each strategy
+    3. Summary table figure: Performance metrics comparison
+    
+    Args:
+        price_data (pd.DataFrame): DataFrame with price data and DatetimeIndex.
+        strategies (dict): Dictionary of individual strategies with structure:
+                          {'StrategyName': {'results': dict, 'portfolio': DataFrame}}
+        voting_results (dict): Dictionary of voting strategies with same structure.
+        price_col (str): Column name for price data. Default: 'Close'.
+        fig_control (int): Controls figure display behavior:
+                          0 = Don't create figures
+                          1 = Create and show figures
+                          2 = Create figures but don't show (return only)
+    
+    Returns:
+        tuple: (fig_performance, fig_signals, fig_table) - Three matplotlib Figure objects.
+               Returns (None, None, None) if fig_control is 0.
+    
+    Example:
+        >>> strategies = {
+        ...     'RSI': {'results': rsi_results, 'portfolio': rsi_portfolio},
+        ...     'MACD': {'results': macd_results, 'portfolio': macd_portfolio}
+        ... }
+        >>> voting_results = {
+        ...     'Unanimous': {'results': unan_results, 'portfolio': unan_portfolio},
+        ...     'Majority': {'results': maj_results, 'portfolio': maj_portfolio}
+        ... }
+        >>> fig1, fig2, fig3 = plot_combined_results(data, strategies, voting_results)
+    """
+    if fig_control == 0:
+        return None, None, None
+    
+    # Define colors for strategies
+    strategy_colors = ['blue', 'red', 'green', 'orange', 'cyan', 'magenta', 'lime', 'pink']
+    voting_colors = ['purple', 'brown', 'darkred', 'darkblue']
+    
+    # ==================== FIGURE 1: Performance ====================
+    fig_performance, ax1 = plt.subplots(figsize=(14, 7))
+    
+    # Plot stock price on left y-axis
+    ax1.plot(price_data.index, price_data[price_col], 
+             label='Stock Price', color='black', alpha=0.7, linewidth=1)
+    ax1.set_ylabel('Stock Price ($)', fontsize=10)
+    ax1.set_xlabel('')
+    
+    # Create twin axis for portfolio values
+    ax1_twin = ax1.twinx()
+    
+    # Plot individual strategies
+    for i, (name, strategy) in enumerate(strategies.items()):
+        portfolio = strategy['portfolio']
+        results = strategy['results']
+        if not portfolio.empty:
+            return_pct = results.get('total_return_pct', 0)
+            color = strategy_colors[i % len(strategy_colors)]
+            ax1_twin.plot(portfolio.index, portfolio['PortfolioValue'], 
+                         label=f"{name} ({return_pct:.1f}%)", 
+                         color=color, alpha=0.8, linewidth=1.5)
+    
+    # Plot voting strategies with dashed lines
+    for i, (name, strategy) in enumerate(voting_results.items()):
+        portfolio = strategy['portfolio']
+        results = strategy['results']
+        if not portfolio.empty:
+            return_pct = results.get('total_return_pct', 0)
+            color = voting_colors[i % len(voting_colors)]
+            ax1_twin.plot(portfolio.index, portfolio['PortfolioValue'], 
+                         label=f"{name} Voting ({return_pct:.1f}%)", 
+                         color=color, linewidth=2.5, linestyle='--')
+    
+    ax1_twin.set_ylabel('Portfolio Value ($)', fontsize=10)
+    
+    ax1.set_title('Multi-Indicator Voting Strategy Performance', fontsize=14, fontweight='bold')
+    ax1.legend(loc='upper left', fontsize=8)
+    ax1_twin.legend(loc='upper right', fontsize=8)
+    ax1.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    
+    # ==================== FIGURE 2: Signals Timeline ====================
+    fig_signals, ax2 = plt.subplots(figsize=(14, 5))
+    
+    signal_offset = 0
+    offset_step = 3
+    
+    # Plot individual strategy signals
+    for i, (name, strategy) in enumerate(strategies.items()):
+        portfolio = strategy['portfolio']
+        if not portfolio.empty:
+            signals = portfolio['PositionType'].map({'long': 1, 'short': -1, 'none': 0})
+            color = strategy_colors[i % len(strategy_colors)]
+            ax2.plot(portfolio.index, signals + signal_offset, 
+                    label=f'{name} Signals', color=color, alpha=0.8, linewidth=1.5)
+            signal_offset += offset_step
+    
+    # Plot voting strategy signals with dashed lines
+    for i, (name, strategy) in enumerate(voting_results.items()):
+        portfolio = strategy['portfolio']
+        if not portfolio.empty:
+            signals = portfolio['PositionType'].map({'long': 1, 'short': -1, 'none': 0})
+            color = voting_colors[i % len(voting_colors)]
+            ax2.plot(portfolio.index, signals + signal_offset, 
+                    label=f'{name} Voting', color=color, linewidth=2.5, linestyle='--', alpha=0.9)
+            signal_offset += offset_step
+    
+    ax2.set_title('Trading Signals Timeline', fontsize=14, fontweight='bold')
+    ax2.set_ylabel('Position Signals (offset for clarity)', fontsize=10)
+    ax2.legend(bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=8)
+    ax2.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    
+    # ==================== FIGURE 3: Summary Table ====================
+    fig_table, ax3 = plt.subplots(figsize=(14, 4))
+    ax3.axis('off')
+    
+    # Build summary data
+    summary_data = []
+    
+    # Add individual strategies
+    for name, strategy in strategies.items():
+        results = strategy['results']
+        portfolio = strategy['portfolio']
+        
+        if not portfolio.empty:
+            daily_returns = portfolio['PortfolioValue'].pct_change().dropna()
+            volatility = daily_returns.std() * np.sqrt(252) * 100
+            max_dd = ((portfolio['PortfolioValue'] / portfolio['PortfolioValue'].expanding().max()) - 1).min() * 100
+            win_rate = (daily_returns > 0).mean() * 100
+        else:
+            volatility = max_dd = win_rate = 0
+        
+        return_pct = results.get('total_return_pct', 0)
+        sharpe = results.get('sharpe_ratio', 0)
+        sharpe_str = f"{sharpe:.2f}" if isinstance(sharpe, (int, float)) else 'N/A'
+        
+        summary_data.append([
+            name,
+            f"{return_pct:.1f}%",
+            f"{volatility:.1f}%",
+            f"{max_dd:.1f}%",
+            f"{win_rate:.1f}%",
+            results.get('num_trades', 0),
+            sharpe_str
+        ])
+    
+    # Add voting strategies
+    for name, strategy in voting_results.items():
+        results = strategy['results']
+        portfolio = strategy['portfolio']
+        
+        if not portfolio.empty:
+            daily_returns = portfolio['PortfolioValue'].pct_change().dropna()
+            volatility = daily_returns.std() * np.sqrt(252) * 100
+            max_dd = ((portfolio['PortfolioValue'] / portfolio['PortfolioValue'].expanding().max()) - 1).min() * 100
+            win_rate = (daily_returns > 0).mean() * 100
+        else:
+            volatility = max_dd = win_rate = 0
+        
+        return_pct = results.get('total_return_pct', 0)
+        sharpe = results.get('sharpe_ratio', 0)
+        sharpe_str = f"{sharpe:.2f}" if isinstance(sharpe, (int, float)) else 'N/A'
+        
+        summary_data.append([
+            f"{name} Voting",
+            f"{return_pct:.1f}%",
+            f"{volatility:.1f}%",
+            f"{max_dd:.1f}%",
+            f"{win_rate:.1f}%",
+            results.get('num_trades', 0),
+            sharpe_str
+        ])
+    
+    # Create table
+    col_labels = ['Strategy', 'Return', 'Volatility', 'Max DD', 'Win Rate', 'Trades', 'Sharpe']
+    table = ax3.table(
+        cellText=summary_data,
+        colLabels=col_labels,
+        cellLoc='center',
+        loc='center',
+        colWidths=[0.18, 0.12, 0.12, 0.12, 0.12, 0.1, 0.12]
+    )
+    
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1, 2)
+    
+    # Style the table
+    num_strategies = len(strategies)
+    for i in range(len(summary_data) + 1):
+        for j in range(len(col_labels)):
+            cell = table[(i, j)]
+            if i == 0:  # Header row
+                cell.set_facecolor('#4CAF50')
+                cell.set_text_props(weight='bold', color='white')
+            elif i > num_strategies:  # Voting strategies (after individual ones)
+                cell.set_facecolor('#FFF3E0')
+            else:  # Individual strategies
+                cell.set_facecolor('#E3F2FD')
+    
+    plt.tight_layout()
+    
+    # Show figures if fig_control == 1
+    if fig_control == 1:
+        plt.show()
+    
+    return fig_performance, fig_signals, fig_table
