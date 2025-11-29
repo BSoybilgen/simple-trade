@@ -16,13 +16,11 @@ A Python library that allows you to compute technical indicators and build trade
     *   Momentum (e.g., RSI, Stochastics)
     *   Volatility (e.g., Bollinger Bands, ATR)
     *   Volume (e.g., On-Balance Volume)
-*   **Trading Strategies:** Implement and backtest common trading strategies:
-    *   Cross Trade Strategies (`cross_trade`)
-    *   Band Trading Strategies (`band_trade`)
+*   **Trading Strategies:** Implement custom trading strategies or select from premade trading strategies.
 *   **Backtesting:** Evaluate the performance of your trading strategies on historical data.
 *   **Optimization:** Optimize strategy parameters using techniques like grid search.
 *   **Plotting:** Visualize data, indicators, and backtest results using `matplotlib`.
-*   **Combining:** Combine different strategies to create a more complex strategy.
+*   **Combining:** Combine different strategies to create a more complex strategies.
 
 ## Installation
 
@@ -67,8 +65,8 @@ Here's a quick example of how to download data and compute a technical indicator
 
 ```python
 # Load Packages and Functions
-import pandas as pd
 from simple_trade import compute_indicator, download_data
+from simple_trade import list_indicators
 
 # Step 1: Download data
 symbol = 'TSLA'
@@ -95,16 +93,20 @@ fig.show()
 **Plot of Results**
 <img src="https://i.imgur.com/JBpd0qo.png" alt="Figure 1" width="900" height="600">
 
+To see a list of all indicators, use `list_indicators()` function.
+
 ### Backtesting Strategies
 
-Use the `premade_backtesting` module to simulate strategies like moving average crossovers (`cross_trade`) or Bollinger Band breakouts (`band_trade`).
+Use the `run_premade_trade` function to select from premade strategies or create your custom strategies using `run_cross_trade`/`run_band_trade` functions.
 
 ```python
+# Example for backtesting a premade strategy
+
 # Load Packages and Functions
-import pandas as pd
 from simple_trade import download_data
 from simple_trade import premade_backtest
-from simple_trade import CrossTradeBacktester
+from simple_trade import list_premade_strategies
+from simple_trade import print_results
 
 # Step 1: Download data
 symbol = 'AAPL'
@@ -136,20 +138,57 @@ specific_parameters = {
 # Step 4: Run Backtest
 parameters = {**global_parameters, **specific_parameters}
 results, portfolio, fig = premade_backtest(data, strategy_name, parameters)
+print_results(results)
 ```
 
 **Plot of Results**
 <img src="https://i.imgur.com/4qxr0dp.png" alt="Figure 2" width="900" height="600">
 
+============================================================
+              ✨ Cross Trade (SMA_25/SMA_75) ✨               
+============================================================
+
+🗓️ BACKTEST PERIOD:
+  • Period: 2020-04-20 to 2022-12-30
+  • Duration: 984 days
+  • Trading Periods: 682
+
+📊 BASIC METRICS:
+  • Initial Investment: $10,000.00
+  • Final Portfolio Value: $13,199.32
+  • Total Return: 31.99%
+  • Annualized Return: 10.80%
+  • Number of Trades: 16
+  • Total Commissions: $237.12
+
+📈 BENCHMARK COMPARISON:
+  • Benchmark Return: 87.48%
+  • Benchmark Final Value: $18,748.45
+  • Strategy vs Benchmark: -55.49%
+
+📉 RISK METRICS:
+  • Sharpe Ratio: 0.530
+  • Sortino Ratio: 0.500
+  • Maximum Drawdown: -32.50%
+  • Average Drawdown: -14.25%
+  • Max Drawdown Duration: 360 days
+  • Avg Drawdown Duration: 43.43 days
+  • Annualized Volatility: 25.89%
+
+============================================================
+
+To see a list of all indicators, use `list_premade_strategies()` function.
 
 ### Optimizing Strategies
 
-The `premade_optimizer` module allows you to find the best parameters for your strategy (e.g., optimal moving average windows).
+Use the `premade_optimizer` function to find the best parameters for your premade strategies or optimize your custom strategies using `optimize` function.
 
 ```python
+# Example for optimizing a premade strategy
+
 # Load Packages and Functions
 from simple_trade import download_data
-from simple_trade.premade_optimizer import premade_optimizer
+from simple_trade import premade_optimizer
 
 # Step 1: Load Data
 ticker = "AAPL"
@@ -202,6 +241,94 @@ Top 3 SMA Parameter Combinations:
   3. {'short_window': 30, 'long_window': 50} -> 67.08%
 ```
 
+### Combining Strategies
+
+Use the `run_combined_trade` function to combine multiple strategies.
+
+```python
+# Example for combining premade strategies
+
+# Load Packages and Functions
+from simple_trade import download_data
+from simple_trade import run_premade_trade
+from simple_trade import run_combined_trade
+
+
+# Step 1: Download data
+print("Downloading stock data...")
+symbol = 'AAPL'
+start_date = '2020-01-01'
+end_date = '2022-12-31'
+interval = '1d'
+data = download_data(symbol, start_date, end_date, interval=interval)
+
+# Step 2: Set Global Parameters
+global_parameters = {
+    'initial_cash': 10000,
+    'commission_long': 0.001,
+    'commission_short': 0.001,
+    'short_borrow_fee_inc_rate': 0.0,
+    'long_borrow_fee_inc_rate': 0.0,
+    'trading_type': 'long',
+    'day1_position': 'none',
+    'risk_free_rate': 0.0,
+}
+
+# Step 3: Compute RSI Strategy
+rsi_params = {
+    'window': 14,
+    'upper': 70,
+    'lower': 30,
+    'fig_control': 0
+}
+
+rsi_params = {**global_parameters, **rsi_params}
+rsi_results, rsi_portfolio, _ = run_premade_trade(data, "rsi", rsi_params)
+
+# Step 3: Compute SMA Strategy 
+sma_params = {
+    'short_window': 20,
+    'long_window': 50,
+    'fig_control': 0
+}
+
+sma_params = {**global_parameters, **sma_params}
+sma_results, sma_portfolio, _ = run_premade_trade(data, "sma", sma_params)
+
+# Step 4: Combine RSI and SMA Strategies 
+strategies = {
+    'RSI': {'results': rsi_results, 'portfolio': rsi_portfolio},
+    'SMA': {'results': sma_results, 'portfolio': sma_portfolio}
+}
+
+combined_results, combined_portfolio, _ = run_combined_trade(
+    portfolio_dfs=[rsi_portfolio, sma_portfolio],
+    price_data=data,
+    price_col='Close',
+    combination_logic='majority',
+    trading_type='long',
+    fig_control=0,
+    strategies=strategies,
+    strategy_name='Majority',
+    initial_cash=200,
+    commission_long=0.001,
+    commission_short=0.001
+)
+
+print(f"2 Trading Strategy Combination - Final Value: ${combined_results['final_value']:.2f}")
+print(f"2 Trading Strategy Combination - Total Return: {combined_results['total_return_pct']}%")
+print(f"2 Trading Strategy Combination - Number of Trades: {combined_results['num_trades']}")
+print(f"2 Trading Strategy Combination - Sharpe Ratio: {combined_results['sharpe_ratio']:.3f}")
+```
+
+**Output of Results**
+```
+2 Trading Strategy Combination - Final Value: $318.11
+2 Trading Strategy Combination - Total Return: 59.16%
+2 Trading Strategy Combination - Number of Trades: 13
+2 Trading Strategy Combination - Sharpe Ratio: 0.780
+```
+
 ## Examples
 
 For more detailed examples, please refer to the Jupyter notebooks in the `/examples` directory:
@@ -210,6 +337,7 @@ For more detailed examples, please refer to the Jupyter notebooks in the `/examp
 *   `/examples/backtest`: Examples of backtesting different strategies.
 *   `/examples/optimize`: Examples of optimizing strategy parameters.
 *   `/examples/combine_trade`: Examples of combining different strategies.
+*   `/examples/lists`: Examples of listing functions.
 
 ## Contributing
 

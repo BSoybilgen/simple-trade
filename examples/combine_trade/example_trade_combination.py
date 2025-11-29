@@ -9,8 +9,8 @@ from simple_trade import download_data
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from simple_trade.run_premade_strategies import run_premade_trade
-from simple_trade.run_combined_trade_strategies import run_combined_trade
+from simple_trade import run_premade_trade
+from simple_trade import run_combined_trade
 
 # Download data
 print("Downloading stock data...")
