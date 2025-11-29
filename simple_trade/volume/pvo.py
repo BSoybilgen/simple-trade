@@ -83,3 +83,75 @@ def pvo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     columns_list = list(result.columns)
     return result, columns_list
+
+
+def strategy_pvo(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    PVO (Percentage Volume Oscillator) - Signal Line Crossover Strategy
+    
+    LOGIC: Buy when PVO crosses above signal line (volume expanding),
+           sell when PVO crosses below signal line (volume contracting).
+    WHY: PVO is like MACD for volume. Shows relationship between two volume MAs.
+         Positive PVO indicates expanding volume, negative indicates contracting.
+    BEST MARKETS: Stocks, ETFs. Good for breakout confirmation.
+    TIMEFRAME: Daily charts. 12/26/9 periods is standard (like MACD).
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'fast_period' (default 12), 'slow_period' (default 26),
+                    'signal_period' (default 9)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    fast_period = int(parameters.get('fast_period', 12))
+    slow_period = int(parameters.get('slow_period', 26))
+    signal_period = int(parameters.get('signal_period', 9))
+    price_col = 'Close'
+    pvo_col = f'PVO_{fast_period}_{slow_period}'
+    signal_col = f'PVO_SIGNAL_{signal_period}'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='pvo',
+        parameters={"fast_period": fast_period, "slow_period": slow_period, "signal_period": signal_period},
+        figure=False
+    )
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=pvo_col,
+        long_window_indicator=signal_col,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [pvo_col, signal_col]
+    
+    return results, portfolio, indicator_cols_to_plot, data

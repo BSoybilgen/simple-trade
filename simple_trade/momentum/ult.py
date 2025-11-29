@@ -84,3 +84,86 @@ def ult(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = [ultimate.name]
     return ultimate, columns_list
+
+
+def strategy_ult(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    ULT (Ultimate Oscillator) - Mean Reversion Strategy
+    
+    LOGIC: Buy when UltOsc drops below 30 (oversold), sell when above 70 (overbought).
+    WHY: Ultimate Oscillator combines 3 timeframes to reduce volatility and false signals.
+         Multi-timeframe approach provides more reliable overbought/oversold readings.
+    BEST MARKETS: Range-bound markets. Stocks, forex, commodities. Particularly good
+                  for divergence trading in oversold/overbought zones.
+    TIMEFRAME: Daily charts. 7/14/28 periods are standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'short_window' (default 7), 'medium_window' (default 14),
+                   'long_window' (default 28), 'upper' (default 70), 'lower' (default 30)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    short_window = int(parameters.get('short_window', 7))
+    medium_window = int(parameters.get('medium_window', 14))
+    long_window = int(parameters.get('long_window', 28))
+    upper = int(parameters.get('upper', 70))
+    lower = int(parameters.get('lower', 30))
+    
+    indicator_params = {
+        "short_window": short_window,
+        "medium_window": medium_window,
+        "long_window": long_window
+    }
+    indicator_col = f'ULTOSC_{short_window}_{medium_window}_{long_window}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='ult',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

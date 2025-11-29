@@ -58,3 +58,74 @@ def vro(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     vroc_values.name = f'VROC_{period}'
     columns_list = [vroc_values.name]
     return vroc_values, columns_list
+
+
+def strategy_vro(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    VRO (Volume Rate of Change) - Zero Line Cross Strategy
+    
+    LOGIC: Buy when VROC crosses above zero (volume increasing),
+           sell when VROC crosses below zero (volume decreasing).
+    WHY: VROC measures rate of change in volume. Positive VROC indicates
+         increasing volume, negative indicates decreasing volume.
+    BEST MARKETS: Stocks, ETFs. Good for breakout validation.
+    TIMEFRAME: Daily charts. 14-period is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'period' (default 14)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    period = int(parameters.get('period', 14))
+    price_col = 'Close'
+    indicator_col = f'VROC_{period}'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='vro',
+        parameters={"period": period},
+        figure=False
+    )
+    
+    # Create zero line for crossover
+    data['zero'] = 0
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=indicator_col,
+        long_window_indicator='zero',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'zero']
+    
+    return results, portfolio, indicator_cols_to_plot, data

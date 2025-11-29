@@ -134,3 +134,83 @@ def ttm(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = [momentum_col, squeeze_on_col, squeeze_off_col]
     return result, columns_list
+
+
+def strategy_ttm(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    TTM (TTM Squeeze) - Momentum Zero Line Crossover Strategy
+    
+    LOGIC: Buy when TTM momentum crosses above zero, sell when crosses below.
+    WHY: TTM Squeeze identifies consolidation (squeeze) followed by breakouts.
+         Momentum histogram direction after squeeze indicates breakout direction.
+    BEST MARKETS: All markets. Excellent for breakout trading after consolidation.
+                  Stocks, forex, futures. Best when combined with squeeze signals.
+    TIMEFRAME: Daily or 4-hour charts. 20-period is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'length' (default 20), 'std_dev' (default 2.0),
+                   'atr_length' (default 20), 'atr_multiplier' (default 1.5)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    length = int(parameters.get('length', 20))
+    
+    indicator_params = {
+        "length": length,
+        "std_dev": float(parameters.get('std_dev', 2.0)),
+        "atr_length": int(parameters.get('atr_length', 20)),
+        "atr_multiplier": float(parameters.get('atr_multiplier', 1.5)),
+        "smooth": int(parameters.get('smooth', 3))
+    }
+    short_window_indicator = f'TTM_MOM_{length}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='ttm',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    # Create zero line for crossover strategy
+    data['zero_line'] = 0
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+    
+    return results, portfolio, indicator_cols_to_plot, data

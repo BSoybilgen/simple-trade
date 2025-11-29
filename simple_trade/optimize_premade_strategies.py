@@ -3,7 +3,7 @@ import itertools
 from typing import Dict, List, Any
 from joblib import Parallel, delayed
 
-from .premade_backtest import premade_backtest
+from .run_premade_strategies import run_premade_trade
 
 def _generate_parameter_combinations(param_grid) -> List[Dict[str, Any]]:
     """Generates all possible parameter combinations from the grid."""
@@ -21,7 +21,7 @@ def _run_backtest_worker(params: dict, data: pd.DataFrame, strategy_name: str, b
     current_run_params = {**base_parameters, **params}
     
     # Run the backtest. Use a copy of the data to avoid race conditions if it's modified in-place.
-    results_df, _, _ = premade_backtest(data.copy(), strategy_name, current_run_params)
+    results_df, _, _ = run_premade_trade(data.copy(), strategy_name, current_run_params)
     
     # Safely get the score from the last row of the results DataFrame
     score = results_df[metric]

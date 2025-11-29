@@ -3,10 +3,9 @@ import pandas as pd
 import pandas.testing as pdt
 import numpy as np
 import matplotlib.pyplot as plt
-from unittest.mock import patch, MagicMock, call, ANY
-import logging
+from unittest.mock import patch, MagicMock, ANY
 
-from simple_trade.plot_ind import IndicatorPlotter
+from simple_trade.plot_ind import plot_indicator
 
 # === Fixtures ===
 
@@ -68,38 +67,38 @@ def sample_line_data_many_indicators():
     return df
 
 @pytest.fixture
-def mock_plotting_fixture(mocker):
+def mock_plotting_fixture():
     """Provides mocked plt, fig, and flexible axes (single or list)."""
-    mock_plt = mocker.patch('simple_trade.plot_ind.plt', autospec=True)
-    mock_fig = MagicMock(spec=plt.Figure)
-    mock_ax_single = MagicMock(spec=plt.Axes, name="SingleAxis")
-    mock_axes_list = [MagicMock(spec=plt.Axes, name="Axis0"), MagicMock(spec=plt.Axes, name="Axis1")]
+    with patch('simple_trade.plot_ind.plt', autospec=True) as mock_plt:
+        mock_fig = MagicMock(spec=plt.Figure)
+        mock_ax_single = MagicMock(spec=plt.Axes, name="SingleAxis")
+        mock_axes_list = [MagicMock(spec=plt.Axes, name="Axis0"), MagicMock(spec=plt.Axes, name="Axis1")]
 
-    # Store the created axes to be returned by the fixture value
-    created_axes = None
+        # Store the created axes to be returned by the fixture value
+        created_axes = None
 
-    def subplots_side_effect(*args, **kwargs):
-        nonlocal created_axes
-        nrows = args[0] if len(args) > 0 else 1
-        ncols = args[1] if len(args) > 1 else 1
-        # Check the gridspec_kw for subplot determination as well
-        is_subplot = (nrows > 1 or ncols > 1) or (kwargs.get('gridspec_kw') and kwargs['gridspec_kw'].get('height_ratios'))
+        def subplots_side_effect(*args, **kwargs):
+            nonlocal created_axes
+            nrows = args[0] if len(args) > 0 else 1
+            ncols = args[1] if len(args) > 1 else 1
+            # Check the gridspec_kw for subplot determination as well
+            is_subplot = (nrows > 1 or ncols > 1) or (kwargs.get('gridspec_kw') and kwargs['gridspec_kw'].get('height_ratios'))
 
-        if is_subplot:
-            # Ensure the list has enough mocks if more are needed
-            while len(mock_axes_list) < nrows * ncols:
-                mock_axes_list.append(MagicMock(spec=plt.Axes, name=f"Axis{len(mock_axes_list)}"))
-            created_axes = mock_axes_list[:nrows*ncols]
-            return (mock_fig, created_axes)
-        else:
-            created_axes = mock_ax_single
-            return (mock_fig, created_axes)
+            if is_subplot:
+                # Ensure the list has enough mocks if more are needed
+                while len(mock_axes_list) < nrows * ncols:
+                    mock_axes_list.append(MagicMock(spec=plt.Axes, name=f"Axis{len(mock_axes_list)}"))
+                created_axes = mock_axes_list[:nrows*ncols]
+                return (mock_fig, created_axes)
+            else:
+                created_axes = mock_ax_single
+                return (mock_fig, created_axes)
 
-    mock_plt.subplots.side_effect = subplots_side_effect
-    mock_plt.figure.return_value = mock_fig
+        mock_plt.subplots.side_effect = subplots_side_effect
+        mock_plt.figure.return_value = mock_fig
 
-    # Yield the mocks - the axes returned depend on what subplots was called with
-    yield mock_plt, mock_fig, lambda: created_axes
+        # Yield the mocks - the axes returned depend on what subplots was called with
+        yield mock_plt, mock_fig, lambda: created_axes
 
 @pytest.fixture(scope="session")
 def sample_psar_data():
@@ -129,62 +128,44 @@ def sample_ichimoku_data():
 # === Tests ===
 
 # === Tests for _validate_and_prepare_data (called indirectly by plot_results) ===
-def test_plot_with_non_datetime_index(mocker, sample_line_data, mock_plotting_fixture):
-    """Test plot_results call with a non-datetime index converts it."""
+def test_plot_with_non_datetime_index(sample_line_data, mock_plotting_fixture):
+    """Test plot_indicator call with a non-datetime index converts it."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
     data_non_dt = sample_line_data.reset_index()
-    # Mock pd.to_datetime used inside plot_results (implicitly checked)
-    # mock_to_datetime = mocker.patch('pandas.to_datetime', wraps=pd.to_datetime)
 
-    # Call the correct method
-    plotter.plot_results(data_non_dt, price_col='Close')
+    # Call the function
+    plot_indicator(data_non_dt, price_col='Close')
 
-    # Assert pd.to_datetime was called (indirect check - plot should proceed)
-    # mock_to_datetime.assert_called()
+    # Assert plot was called on the axes
     ax = get_axes()
     assert ax.plot.called # Check if plot was called on the axes
 
-def test_plot_index_conversion_failure(mocker, sample_line_data):
-    """Test plot_results raises ValueError if index conversion fails (line 52)."""
-    plotter = IndicatorPlotter()
-    data_bad_index = sample_line_data.copy()
-    data_bad_index.index = pd.Index([f'invalid_{i}' for i in range(len(data_bad_index))])
-
-    # Mock pd.to_datetime to simulate failure during validation
-    # Note: This validation might not happen if index isn't used directly
-    # Adjust test if validation happens elsewhere
-    # mocker.patch('pandas.to_datetime', side_effect=ValueError("Conversion failed"))
-
-    # For now, assume the plot_results method itself doesn't explicitly convert index
-    # but relies on pandas/matplotlib downstream handling. If specific conversion
-    # fails, the error might come from plotting itself.
-    # Let's test the explicit check for price_col instead, which is in plot_results
+def test_plot_index_conversion_failure(sample_line_data):
+    """Test plot_indicator raises ValueError if price column is missing."""
+    # Test the explicit check for price_col
     data_missing_price = sample_line_data.drop(columns=['Close'])
     with pytest.raises(ValueError, match="Price column 'Close' not found"):
-        plotter.plot_results(data_missing_price, price_col='Close')
+        plot_indicator(data_missing_price, price_col='Close')
 
 def test_plot_empty_column_names_warning(sample_line_data, caplog, mock_plotting_fixture):
     """Test warning when column_names is empty or None."""
     mock_plt, _, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
     # Test with empty list
-    plotter.plot_results(sample_line_data, price_col='Close', column_names=[])
+    plot_indicator(sample_line_data, price_col='Close', column_names=[])
     assert "No valid indicator columns specified or found. Plotting price only." in caplog.text
     mock_plt.subplots.assert_called_once() # Ensure plot still proceeds
     caplog.clear()
     mock_plt.subplots.reset_mock()
     # Test with None (default)
-    plotter.plot_results(sample_line_data, price_col='Close', column_names=None)
+    plot_indicator(sample_line_data, price_col='Close', column_names=None)
     assert "No indicator columns specified. Plotting price only." in caplog.text
     mock_plt.subplots.assert_called_once()
 
 def test_plot_invalid_column_names_warning(sample_line_data, caplog, mock_plotting_fixture):
     """Test warning when column_names contains invalid columns."""
     mock_plt, _, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
     # Use correct parameter name
-    plotter.plot_results(sample_line_data, price_col='Close', column_names=['Close', 'NonExistent_SMA', 'SMA_10'])
+    plot_indicator(sample_line_data, price_col='Close', column_names=['Close', 'NonExistent_SMA', 'SMA_10'])
 
     assert "Columns ['NonExistent_SMA'] specified but not found in DataFrame." in caplog.text
     # Check that valid overlay indicator (SMA_10) was still plotted
@@ -195,8 +176,7 @@ def test_plot_candlestick_missing_overlay_warning(sample_candlestick_data, mock_
     """Test warning for missing overlay indicator in candlestick plot."""
     # No need for mpf.plot patch
     mock_plt, _, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
-    plotter.plot_results(
+    plot_indicator(
         sample_candlestick_data,
         plot_type='candlestick',
         column_names=['SMA_10', 'Missing_Overlay'] # SMA_10 is overlay
@@ -209,8 +189,7 @@ def test_plot_candlestick_missing_overlay_warning(sample_candlestick_data, mock_
 def test_plot_line_missing_overlay_warning(sample_line_data, mock_plotting_fixture, caplog):
     """Test warning for missing overlay indicator in line plot."""
     mock_plt, _, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
-    plotter.plot_results(
+    plot_indicator(
         sample_line_data,
         plot_type='line',
         price_col='Close',
@@ -224,8 +203,7 @@ def test_plot_line_missing_overlay_warning(sample_line_data, mock_plotting_fixtu
 def test_plot_line_missing_subplot_warning(sample_line_data, mock_plotting_fixture, caplog):
     """Test warning for missing subplot indicator in line plot."""
     mock_plt, _, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
-    plotter.plot_results(
+    plot_indicator(
         sample_line_data,
         plot_type='line',
         price_col='Close',
@@ -239,21 +217,19 @@ def test_plot_line_missing_subplot_warning(sample_line_data, mock_plotting_fixtu
 
 def test_plot_candlestick_missing_columns_error(sample_candlestick_data):
     """Test ValueError if required columns are missing for candlestick."""
-    plotter = IndicatorPlotter()
     data_missing_open = sample_candlestick_data.drop(columns=['Open'])
     # Correct the regex pattern to match the exact error message format from plot_ind.py
     # Escape regex special characters: [, ], .
     expected_error_msg = r"Candlestick plot requires columns \['Open', 'High', 'Low', 'Close'\], but \['Open'\] are missing\."
     with pytest.raises(ValueError, match=expected_error_msg):
-        plotter.plot_results(data_missing_open, plot_type='candlestick')
+        plot_indicator(data_missing_open, plot_type='candlestick')
 
 def test_plot_candlestick_basic(sample_candlestick_data, mock_plotting_fixture):
-    """Test basic candlestick plot using matplotlib within plot_results."""
+    """Test basic candlestick plot using matplotlib within plot_indicator."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
 
-    # Call the correct method with appropriate type
-    plotter.plot_results(sample_candlestick_data, plot_type='candlestick')
+    # Call the function with appropriate type
+    plot_indicator(sample_candlestick_data, plot_type='candlestick')
 
     # Assert subplots called (expecting single axis)
     mock_plt.subplots.assert_called_once_with(1, 1, figsize=(16, 8))
@@ -271,10 +247,9 @@ def test_plot_candlestick_basic(sample_candlestick_data, mock_plotting_fixture):
 def test_plot_line_basic_price_only(sample_line_data, mock_plotting_fixture):
     """Test plotting only price as a line."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
 
-    # Call the correct method
-    plotter.plot_results(df=sample_line_data, price_col='Close', plot_type='line')
+    # Call the function
+    plot_indicator(df=sample_line_data, price_col='Close', plot_type='line')
 
     # Assert subplots called correctly (single plot, 1 row, 1 col)
     mock_plt.subplots.assert_called_once_with(1, 1, figsize=(16, 8))
@@ -301,10 +276,9 @@ def test_plot_line_basic_price_only(sample_line_data, mock_plotting_fixture):
 def test_plot_line_overlay_indicators(sample_line_data, mock_plotting_fixture):
     """Test line plot with overlay indicators."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
 
-    # Call the correct method with correct parameter name
-    plotter.plot_results(
+    # Call the function with correct parameter name
+    plot_indicator(
         df=sample_line_data,
         price_col='Close',
         column_names=['SMA_10', 'SMA_20'],
@@ -342,10 +316,9 @@ def test_plot_line_overlay_indicators(sample_line_data, mock_plotting_fixture):
 def test_plot_line_subplot_indicators(sample_line_data, mock_plotting_fixture):
     """Test line plot with subplot indicators."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
 
-    # Call the correct method with correct parameter name and subplot=True
-    plotter.plot_results(
+    # Call the function with correct parameter name and subplot=True
+    plot_indicator(
         df=sample_line_data,
         price_col='Close',
         column_names=['RSI_14', 'MACD_hist'], # RSI and MACD_hist are subplots
@@ -398,15 +371,12 @@ def test_plot_line_subplot_indicators(sample_line_data, mock_plotting_fixture):
 def test_plot_line_with_volume(sample_line_data_with_volume, mock_plotting_fixture):
     """Test line plot including the volume subplot."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
 
-    # plot_results doesn't handle volume automatically.
-
-    # Let's call plot_results simply, assuming volume isn't handled:
-    plotter.plot_results(
+    # plot_indicator doesn't handle volume automatically.
+    # Let's call plot_indicator simply, assuming volume isn't handled:
+    plot_indicator(
         df=sample_line_data_with_volume,
         price_col='Close',
-        # volume_col='Volume', # Not a parameter
         plot_type='line'
     )
 
@@ -436,11 +406,10 @@ def test_plot_line_with_volume(sample_line_data_with_volume, mock_plotting_fixtu
 def test_plot_structure_and_title(sample_line_data, mock_plotting_fixture):
     """Test the overall plot structure setup and title application."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
 
     test_title = "My Custom Plot Title"
-    # Call correct method with correct parameter
-    plotter.plot_results(
+    # Call function with correct parameter
+    plot_indicator(
         sample_line_data,
         price_col='Close',
         column_names=['RSI_14'], # Need one subplot indicator
@@ -469,15 +438,14 @@ def test_plot_structure_and_title(sample_line_data, mock_plotting_fixture):
 def test_plot_line_subplot_color_cycling(sample_line_data_many_indicators, mock_plotting_fixture):
     """Test color cycling for subplot indicators."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
 
-    # Get the expected colors from the plot_results implementation
+    # Get the expected colors from the plot_indicator implementation
     expected_contrast_colors = ['#e50000', '#00b300', '#9900cc', '#ff9500', '#00c3c3']
     num_colors = len(expected_contrast_colors)
 
     # Plot with more indicators than colors
     subplot_indicators = [f'Subplot_{i}' for i in range(num_colors + 2)]
-    plotter.plot_results(
+    plot_indicator(
         sample_line_data_many_indicators,
         price_col='Close',
         column_names=subplot_indicators,
@@ -505,16 +473,14 @@ def test_plot_line_subplot_color_cycling(sample_line_data_many_indicators, mock_
 
 def test_plot_invalid_plot_type_error(sample_line_data):
     """Test that ValueError is raised for invalid plot_type."""
-    plotter = IndicatorPlotter()
     with pytest.raises(ValueError, match="Invalid plot_type: invalid_type. Choose 'line' or 'candlestick'."):
-        plotter.plot_results(sample_line_data, plot_type='invalid_type')
+        plot_indicator(sample_line_data, plot_type='invalid_type')
 
 def test_plot_psar_overlay(sample_psar_data, mock_plotting_fixture):
     """Test plotting PSAR as overlay uses scatter correctly."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
 
-    plotter.plot_results(
+    plot_indicator(
         df=sample_psar_data,
         price_col='Close',
         column_names=['PSAR'],
@@ -542,9 +508,7 @@ def test_plot_psar_overlay(sample_psar_data, mock_plotting_fixture):
 def test_plot_ichimoku_cloud_overlay(sample_ichimoku_data, mock_plotting_fixture):
     """Test Ichimoku cloud shading using fill_between."""
     mock_plt, mock_fig, get_axes = mock_plotting_fixture
-    plotter = IndicatorPlotter()
-    
-    plotter.plot_results(
+    fig = plot_indicator(
         df=sample_ichimoku_data,
         price_col='Close',
         column_names=['Ichimoku_senkou_span_a', 'Ichimoku_senkou_span_b'],

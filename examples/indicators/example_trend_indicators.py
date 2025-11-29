@@ -3,14 +3,12 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from simple_trade import IndicatorPlotter, compute_indicator, download_data
+from simple_trade import compute_indicator, download_data
 
 # Set pandas display options for better output
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
-
-plotter = IndicatorPlotter()
 
 # ### The Average Directional Index (ADX)
 # Step 1: Download data
@@ -31,18 +29,8 @@ columns["close_col"] = 'Close'
 data, columns, fig = compute_indicator(
     data=data,
     indicator='adx',
-    figure=False,
     parameters=parameters,
     columns=columns,
-)
-
-window = parameters["window"]
-fig = plotter.plot_results(
-    data,
-    price_col='Close',
-    column_names=columns,
-    plot_on_subplot=True,
-    title=f"{symbol} with ADX({window})",
 )
 if fig is not None:
     plt.show(block=True)
@@ -367,26 +355,8 @@ columns["close_col"] = 'Close'
 data, columns, fig = compute_indicator(
     data=data,
     indicator='ich',
-    figure=False,
-    plot_type='candlestick',
     parameters=parameters,
     columns=columns,
-)
-
-tenkan_period = parameters["tenkan_period"]
-kijun_period = parameters["kijun_period"]
-senkou_b_period = parameters["senkou_b_period"]
-displacement = parameters["displacement"]
-fig = plotter.plot_results(
-    data,
-    price_col='Close',
-    column_names=columns,
-    plot_on_subplot=False,
-    plot_type='candlestick',
-    title=(
-        f"{symbol} with Ichimoku Cloud"
-        f" ({tenkan_period}, {kijun_period}, {senkou_b_period}, {displacement})"
-    ),
 )
 if fig is not None:
     plt.show(block=True)
@@ -513,21 +483,8 @@ columns["close_col"] = 'Close'
 data, columns, fig = compute_indicator(
     data=data,
     indicator='psa',
-    figure=False,
     parameters=parameters,
     columns=columns,
-)
-
-af_initial = parameters["af_initial"]
-af_step = parameters["af_step"]
-af_max = parameters["af_max"]
-psar_columns = [f'PSAR_{af_initial}_{af_step}_{af_max}']
-fig = plotter.plot_results(
-    data,
-    price_col='Close',
-    column_names=psar_columns,
-    plot_on_subplot=False,
-    title=f"{symbol} with PSAR({af_initial}, {af_step}, {af_max})",
 )
 if fig is not None:
     plt.show(block=True)

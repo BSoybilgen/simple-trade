@@ -60,3 +60,82 @@ def htt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     trendline.name = f'HTT_{window}'
 
     return trendline, [trendline.name]
+
+
+def strategy_htt(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    HTT (Hilbert Transform Trendline) - Dual-HTT Crossover Strategy
+    
+    LOGIC: Generate signals when a faster HTT line crosses a slower HTT line.
+    WHY: Using two HTT windows preserves the low-lag benefits of the indicator
+         while adding confirmation through crossover behavior similar to MA pairs.
+    BEST MARKETS: All markets. Stocks, forex, futures. Particularly useful when
+                  you want smooth, low-lag crossovers without reverting to MAs.
+    TIMEFRAME: Daily charts. Default short window 16, long window 24.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 16)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    long_window = int(parameters.get('window', 24))
+    short_window = int(parameters.get('window', 16))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='htt',
+        parameters={"window": long_window},
+        figure=False
+    )
+
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='htt',
+        parameters={"window": short_window},
+        figure=False
+    )
+    
+    short_window_indicator = f'HTT_{short_window}'
+    long_window_indicator = f'HTT_{long_window}'
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    # Include Close price in plot so users can see the crossover signals
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

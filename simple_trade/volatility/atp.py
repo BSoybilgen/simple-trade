@@ -83,3 +83,77 @@ def atp(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     atrp_values.name = f'ATRP_{window}'
     columns_list = [atrp_values.name]
     return atrp_values, columns_list
+
+
+def strategy_atp(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    ATP (Average True Range Percent) - Volatility Threshold Strategy
+    
+    LOGIC: Buy when ATRP drops below lower threshold (low volatility squeeze),
+           sell when rises above upper threshold (high volatility).
+    WHY: ATRP normalizes ATR as percentage of price. Low ATRP indicates
+         consolidation (potential breakout setup), high ATRP indicates overextension.
+    BEST MARKETS: All markets. Good for identifying volatility regimes.
+                  Use low ATRP for breakout setups, high ATRP for mean reversion.
+    TIMEFRAME: Daily charts. 14-period is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 14), 'upper' (default 5.0), 'lower' (default 2.0)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window = int(parameters.get('window', 14))
+    upper = float(parameters.get('upper', 5.0))
+    lower = float(parameters.get('lower', 2.0))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='atp',
+        parameters={"window": window},
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=f'ATRP_{window}',
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [f'ATRP_{window}', 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

@@ -9,8 +9,8 @@ from simple_trade import download_data
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from simple_trade.premade_backtest import premade_backtest
-from simple_trade.combine_trade import CombineTradeBacktester
+from simple_trade.run_premade_strategies import run_premade_trade
+from simple_trade.run_combined_trade_strategies import run_combined_trade
 
 # Download data
 print("Downloading stock data...")
@@ -42,7 +42,7 @@ rsi_params = {
 }
 
 rsi_params = {**global_parameters, **rsi_params}
-rsi_results, rsi_portfolio, _ = premade_backtest(data, "rsi", rsi_params)
+rsi_results, rsi_portfolio, _ = run_premade_trade(data, "rsi", rsi_params)
 
 print(f"RSI Strategy - Final Value: ${rsi_results['final_value']:.2f}")
 print(f"RSI Strategy - Total Return: {rsi_results['total_return_pct']}%")
@@ -56,7 +56,7 @@ sma_params = {
 }
 
 sma_params = {**global_parameters, **sma_params}
-sma_results, sma_portfolio, _ = premade_backtest(data, "sma", sma_params)
+sma_results, sma_portfolio, _ = run_premade_trade(data, "sma", sma_params)
 
 print(f"SMA Strategy - Final Value: ${sma_results['final_value']:.2f}")
 print(f"SMA Strategy - Total Return: {sma_results['total_return_pct']}%")
@@ -69,18 +69,11 @@ macd_params = {
     'window_signal': 9
 }
 macd_params = {**global_parameters, **macd_params}
-macd_results, macd_portfolio, _ = premade_backtest(data, "mac", sma_params)
+macd_results, macd_portfolio, _ = run_premade_trade(data, "mac", sma_params)
 
 print(f"MACD Strategy - Final Value: ${macd_results['final_value']:.2f}")
 print(f"MACD Strategy - Total Return: {macd_results['total_return_pct']}%")
 print(f"MACD Strategy - Number of Trades: {macd_results['num_trades']}")
-
-# Initialize the CombineTradeBacktester
-combine_backtester = CombineTradeBacktester(
-    initial_cash=200,
-    commission_long=0.001,
-    commission_short=0.001
-)
 
 # Build strategies dict for plotting individual strategies
 strategies = {
@@ -89,8 +82,8 @@ strategies = {
 }
 
 print("2 Trading Strategy Combination")
-# Run the combined backtest
-combined_results, combined_portfolio, figures = combine_backtester.run_combined_trade(
+# Run the combined backtest using function-based API
+combined_results, combined_portfolio, figures = run_combined_trade(
     portfolio_dfs=[rsi_portfolio, sma_portfolio],
     price_data=data,
     price_col='Close',
@@ -98,7 +91,10 @@ combined_results, combined_portfolio, figures = combine_backtester.run_combined_
     trading_type='long',
     fig_control=2,
     strategies=strategies,
-    strategy_name='Majority'
+    strategy_name='Majority',
+    initial_cash=200,
+    commission_long=0.001,
+    commission_short=0.001
 )
 
 print(f"2 Trading Strategy Combination - Final Value: ${combined_results['final_value']:.2f}")
@@ -120,8 +116,8 @@ strategies = {
 }
 
 print("3 Trading Strategy Combination")
-# Run the combined backtest
-combined_results, combined_portfolio, figures = combine_backtester.run_combined_trade(
+# Run the combined backtest using function-based API
+combined_results, combined_portfolio, figures = run_combined_trade(
     portfolio_dfs=[rsi_portfolio, sma_portfolio, macd_portfolio],
     price_data=data,
     price_col='Close',
@@ -129,7 +125,10 @@ combined_results, combined_portfolio, figures = combine_backtester.run_combined_
     trading_type='long',
     fig_control=1,
     strategies=strategies,
-    strategy_name='Majority'
+    strategy_name='Majority',
+    initial_cash=200,
+    commission_long=0.001,
+    commission_short=0.001
 )
 
 print(f"3 Trading Strategy Combination - Final Value: ${combined_results['final_value']:.2f}")

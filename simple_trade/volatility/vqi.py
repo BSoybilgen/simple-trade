@@ -103,3 +103,78 @@ def vqi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     vqi_smoothed.name = f'VQI_{period}_{smooth_period}'
     columns_list = [vqi_smoothed.name]
     return vqi_smoothed, columns_list
+
+
+def strategy_vqi(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    VQI (Volatility Quality Index) - Trend Quality Strategy
+    
+    LOGIC: Buy when VQI rises above upper threshold (quality uptrend),
+           sell when drops below lower threshold (quality downtrend).
+    WHY: VQI measures trend quality by analyzing price, volume, and volatility.
+         Positive = quality uptrend, negative = quality downtrend.
+    BEST MARKETS: All markets with volume data. Good for trend quality assessment.
+    TIMEFRAME: Daily charts. 9-period with 9-period smoothing is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'period', 'smooth_period', 'upper', 'lower'
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    period = int(parameters.get('period', 9))
+    smooth_period = int(parameters.get('smooth_period', 9))
+    upper = float(parameters.get('upper', 0))
+    lower = float(parameters.get('lower', 0))
+    price_col = 'Close'
+    indicator_col = f'VQI_{period}_{smooth_period}'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='vqi',
+        parameters={"period": period, "smooth_period": smooth_period},
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

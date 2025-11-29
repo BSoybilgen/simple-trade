@@ -83,3 +83,75 @@ def kst(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = list(result.columns)
     return result, columns_list
+
+
+def strategy_kst(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    KST (Know Sure Thing) - Signal Line Crossover Strategy
+    
+    LOGIC: Buy when KST crosses above its signal line, sell when crosses below.
+    WHY: KST combines 4 ROC timeframes with smoothing, capturing momentum across
+         multiple cycles. Signal crossovers indicate momentum shifts confirmed by
+         multiple timeframes.
+    BEST MARKETS: Trending markets across all asset classes. Stocks, forex, commodities.
+                  Excellent for confirming trend changes with multiple timeframe confirmation.
+    TIMEFRAME: Daily or weekly charts. Good for position trading and trend confirmation.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'signal' (default 9)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    signal_period = int(parameters.get('signal', 9))
+    
+    indicator_params = {"signal": signal_period}
+    short_window_indicator = 'KST'
+    long_window_indicator = f'KST_Signal_{signal_period}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='kst',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

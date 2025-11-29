@@ -82,3 +82,86 @@ def sto(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     }, index=close.index)
     columns_list = list(result.columns)
     return result, columns_list
+
+
+def strategy_sto(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    STO (Stochastic Oscillator) - Mean Reversion Strategy
+    
+    LOGIC: Buy when %K drops below 20 (oversold), sell when above 80 (overbought).
+    WHY: Stochastic compares close to high-low range. Low values = close near lows (oversold),
+         high values = close near highs (overbought). Classic mean reversion indicator.
+    BEST MARKETS: Range-bound markets and consolidating assets. Stocks, forex, commodities.
+                  Use with trend filter in trending markets.
+    TIMEFRAME: All timeframes. 14/3/3 is standard. Adjust for sensitivity.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'k_period' (default 14), 'd_period' (default 3),
+                   'smooth_k' (default 3), 'upper' (default 80), 'lower' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    k_period = int(parameters.get('k_period', 14))
+    d_period = int(parameters.get('d_period', 3))
+    smooth_k = int(parameters.get('smooth_k', 3))
+    upper = int(parameters.get('upper', 80))
+    lower = int(parameters.get('lower', 20))
+    
+    indicator_params = {
+        "k_period": k_period,
+        "d_period": d_period,
+        "smooth_k": smooth_k
+    }
+    indicator_col = f'STOCH_K_{k_period}_{d_period}_{smooth_k}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='sto',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, f'STOCH_D_{k_period}_{d_period}_{smooth_k}', 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

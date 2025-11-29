@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 
 def ich(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
@@ -212,3 +211,77 @@ def chikou_span(df: pd.DataFrame, displacement: int = 26, close_col: str = 'Clos
     """
     close = df[close_col]
     return close.shift(-displacement)
+
+
+def strategy_ich(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    ICH (Ichimoku Cloud) - Tenkan/Kijun Crossover Strategy
+    
+    LOGIC: Buy when Tenkan-sen crosses above Kijun-sen, sell when crosses below.
+    WHY: Ichimoku is a comprehensive indicator showing support, resistance, trend,
+         and momentum. Tenkan/Kijun crossovers are classic entry signals.
+    BEST MARKETS: Trending markets. Stocks, forex, crypto. One of the most
+                  complete technical analysis systems available.
+    TIMEFRAME: Daily charts. Standard settings: 9/26/52.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'tenkan_period' (default 9), 'kijun_period' (default 26)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    tenkan_period = int(parameters.get('tenkan_period', 9))
+    kijun_period = int(parameters.get('kijun_period', 26))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='ich',
+        parameters={
+            "tenkan_period": tenkan_period,
+            "kijun_period": kijun_period
+        },
+        figure=False
+    )
+    
+    short_window_indicator = f'tenkan_sen_{tenkan_period}'
+    long_window_indicator = f'kijun_sen_{kijun_period}'
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

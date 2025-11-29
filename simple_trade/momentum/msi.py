@@ -71,3 +71,81 @@ def msi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = [msi_values.name]
     return msi_values, columns_list
+
+
+def strategy_msi(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    MSI (Momentum Strength Index) - Mean Reversion Strategy
+    
+    LOGIC: Buy when MSI drops below lower threshold (oversold), sell when above upper.
+    WHY: MSI quantifies momentum strength with optional power scaling. Similar to RSI
+         but with adjustable sensitivity to large moves via power parameter.
+    BEST MARKETS: Range-bound markets. Stocks and ETFs in consolidation.
+                  Power > 1 emphasizes volatile moves, useful for breakout detection.
+    TIMEFRAME: Daily charts. 14-period is standard. Adjust power for volatility sensitivity.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 14), 'power' (default 1.0),
+                   'upper' (default 70), 'lower' (default 30)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window = int(parameters.get('window', 14))
+    power = float(parameters.get('power', 1.0))
+    upper = int(parameters.get('upper', 70))
+    lower = int(parameters.get('lower', 30))
+    
+    indicator_params = {"window": window, "power": power}
+    indicator_col = f'MSI_{window}_{power}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='msi',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

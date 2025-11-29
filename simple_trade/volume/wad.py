@@ -84,3 +84,73 @@ def wad(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     wad_values.name = 'WAD'
     columns_list = [wad_values.name]
     return wad_values, columns_list
+
+
+def strategy_wad(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    WAD (Williams Accumulation/Distribution) - SMA Crossover Strategy
+    
+    LOGIC: Buy when WAD crosses above its SMA (accumulation),
+           sell when WAD crosses below its SMA (distribution).
+    WHY: WAD uses price changes (True Range) to determine accumulation/distribution.
+         Rising WAD indicates buying pressure, falling indicates selling pressure.
+    BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
+    TIMEFRAME: Daily charts. Good for swing trading.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'sma_period' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    sma_period = int(parameters.get('sma_period', 20))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='wad',
+        parameters={},
+        figure=False
+    )
+    
+    # Calculate SMA of WAD for crossover signals
+    data[f'WAD_SMA_{sma_period}'] = data['WAD'].rolling(window=sma_period).mean()
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator='WAD',
+        long_window_indicator=f'WAD_SMA_{sma_period}',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = ['WAD', f'WAD_SMA_{sma_period}']
+    
+    return results, portfolio, indicator_cols_to_plot, data

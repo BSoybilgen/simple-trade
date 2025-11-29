@@ -82,3 +82,81 @@ def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     cci.name = f'CCI_{window}_{constant}'
     columns_list = [cci.name]
     return cci, columns_list
+
+
+def strategy_cci(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    CCI (Commodity Channel Index) - Mean Reversion Strategy
+    
+    LOGIC: Buy when CCI drops below lower threshold (oversold), sell when rises above upper.
+    WHY: CCI measures deviation from statistical mean. Extreme readings suggest price
+         has moved too far and is likely to revert. Originally designed for commodities.
+    BEST MARKETS: Ranging/sideways markets. Commodities, forex pairs, and stocks in
+                  consolidation phases. Avoid strong trending markets.
+    TIMEFRAME: Works on all timeframes. Higher thresholds (±150-200) for volatile assets.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 20), 'constant' (default 0.015),
+                   'upper' (default 150), 'lower' (default -150)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window = int(parameters.get('window', 20))
+    constant = float(parameters.get('constant', 0.015))
+    upper = int(parameters.get('upper', 150))
+    lower = int(parameters.get('lower', -150))
+    
+    indicator_params = {"window": window, "constant": constant}
+    indicator_col = f'CCI_{window}_{constant}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='cci',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

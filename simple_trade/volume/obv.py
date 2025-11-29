@@ -66,3 +66,73 @@ def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     obv_values.name = 'OBV'
     columns_list = [obv_values.name]
     return obv_values, columns_list
+
+
+def strategy_obv(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    OBV (On-Balance Volume) - SMA Crossover Strategy
+    
+    LOGIC: Buy when OBV crosses above its SMA (accumulation),
+           sell when OBV crosses below its SMA (distribution).
+    WHY: OBV measures buying/selling pressure as cumulative volume.
+         Rising OBV indicates accumulation, falling indicates distribution.
+    BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
+    TIMEFRAME: Daily charts. Good for swing trading.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'sma_period' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    sma_period = int(parameters.get('sma_period', 20))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='obv',
+        parameters={},
+        figure=False
+    )
+    
+    # Calculate SMA of OBV for crossover signals
+    data[f'OBV_SMA_{sma_period}'] = data['OBV'].rolling(window=sma_period).mean()
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator='OBV',
+        long_window_indicator=f'OBV_SMA_{sma_period}',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = ['OBV', f'OBV_SMA_{sma_period}']
+    
+    return results, portfolio, indicator_cols_to_plot, data

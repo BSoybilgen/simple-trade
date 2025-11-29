@@ -63,3 +63,77 @@ def awo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     ao_series.name = f'AO_{fast_window}_{slow_window}'
 
     return ao_series, [ao_series.name]
+
+
+def strategy_awo(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    AWO (Awesome Oscillator) - Zero Line Crossover Strategy
+    
+    LOGIC: Buy when AO crosses above zero (bullish momentum), sell when crosses below zero.
+    WHY: AO measures market momentum by comparing recent price action to historical.
+         Positive AO = fast momentum > slow momentum (bullish), negative = bearish.
+    BEST MARKETS: Trending markets with clear directional moves. Works well on stocks,
+                  forex, and commodities. Less effective in choppy/ranging markets.
+    TIMEFRAME: Daily or weekly charts preferred. Intraday can generate false signals.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'fast_window' (default 5), 'slow_window' (default 34)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    fast_window = int(parameters.get('fast_window', 5))
+    slow_window = int(parameters.get('slow_window', 34))
+    
+    indicator_params = {"fast_window": fast_window, "slow_window": slow_window}
+    short_window_indicator = f'AO_{fast_window}_{slow_window}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='awo',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    # Create zero line for crossover strategy
+    data['zero_line'] = 0
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+    
+    return results, portfolio, indicator_cols_to_plot, data

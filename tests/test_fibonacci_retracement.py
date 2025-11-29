@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from unittest.mock import patch, MagicMock
-from simple_trade.fibonacci_retracement import calculate_fibonacci_levels, plot_fibonacci_retracement
+from simple_trade.compute_fibonacci_retracement import calculate_fibonacci_levels, plot_fibonacci_retracement
 
 
 @pytest.fixture
@@ -238,7 +238,7 @@ class TestPlotFibonacciRetracement:
                                         sample_price_series, label='Price')
 
     @patch('matplotlib.pyplot.show')
-    @patch('simple_trade.fibonacci_retracement.calculate_fibonacci_levels')
+    @patch('simple_trade.compute_fibonacci_retracement.calculate_fibonacci_levels')
     def test_plot_fibonacci_retracement_uses_calculate_function(self, mock_calc_levels, 
                                                               mock_show, sample_price_series):
         """Test that plotting function uses calculate_fibonacci_levels."""

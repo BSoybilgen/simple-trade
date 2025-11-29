@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from unittest.mock import patch, MagicMock
-from simple_trade.indicator_handler import (
+from simple_trade.compute_indicators import (
     compute_indicator,
     _calculate_indicator,
     _add_indicator_to_dataframe,
@@ -12,7 +12,7 @@ from simple_trade.indicator_handler import (
 # Define mocks for indicator functions to be used in the patched INDICATORS dict
 mock_sma_function = MagicMock(name="mock_sma_function_instance")
 mock_rsi_function = MagicMock(name="mock_rsi_function_instance")
-# This dictionary will be used to patch simple_trade.indicator_handler.INDICATORS
+# This dictionary will be used to patch simple_trade.compute_indicators.INDICATORS
 CUSTOM_MOCK_INDICATORS = {'sma': mock_sma_function, 'rsi': mock_rsi_function}
 
 # --- Fixtures ---
@@ -29,9 +29,9 @@ def sample_price_data():
     data['Volume'] = [1000, 1200, 1300, 1100, 1400, 1500, 1600, 1500, 1400, 1600, 1700, 1500, 1400, 1600, 1800, 1900, 2000, 1800, 1700, 1900]
     return data
 
-@patch('simple_trade.indicator_handler.INDICATORS', CUSTOM_MOCK_INDICATORS)
-@patch('simple_trade.indicator_handler._calculate_indicator')
-@patch('simple_trade.indicator_handler._add_indicator_to_dataframe')
+@patch('simple_trade.compute_indicators.INDICATORS', CUSTOM_MOCK_INDICATORS)
+@patch('simple_trade.compute_indicators._calculate_indicator')
+@patch('simple_trade.compute_indicators._add_indicator_to_dataframe')
 def test_compute_indicator_exception_handling(mock_add, mock_calculate, sample_price_data):
     """Test the compute_indicator function's exception handling."""
     # Setup
@@ -117,7 +117,7 @@ def test_add_indicator_unexpected_type(sample_price_data):
 
 # --- download_data Tests ---
 
-@patch('simple_trade.indicator_handler.yf.download')
+@patch('simple_trade.compute_indicators.yf.download')
 def test_download_data_success(mock_download):
     """Test successful data download and processing."""
     # Setup
@@ -150,7 +150,7 @@ def test_download_data_success(mock_download):
     assert result.attrs['symbol'] == 'AAPL'
 
 
-@patch('simple_trade.indicator_handler.yf.download')
+@patch('simple_trade.compute_indicators.yf.download')
 def test_download_data_empty(mock_download):
     """Test handling of empty data response."""
     # Setup
@@ -161,7 +161,7 @@ def test_download_data_empty(mock_download):
         download_data('INVALID', '2023-01-01', '2023-01-02')
 
 
-@patch('simple_trade.indicator_handler.yf.download')
+@patch('simple_trade.compute_indicators.yf.download')
 def test_download_data_multiindex(mock_download):
     """Test handling of MultiIndex columns from yfinance."""
     # Setup

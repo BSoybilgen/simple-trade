@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from simple_trade import download_data, premade_backtest, CrossTradeBacktester
+from simple_trade import download_data, run_premade_trade, print_results
 
 # Set pandas display options for better output
 pd.set_option('display.max_rows', 500)
@@ -40,8 +40,6 @@ interval = '1wk'
 print(f"\nDownloading data for {symbol}...")
 data_week = download_data(symbol, start_date, end_date, interval=interval)
 
-# Initialize backtester for printing results
-backtester = CrossTradeBacktester()
 
 # ### Backtest with AWO (Awesome Oscillator)
 print("\n" + "="*80)
@@ -58,8 +56,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -80,8 +78,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -104,8 +102,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -127,8 +125,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -149,8 +147,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -174,8 +172,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -195,8 +193,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -216,8 +214,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -237,8 +235,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -260,8 +258,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -281,8 +279,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -304,8 +302,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -327,8 +325,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -351,8 +349,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -374,8 +372,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -397,8 +395,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -420,8 +418,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -441,8 +439,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -465,8 +463,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -486,8 +484,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -509,8 +507,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -530,8 +528,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -556,8 +554,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -582,8 +580,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -607,8 +605,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -629,8 +627,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -654,8 +652,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -679,8 +677,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -700,8 +698,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)
@@ -723,8 +721,8 @@ specific_parameters = {
 
 parameters = {**global_parameters, **specific_parameters}
 
-results, portfolio, fig = premade_backtest(data_day, strategy_name, parameters)
-backtester.print_results(results)
+results, portfolio, fig = run_premade_trade(data_day, strategy_name, parameters)
+print_results(results)
 
 if fig is not None:
     plt.show(block=True)

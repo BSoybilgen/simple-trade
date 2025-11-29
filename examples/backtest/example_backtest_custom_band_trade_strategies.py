@@ -1,11 +1,16 @@
-"""Example usage of BandTradeBacktester with manual indicator computation."""
+"""Example usage of run_band_trade with manual indicator computation."""
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from simple_trade import download_data, compute_indicator
-from simple_trade import BandTradeBacktester
-from simple_trade import BacktestPlotter
+from simple_trade import (
+    download_data,
+    compute_indicator,
+    run_band_trade,
+    print_results,
+    plot_backtest_results,
+    BacktestConfig,
+)
 
 # Set pandas display options for better output
 pd.set_option('display.max_rows', 500)
@@ -44,8 +49,6 @@ lower_threshold_col = 'RSI_Lower'
 data[upper_threshold_col] = rsi_upper_threshold
 data[lower_threshold_col] = rsi_lower_threshold
 
-# Initialize plotter
-plotter = BacktestPlotter()
 indicator_cols_to_plot = [indicator_col, upper_threshold_col, lower_threshold_col]
 
 # ### Long Only Trading Backtest
@@ -53,26 +56,27 @@ print("\n" + "="*80)
 print("BAND TRADE - LONG ONLY (RSI Mean Reversion)")
 print("="*80)
 
-backtester = BandTradeBacktester(
+config = BacktestConfig(
     initial_cash=initial_cash,
     commission_long=commission,
-    commission_short=commission
-)
-
-results, portfolio = backtester.run_band_trade(
-    data=data,
-    indicator_col=indicator_col,
-    upper_band_col=upper_threshold_col,
-    lower_band_col=lower_threshold_col,
-    price_col='Close',
-    trading_type='long',
+    commission_short=commission,
     long_entry_pct_cash=long_entry_pct_cash,
     short_entry_pct_cash=short_entry_pct_cash,
 )
 
-backtester.print_results(results)
+results, portfolio = run_band_trade(
+    data=data,
+    indicator_col=indicator_col,
+    upper_band_col=upper_threshold_col,
+    lower_band_col=lower_threshold_col,
+    config=config,
+    price_col='Close',
+    trading_type='long',
+)
 
-fig = plotter.plot_results(
+print_results(results)
+
+fig = plot_backtest_results(
     data_df=data,
     history_df=portfolio,
     price_col='Close',
@@ -89,26 +93,27 @@ print("\n" + "="*80)
 print("BAND TRADE - SHORT ONLY (RSI Mean Reversion)")
 print("="*80)
 
-backtester = BandTradeBacktester(
+config = BacktestConfig(
     initial_cash=initial_cash,
     commission_long=commission,
-    commission_short=commission
-)
-
-results, portfolio = backtester.run_band_trade(
-    data=data,
-    indicator_col=indicator_col,
-    upper_band_col=upper_threshold_col,
-    lower_band_col=lower_threshold_col,
-    price_col='Close',
-    trading_type='short',
+    commission_short=commission,
     long_entry_pct_cash=long_entry_pct_cash,
     short_entry_pct_cash=short_entry_pct_cash,
 )
 
-backtester.print_results(results)
+results, portfolio = run_band_trade(
+    data=data,
+    indicator_col=indicator_col,
+    upper_band_col=upper_threshold_col,
+    lower_band_col=lower_threshold_col,
+    config=config,
+    price_col='Close',
+    trading_type='short',
+)
 
-fig = plotter.plot_results(
+print_results(results)
+
+fig = plot_backtest_results(
     data_df=data,
     history_df=portfolio,
     price_col='Close',
@@ -125,26 +130,27 @@ print("\n" + "="*80)
 print("BAND TRADE - MIXED (RSI Mean Reversion)")
 print("="*80)
 
-backtester = BandTradeBacktester(
+config = BacktestConfig(
     initial_cash=initial_cash,
     commission_long=commission,
-    commission_short=commission
-)
-
-results, portfolio = backtester.run_band_trade(
-    data=data,
-    indicator_col=indicator_col,
-    upper_band_col=upper_threshold_col,
-    lower_band_col=lower_threshold_col,
-    price_col='Close',
-    trading_type='mixed',
+    commission_short=commission,
     long_entry_pct_cash=long_entry_pct_cash,
     short_entry_pct_cash=short_entry_pct_cash,
 )
 
-backtester.print_results(results)
+results, portfolio = run_band_trade(
+    data=data,
+    indicator_col=indicator_col,
+    upper_band_col=upper_threshold_col,
+    lower_band_col=lower_threshold_col,
+    config=config,
+    price_col='Close',
+    trading_type='mixed',
+)
 
-fig = plotter.plot_results(
+print_results(results)
+
+fig = plot_backtest_results(
     data_df=data,
     history_df=portfolio,
     price_col='Close',

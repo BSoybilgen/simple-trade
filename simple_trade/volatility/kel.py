@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from ..trend.ema import ema
 from .atr import atr
 
@@ -57,8 +56,6 @@ def kel(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')
     
-    high = df[high_col]
-    low = df[low_col]
     close = df[close_col]
     
     # Calculate the middle line (EMA of close)
@@ -84,3 +81,77 @@ def kel(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     columns_list = list(result.columns)
     return result, columns_list
+
+
+def strategy_kel(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    KEL (Keltner Channels) - Mean Reversion Strategy
+    
+    LOGIC: Buy when price touches lower band (oversold),
+           sell when price touches upper band (overbought).
+    WHY: Keltner Channels use EMA with ATR-based bands. Price at lower band
+         suggests oversold, at upper band suggests overbought.
+    BEST MARKETS: Range-bound markets. Stocks, forex. Good for mean reversion.
+                  Can also be used for breakout trading.
+    TIMEFRAME: Daily charts. 20 EMA with 10 ATR and 2x multiplier is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'ema_window' (default 20), 'atr_window' (default 10),
+                    'atr_multiplier' (default 2.0)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    ema_window = int(parameters.get('ema_window', 20))
+    atr_window = int(parameters.get('atr_window', 10))
+    atr_multiplier = float(parameters.get('atr_multiplier', 2.0))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='kel',
+        parameters={"ema_window": ema_window, "atr_window": atr_window, "atr_multiplier": atr_multiplier},
+        figure=False
+    )
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col='Close',
+        upper_band_col=f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}',
+        lower_band_col=f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = ['Close', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}',
+                              f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}',
+                              f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
+    
+    return results, portfolio, indicator_cols_to_plot, data

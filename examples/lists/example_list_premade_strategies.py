@@ -7,48 +7,48 @@ This example demonstrates how to use the list_strategies function to:
 3. Get programmatic access to strategy information
 """
 
-from simple_trade import list_strategies
+from simple_trade import list_premade_strategies
 
 # Example 1: List all available strategies
 print("=" * 80)
 print("EXAMPLE 1: List all available strategies")
 print("=" * 80)
-list_strategies()
+list_premade_strategies()
 
 # Example 2: List only momentum strategies
 print("\n" * 2)
 print("=" * 80)
 print("EXAMPLE 2: List only momentum strategies")
 print("=" * 80)
-list_strategies(category='momentum')
+list_premade_strategies(category='momentum')
 
 # Example 3: List only trend strategies
 print("\n" * 2)
 print("=" * 80)
 print("EXAMPLE 3: List only trend strategies")
 print("=" * 80)
-list_strategies(category='trend')
+list_premade_strategies(category='trend')
 
 # Example 4: List only volatility strategies
 print("\n" * 2)
 print("=" * 80)
 print("EXAMPLE 4: List only volatility strategies")
 print("=" * 80)
-list_strategies(category='volatility')
+list_premade_strategies(category='volatility')
 
 # Example 5: List only volume strategies
 print("\n" * 2)
 print("=" * 80)
 print("EXAMPLE 5: List only volume strategies")
 print("=" * 80)
-list_strategies(category='volume')
+list_premade_strategies(category='volume')
 
 # Example 6: Get dictionary of all strategies for programmatic use
 print("\n" * 2)
 print("=" * 80)
 print("EXAMPLE 6: Get dictionary of strategies")
 print("=" * 80)
-strategies_dict = list_strategies(return_dict=True)
+strategies_dict = list_premade_strategies(return_dict=True)
 
 # Print summary statistics
 print(f"\nTotal categories: {len(strategies_dict)}")

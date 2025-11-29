@@ -57,3 +57,76 @@ def dpo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = [dpo_values.name]
     return dpo_values, columns_list
+
+
+def strategy_dpo(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    DPO (Detrended Price Oscillator) - Zero Line Crossover Strategy
+    
+    LOGIC: Buy when DPO crosses above zero (price above displaced MA), sell when crosses below.
+    WHY: DPO removes trend to isolate cycles. Positive DPO = price above its historical average,
+         negative = below. Zero crossings signal cycle turning points.
+    BEST MARKETS: Cyclical markets and assets with regular oscillations. Stocks, commodities,
+                  and indices with identifiable cycles. Less effective in strong trending markets.
+    TIMEFRAME: Daily charts. 20-period is standard. Useful for identifying cycle peaks/troughs.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window = int(parameters.get('window', 20))
+    
+    indicator_params = {"window": window}
+    short_window_indicator = f'DPO_{window}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='dpo',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    # Create zero line for crossover strategy
+    data['zero_line'] = 0
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator='zero_line',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, 'zero_line']
+    
+    return results, portfolio, indicator_cols_to_plot, data

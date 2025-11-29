@@ -90,3 +90,75 @@ def acb(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     columns_list = [upper_name, middle_name, lower_name]
     return result, columns_list
+
+
+def strategy_acb(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    ACB (Acceleration Bands) - Band Breakout Strategy
+    
+    LOGIC: Buy when price breaks above upper band (bullish breakout),
+           sell when below lower band (bearish breakout).
+    WHY: Acceleration Bands use percentage-based bands around price.
+         Price breaking above upper band indicates strong uptrend momentum.
+    BEST MARKETS: Trending markets. Stocks, forex, futures. Good for breakout
+                  trading. Avoid in choppy, range-bound markets.
+    TIMEFRAME: Daily or 4-hour charts. 20-period is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'period' (default 20), 'factor' (default 0.001)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    period = int(parameters.get('period', 20))
+    factor = float(parameters.get('factor', 0.001))
+    factor_pct = factor * 100
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='acb',
+        parameters={"period": period, "factor": factor},
+        figure=False
+    )
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col='Close',
+        upper_band_col=f'ACB_Upper_{period}_{factor_pct:.2f}',
+        lower_band_col=f'ACB_Lower_{period}_{factor_pct:.2f}',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = ['Close', f'ACB_Upper_{period}_{factor_pct:.2f}', 
+                              f'ACB_Middle_{period}', f'ACB_Lower_{period}_{factor_pct:.2f}']
+    
+    return results, portfolio, indicator_cols_to_plot, data

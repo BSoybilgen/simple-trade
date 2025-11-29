@@ -1,11 +1,16 @@
-"""Example usage of CrossTradeBacktester with manual indicator computation."""
+"""Example usage of run_cross_trade with manual indicator computation."""
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from simple_trade import download_data, compute_indicator
-from simple_trade import CrossTradeBacktester
-from simple_trade import BacktestPlotter
+from simple_trade import (
+    download_data,
+    compute_indicator,
+    run_cross_trade,
+    print_results,
+    plot_backtest_results,
+    BacktestConfig,
+)
 
 # Set pandas display options for better output
 pd.set_option('display.max_rows', 500)
@@ -31,39 +36,37 @@ short_window = 25
 long_window = 75
 
 parameters = {'window': short_window}
-columns = {'close': 'Close'}
+columns = {'close_col': 'Close'}
 data, _, _ = compute_indicator(data, indicator='sma', parameters=parameters, columns=columns)
 
 parameters = {'window': long_window}
-columns = {'close': 'Close'}
+columns = {'close_col': 'Close'}
 data, _, _ = compute_indicator(data, indicator='sma', parameters=parameters, columns=columns)
-
-# Initialize plotter
-plotter = BacktestPlotter()
 
 # ### Long Only Trading Backtest
 print("\n" + "="*80)
 print("CROSS TRADE - LONG ONLY (SMA Cross)")
 print("="*80)
 
-backtester = CrossTradeBacktester(
+config = BacktestConfig(
     initial_cash=initial_cash,
     commission_long=commission,
     commission_short=commission
 )
 
-results, portfolio = backtester.run_cross_trade(
+results, portfolio = run_cross_trade(
     data=data,
     short_window_indicator=f"SMA_{short_window}",
     long_window_indicator=f"SMA_{long_window}",
+    config=config,
     price_col='Close',
     trading_type='long'
 )
 
-backtester.print_results(results)
+print_results(results)
 
 indicator_cols_to_plot = [f'SMA_{short_window}', f'SMA_{long_window}']
-fig = plotter.plot_results(
+fig = plot_backtest_results(
     data_df=data,
     history_df=portfolio,
     price_col='Close',
@@ -80,24 +83,25 @@ print("\n" + "="*80)
 print("CROSS TRADE - SHORT ONLY (SMA Cross)")
 print("="*80)
 
-backtester = CrossTradeBacktester(
+config = BacktestConfig(
     initial_cash=initial_cash,
     commission_long=commission,
     commission_short=commission,
     short_borrow_fee_inc_rate=short_borrow_fee_inc_rate
 )
 
-results, portfolio = backtester.run_cross_trade(
+results, portfolio = run_cross_trade(
     data=data,
     short_window_indicator=f"SMA_{short_window}",
     long_window_indicator=f"SMA_{long_window}",
+    config=config,
     price_col='Close',
     trading_type='short'
 )
 
-backtester.print_results(results)
+print_results(results)
 
-fig = plotter.plot_results(
+fig = plot_backtest_results(
     data_df=data,
     history_df=portfolio,
     price_col='Close',
@@ -114,24 +118,25 @@ print("\n" + "="*80)
 print("CROSS TRADE - MIXED (SMA 25/75)")
 print("="*80)
 
-backtester = CrossTradeBacktester(
+config = BacktestConfig(
     initial_cash=initial_cash,
     commission_long=commission,
     commission_short=commission,
     short_borrow_fee_inc_rate=short_borrow_fee_inc_rate
 )
 
-results, portfolio = backtester.run_cross_trade(
+results, portfolio = run_cross_trade(
     data=data,
     short_window_indicator=f"SMA_{short_window}",
     long_window_indicator=f"SMA_{long_window}",
+    config=config,
     price_col='Close',
     trading_type='mixed'
 )
 
-backtester.print_results(results)
+print_results(results)
 
-fig = plotter.plot_results(
+fig = plot_backtest_results(
     data_df=data,
     history_df=portfolio,
     price_col='Close',
@@ -155,32 +160,33 @@ short_window_2 = 25
 long_window_2 = 150
 
 parameters = {'window': short_window_2}
-columns = {'close': 'Close'}
+columns = {'close_col': 'Close'}
 data2, _, _ = compute_indicator(data2, indicator='sma', parameters=parameters, columns=columns)
 
 parameters = {'window': long_window_2}
-columns = {'close': 'Close'}
+columns = {'close_col': 'Close'}
 data2, _, _ = compute_indicator(data2, indicator='sma', parameters=parameters, columns=columns)
 
-backtester = CrossTradeBacktester(
+config = BacktestConfig(
     initial_cash=initial_cash,
     commission_long=commission,
     commission_short=commission,
     short_borrow_fee_inc_rate=short_borrow_fee_inc_rate
 )
 
-results, portfolio = backtester.run_cross_trade(
+results, portfolio = run_cross_trade(
     data=data2,
     short_window_indicator=f"SMA_{short_window_2}",
     long_window_indicator=f"SMA_{long_window_2}",
+    config=config,
     price_col='Close',
     trading_type='mixed'
 )
 
-backtester.print_results(results)
+print_results(results)
 
 indicator_cols_to_plot_2 = [f'SMA_{short_window_2}', f'SMA_{long_window_2}']
-fig = plotter.plot_results(
+fig = plot_backtest_results(
     data_df=data2,
     history_df=portfolio,
     price_col='Close',

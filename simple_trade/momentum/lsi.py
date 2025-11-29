@@ -99,3 +99,80 @@ def lsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = [lrsi_series.name]
     return lrsi_series, columns_list
+
+
+def strategy_lsi(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    LSI (Laguerre RSI) - Mean Reversion Strategy
+    
+    LOGIC: Buy when LRSI drops below lower threshold (oversold), sell when above upper.
+    WHY: Laguerre filter creates an RSI with less lag and noise. Reacts faster to price
+         changes than standard RSI. Gamma controls smoothing (higher = smoother).
+    BEST MARKETS: Short-term trading and scalping. Forex, futures, and liquid stocks.
+                  Popular for quick reversal detection due to low lag.
+    TIMEFRAME: Intraday to daily. Gamma 0.5 is common. Lower gamma = faster response.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'gamma' (default 0.5), 'upper' (default 80), 'lower' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    gamma = float(parameters.get('gamma', 0.5))
+    upper = int(parameters.get('upper', 80))
+    lower = int(parameters.get('lower', 20))
+    
+    indicator_params = {"gamma": gamma}
+    gamma_str = f"{gamma:g}"
+    indicator_col = f'LRSI_{gamma_str}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='lsi',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

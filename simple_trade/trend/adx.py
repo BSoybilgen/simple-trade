@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 
 def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
@@ -96,3 +95,80 @@ def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     columns = list(df_adx.columns)
 
     return df_adx, columns
+
+
+def strategy_adx(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    ADX (Average Directional Index) - DI Crossover Strategy
+    
+    LOGIC: Trade the crossovers between +DI and -DI to capture directional shifts.
+    WHY: ADX package produces +DI/-DI which directly encode bullish vs bearish pressure.
+         Using their crossover keeps the trading logic consistent with the plotted values.
+    BEST MARKETS: Any market. ADX provides additional context on trend strength if you
+                  choose to inspect it, but signals rely purely on DI crossovers now.
+    TIMEFRAME: Daily or weekly. Window 14 remains the default.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 14)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window = int(parameters.get('window', 14))
+    adx_col = f'ADX_{window}'
+    price_col = 'Close'
+    
+    # Compute ADX indicator
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='adx',
+        parameters={"window": window},
+        figure=False
+    )
+    
+    plus_di_col = f'+DI_{window}'
+    minus_di_col = f'-DI_{window}'
+    
+    # ADX Strategy: trade the +DI / -DI crossover directly
+    data_filtered = data.copy()
+    short_window_indicator = plus_di_col
+    long_window_indicator = minus_di_col
+    
+    results, portfolio = run_cross_trade(
+        data=data_filtered,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [adx_col, plus_di_col, minus_di_col]
+    
+    return results, portfolio, indicator_cols_to_plot, data

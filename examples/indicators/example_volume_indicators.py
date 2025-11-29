@@ -3,14 +3,12 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from simple_trade import IndicatorPlotter, compute_indicator, download_data
+from simple_trade import compute_indicator, download_data
 
 # Set pandas display options for better output
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
-
-plotter = IndicatorPlotter()
 
 # ### The Accumulation/Distribution Line (ADL)
 # Step 1: Download data

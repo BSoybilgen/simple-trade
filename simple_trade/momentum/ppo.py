@@ -73,3 +73,81 @@ def ppo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     })
 
     return result, list(result.columns)
+
+
+def strategy_ppo(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    PPO (Percentage Price Oscillator) - Signal Line Crossover Strategy
+    
+    LOGIC: Buy when PPO crosses above signal line, sell when crosses below.
+    WHY: PPO is MACD in percentage terms, allowing comparison across different
+         price levels. Signal crossovers indicate momentum shifts.
+    BEST MARKETS: All markets. Particularly useful for comparing momentum across
+                  assets with different price levels (e.g., $10 stock vs $1000 stock).
+    TIMEFRAME: All timeframes. Standard 12/26/9 settings work well for daily charts.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'fast_window' (default 12), 'slow_window' (default 26),
+                   'signal_window' (default 9)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    fast_window = int(parameters.get('fast_window', 12))
+    slow_window = int(parameters.get('slow_window', 26))
+    signal_window = int(parameters.get('signal_window', 9))
+    
+    indicator_params = {
+        "fast_window": fast_window,
+        "slow_window": slow_window,
+        "signal_window": signal_window
+    }
+    short_window_indicator = f'PPO_{fast_window}_{slow_window}'
+    long_window_indicator = f'PPO_SIG_{signal_window}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='ppo',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

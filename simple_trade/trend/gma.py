@@ -91,3 +91,77 @@ def _normalize_windows(value: Iterable) -> List[int]:
         cleaned = [1]
 
     return cleaned
+
+
+def strategy_gma(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    GMA (Guppy Multiple MA) - Short vs Long Group Crossover Strategy
+    
+    LOGIC: Buy when shortest short-term EMA crosses above longest long-term EMA,
+           sell when crosses below.
+    WHY: GMMA uses two groups of EMAs to show trend strength and transitions.
+         Compression indicates consolidation, expansion indicates strong trend.
+    BEST MARKETS: Trending markets. Stocks, forex, indices. Excellent for
+                  identifying trend reversals and strength.
+    TIMEFRAME: Daily charts. Standard short: 3,5,8,10,12,15; long: 30,35,40,45,50,60.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'short_windows', 'long_windows'
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='gma',
+        parameters=parameters,
+        figure=False
+    )
+    
+    # Use shortest short-term and longest long-term for crossover
+    short_cols = [c for c in columns if 'short' in c]
+    long_cols = [c for c in columns if 'long' in c]
+    
+    short_window_indicator = min(short_cols) if short_cols else 'GMA_short_3'
+    long_window_indicator = max(long_cols) if long_cols else 'GMA_long_60'
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

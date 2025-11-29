@@ -4,8 +4,7 @@ This example shows how to optimize different strategies using the simple_trade l
 """
 
 from simple_trade import download_data
-from simple_trade.premade_optimizer import premade_optimizer
-from simple_trade.plot_test import BacktestPlotter
+from simple_trade import premade_optimizer
 import pandas as pd
 
 # --- Configuration ---

@@ -89,3 +89,80 @@ def tsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     tsi_values.name = f'TSI_VOL_{atr_period}_{long_period}_{short_period}'
     columns_list = [tsi_values.name]
     return tsi_values, columns_list
+
+
+def strategy_tsv(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    TSV (TSI Volatility) - Volatility Momentum Strategy
+    
+    LOGIC: Buy when TSI crosses above zero (rising volatility momentum),
+           sell when crosses below zero (falling volatility momentum).
+    WHY: TSV applies TSI formula to ATR for double-smoothed volatility momentum.
+         Positive = rising volatility, negative = falling volatility.
+    BEST MARKETS: All markets. Good for volatility trend identification.
+    TIMEFRAME: Daily charts. 14 ATR with 25/13 smoothing is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'atr_period', 'long_period', 'short_period',
+                    'upper' (default 25), 'lower' (default -25)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    atr_period = int(parameters.get('atr_period', 14))
+    long_period = int(parameters.get('long_period', 25))
+    short_period = int(parameters.get('short_period', 13))
+    upper = float(parameters.get('upper', 25))
+    lower = float(parameters.get('lower', -25))
+    price_col = 'Close'
+    indicator_col = f'TSI_VOL_{atr_period}_{long_period}_{short_period}'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='tsv',
+        parameters={"atr_period": atr_period, "long_period": long_period, "short_period": short_period},
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

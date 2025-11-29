@@ -67,3 +67,74 @@ def bol(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     df_bb.index = series.index
     columns_list = list(df_bb.columns)
     return df_bb, columns_list
+
+
+def strategy_bol(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    BOL (Bollinger Bands) - Mean Reversion Strategy
+    
+    LOGIC: Buy when price touches lower band (oversold),
+           sell when price touches upper band (overbought).
+    WHY: Bollinger Bands show price relative to volatility. Price at lower band
+         suggests oversold, at upper band suggests overbought.
+    BEST MARKETS: Range-bound markets. Stocks, forex. Good for mean reversion.
+                  Less effective in strong trends.
+    TIMEFRAME: Daily charts. 20-period with 2 std dev is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 20), 'num_std' (default 2.0)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window = int(parameters.get('window', 20))
+    num_std = float(parameters.get('num_std', 2.0))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='bol',
+        parameters={"window": window, "num_std": num_std},
+        figure=False
+    )
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col='Close',
+        upper_band_col=f'BB_Upper_{window}_{num_std}',
+        lower_band_col=f'BB_Lower_{window}_{num_std}',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = ['Close', f'BB_Upper_{window}_{num_std}', 
+                              f'BB_Middle_{window}', f'BB_Lower_{window}_{num_std}']
+    
+    return results, portfolio, indicator_cols_to_plot, data

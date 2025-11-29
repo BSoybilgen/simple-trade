@@ -56,3 +56,83 @@ def tma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     tma_series.name = f'TMA_{window}'
 
     return tma_series, [tma_series.name]
+
+
+def strategy_tma(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    TMA (Triangular Moving Average) - Dual MA Crossover Strategy
+    
+    LOGIC: Buy when fast TMA crosses above slow TMA, sell when crosses below.
+    WHY: TMA applies double smoothing (SMA of SMA), creating triangular weighting.
+         Very smooth but has significant lag. Best for long-term trend identification.
+    BEST MARKETS: Long-term trending markets. Stocks, indices for position trading.
+                  Excellent noise reduction but slow to react.
+    TIMEFRAME: Daily or weekly charts. Best for long-term position trading.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'short_window' (default 10), 'long_window' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    short_window = int(parameters.get('short_window', 10))
+    long_window = int(parameters.get('long_window', 20))
+    price_col = 'Close'
+    
+    if short_window == 0:
+        short_window_indicator = 'Close'
+    else:
+        short_window_indicator = f'TMA_{short_window}'
+        data, _, _ = compute_indicator(
+            data=data,
+            indicator='tma',
+            parameters={"window": short_window},
+            figure=False
+        )
+    
+    long_window_indicator = f'TMA_{long_window}'
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='tma',
+        parameters={"window": long_window},
+        figure=False
+    )
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

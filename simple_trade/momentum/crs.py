@@ -122,3 +122,86 @@ def crs(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = [crsi_values.name]
     return crsi_values, columns_list
+
+
+def strategy_crs(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    CRS (Connors RSI) - Mean Reversion Strategy
+    
+    LOGIC: Buy when CRSI drops below 10 (extreme oversold), sell when rises above 90.
+    WHY: CRSI combines 3 components (RSI, streak RSI, percent rank) for short-term
+         mean reversion. Designed by Larry Connors for identifying pullback opportunities.
+    BEST MARKETS: Liquid stocks and ETFs in uptrends. Best for buying dips in bull markets.
+                  SPY, QQQ, and large-cap stocks. Avoid in bear markets or downtrends.
+    TIMEFRAME: Daily charts. Designed for short-term trades (2-5 day holding periods).
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'rsi_window' (default 3), 'streak_window' (default 2),
+                   'rank_window' (default 100), 'upper' (default 90), 'lower' (default 10)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    rsi_window = int(parameters.get('rsi_window', 3))
+    streak_window = int(parameters.get('streak_window', 2))
+    rank_window = int(parameters.get('rank_window', 100))
+    upper = int(parameters.get('upper', 90))
+    lower = int(parameters.get('lower', 10))
+    
+    indicator_params = {
+        "rsi_window": rsi_window,
+        "streak_window": streak_window,
+        "rank_window": rank_window
+    }
+    indicator_col = f'CRSI_{rsi_window}_{streak_window}_{rank_window}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='crs',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

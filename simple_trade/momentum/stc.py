@@ -86,3 +86,89 @@ def stc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = [stc_values.name]
     return stc_values, columns_list
+
+
+def strategy_stc(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    STC (Schaff Trend Cycle) - Mean Reversion Strategy
+    
+    LOGIC: Buy when STC drops below 25 (oversold), sell when above 75 (overbought).
+    WHY: STC combines MACD with stochastic, identifying trends faster with less lag.
+         Designed for early trend detection and cycle identification.
+    BEST MARKETS: Trending and cyclical markets. Forex, stocks, futures.
+                  Good for identifying cycle tops and bottoms.
+    TIMEFRAME: All timeframes. 23/50/10 settings are common for daily charts.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window_fast' (default 23), 'window_slow' (default 50),
+                   'cycle' (default 10), 'smooth' (default 3),
+                   'upper' (default 75), 'lower' (default 25)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window_fast = int(parameters.get('window_fast', 23))
+    window_slow = int(parameters.get('window_slow', 50))
+    cycle = int(parameters.get('cycle', 10))
+    smooth = int(parameters.get('smooth', 3))
+    upper = int(parameters.get('upper', 75))
+    lower = int(parameters.get('lower', 25))
+    
+    indicator_params = {
+        "window_fast": window_fast,
+        "window_slow": window_slow,
+        "cycle": cycle,
+        "smooth": smooth
+    }
+    indicator_col = f'STC_{window_fast}_{window_slow}_{cycle}'
+    price_col = 'Close'
+    
+    data, columns, _ = compute_indicator(
+        data=data,
+        indicator='stc',
+        parameters=indicator_params,
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

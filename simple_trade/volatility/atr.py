@@ -79,3 +79,82 @@ def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     atr_values.name = f'ATR_{window}'
     columns_list = [atr_values.name]
     return atr_values, columns_list
+
+
+def strategy_atr(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    ATR (Average True Range) - Volatility Threshold Strategy
+    
+    LOGIC: Buy when ATR drops below lower percentile (low volatility squeeze),
+           sell when rises above upper percentile (high volatility).
+    WHY: ATR measures market volatility. Low ATR indicates consolidation and
+         potential breakout setup. High ATR indicates strong moves or overextension.
+    BEST MARKETS: All markets. Good for volatility-based position sizing.
+                  Combine with trend indicators for directional trades.
+    TIMEFRAME: Daily charts. 14-period is standard.
+    NOTE: Uses rolling percentile bands since ATR is in price units.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 14), 'upper_pct' (default 80),
+                    'lower_pct' (default 20), 'lookback' (default 100)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window = int(parameters.get('window', 14))
+    upper_pct = float(parameters.get('upper_pct', 80))
+    lower_pct = float(parameters.get('lower_pct', 20))
+    lookback = int(parameters.get('lookback', 100))
+    price_col = 'Close'
+    indicator_col = f'ATR_{window}'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='atr',
+        parameters={"window": window},
+        figure=False
+    )
+    
+    # Calculate rolling percentile bands for ATR
+    data['upper'] = data[indicator_col].rolling(window=lookback, min_periods=window).quantile(upper_pct / 100)
+    data['lower'] = data[indicator_col].rolling(window=lookback, min_periods=window).quantile(lower_pct / 100)
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

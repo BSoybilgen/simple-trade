@@ -4,7 +4,7 @@ Main indicator handling module that coordinates the calculation of various techn
 import yfinance as yf
 import pandas as pd
 from .core import INDICATORS
-from simple_trade.plot_ind import IndicatorPlotter
+from simple_trade.plot_ind import plot_indicator
 from typing import Literal
 
 
@@ -65,14 +65,14 @@ def compute_indicator(
             columns = [columns[0]]
 
         if figure:
-            plotter = IndicatorPlotter()
-            fig = plotter.plot_results(
-            df,
-            price_col='Close',
-            column_names=columns,
-            plot_on_subplot=plot_on_subplot,
-            plot_type=plot_type,
-            title="Indicator Figure")
+            fig = plot_indicator(
+                df,
+                price_col='Close',
+                column_names=columns,
+                plot_on_subplot=plot_on_subplot,
+                plot_type=plot_type,
+                title="Indicator Figure"
+            )
         
             return df, columns, fig
         else:

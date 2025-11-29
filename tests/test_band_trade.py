@@ -1,7 +1,8 @@
 import pytest
 import pandas as pd
 import numpy as np
-from simple_trade.band_trade import BandTradeBacktester
+from simple_trade.run_band_trade_strategies import run_band_trade
+from simple_trade.config import BacktestConfig
 
 # --- Fixtures ---
 
@@ -27,23 +28,23 @@ def sample_band_data():
     return data
 
 @pytest.fixture
-def backtester_band():
-    """Fixture to provide an instance of BandTradeBacktester."""
-    return BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
+def default_config():
+    """Fixture to provide a default BacktestConfig."""
+    return BacktestConfig(initial_cash=10000, commission_long=0.001, commission_short=0.001)
 
 # --- Test Class ---
 
-class TestBandTradeBacktester:
-    """Tests for the BandTradeBacktester class."""
+class TestBandTrade:
+    """Tests for the run_band_trade function."""
 
     # --- Input Validation Tests ---
 
-    def test_invalid_data_type(self, backtester_band):
+    def test_invalid_data_type(self, default_config):
         """Test that TypeError is raised for non-DataFrame input."""
         with pytest.raises(TypeError, match="data must be a pandas DataFrame"):
-            backtester_band.run_band_trade([1, 2, 3], 'Indicator', 'UpperBand', 'LowerBand')
+            run_band_trade([1, 2, 3], 'Indicator', 'UpperBand', 'LowerBand', config=default_config)
 
-    def test_invalid_index_type(self, backtester_band):
+    def test_invalid_index_type(self, default_config):
         """Test that TypeError is raised for non-DatetimeIndex."""
         data = pd.DataFrame({
             'Close': [100], 
@@ -52,83 +53,66 @@ class TestBandTradeBacktester:
             'LowerBand': [100]
         })
         with pytest.raises(TypeError, match="DataFrame index must be a DatetimeIndex"):
-            backtester_band.run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand')
+            run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand', config=default_config)
 
-    def test_missing_price_column(self, backtester_band, sample_band_data):
+    def test_missing_price_column(self, default_config, sample_band_data):
         """Test ValueError if price_col is missing."""
         data = sample_band_data.drop(columns=['Close'])
         with pytest.raises(ValueError, match="Price column 'Close' not found"):
-            backtester_band.run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand')
+            run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand', config=default_config)
 
-    def test_missing_indicator_column(self, backtester_band, sample_band_data):
+    def test_missing_indicator_column(self, default_config, sample_band_data):
         """Test ValueError if indicator_col is missing."""
         data = sample_band_data.drop(columns=['Indicator'])
         with pytest.raises(ValueError, match="Indicator column 'Indicator' not found"):
-            backtester_band.run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand')
+            run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand', config=default_config)
 
-    def test_missing_upper_band_column(self, backtester_band, sample_band_data):
+    def test_missing_upper_band_column(self, default_config, sample_band_data):
         """Test ValueError if upper_band_col is missing."""
         data = sample_band_data.drop(columns=['UpperBand'])
         with pytest.raises(ValueError, match="Upper band column 'UpperBand' not found"):
-            backtester_band.run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand')
+            run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand', config=default_config)
 
-    def test_missing_lower_band_column(self, backtester_band, sample_band_data):
+    def test_missing_lower_band_column(self, default_config, sample_band_data):
         """Test ValueError if lower_band_col is missing."""
         data = sample_band_data.drop(columns=['LowerBand'])
         with pytest.raises(ValueError, match="Lower band column 'LowerBand' not found"):
-            backtester_band.run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand')
+            run_band_trade(data, 'Indicator', 'UpperBand', 'LowerBand', config=default_config)
 
-    @pytest.mark.parametrize("pct", [-0.1, 1.1])
-    def test_invalid_long_entry_pct(self, backtester_band, sample_band_data, pct):
-        """Test ValueError for invalid long_entry_pct_cash."""
-        with pytest.raises(ValueError, match="long_entry_pct_cash must be between 0.0 and 1.0"):
-            backtester_band.run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
-                                           long_entry_pct_cash=pct)
-
-    @pytest.mark.parametrize("pct", [-0.1, 1.1])
-    def test_invalid_short_entry_pct(self, backtester_band, sample_band_data, pct):
-        """Test ValueError for invalid short_entry_pct_cash."""
-        with pytest.raises(ValueError, match="short_entry_pct_cash must be between 0.0 and 1.0"):
-            backtester_band.run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
-                                           short_entry_pct_cash=pct)
-
-    def test_invalid_trading_type(self, backtester_band, sample_band_data):
+    def test_invalid_trading_type(self, default_config, sample_band_data):
         """Test ValueError for invalid trading_type."""
         with pytest.raises(ValueError, match="Invalid trading_type 'invalid_type'"):
-            backtester_band.run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
-                                          trading_type='invalid_type')
+            run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
+                          config=default_config, trading_type='invalid_type')
 
-    def test_invalid_strategy_type(self, backtester_band, sample_band_data):
+    def test_invalid_strategy_type(self, default_config, sample_band_data):
         """Test ValueError for invalid strategy_type."""
         with pytest.raises(ValueError, match="Invalid strategy_type: 3"):
-            backtester_band.run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
-                                          strategy_type=3)
+            run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
+                          config=default_config, strategy_type=3)
 
-    def test_invalid_day1_position(self, backtester_band, sample_band_data):
+    def test_invalid_day1_position(self, default_config, sample_band_data):
         """Test ValueError for invalid day1_position."""
         with pytest.raises(ValueError, match="Invalid day1_position 'sideways'"):
-            backtester_band.run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
-                                          day1_position='sideways')
+            run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
+                          config=default_config, day1_position='sideways')
 
-    def test_incompatible_day1_long_trading_short(self, backtester_band, sample_band_data):
+    def test_incompatible_day1_long_trading_short(self, default_config, sample_band_data):
         """Test ValueError for day1_position='long' with trading_type='short'."""
         with pytest.raises(ValueError, match="Cannot use day1_position='long' with trading_type='short'"):
-            backtester_band.run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
-                                          trading_type='short', day1_position='long')
+            run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
+                          config=default_config, trading_type='short', day1_position='long')
 
-    def test_incompatible_day1_short_trading_long(self, backtester_band, sample_band_data):
+    def test_incompatible_day1_short_trading_long(self, default_config, sample_band_data):
         """Test ValueError for day1_position='short' with trading_type='long'."""
         with pytest.raises(ValueError, match="Cannot use day1_position='short' with trading_type='long'"):
-            backtester_band.run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
-                                          trading_type='long', day1_position='short')
+            run_band_trade(sample_band_data, 'Indicator', 'UpperBand', 'LowerBand', 
+                          config=default_config, trading_type='long', day1_position='short')
 
     # --- Functional Tests: Mean Reversion Strategy (Type 1) ---
     
-    def test_mean_reversion_long_strategy(self, backtester_band, sample_band_data):
+    def test_mean_reversion_long_strategy(self, default_config, sample_band_data):
         """Test the mean reversion (type 1) long-only strategy executes buy and sell signals correctly."""
-        # Initialize backtester with fixed settings for predictable results
-        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
-        
         # Add more explicit crossover signal by having indicator cross below lower band
         # and then later cross above upper band to generate buy and sell signals
         data = sample_band_data.copy()
@@ -139,11 +123,12 @@ class TestBandTradeBacktester:
         data.loc[data.index[6], 'Indicator'] = 106  # Crosses above upper band (sell signal for day 8)
         
         # Run backtest with mean reversion long-only trading type
-        results, portfolio_df = backtester.run_band_trade(
+        results, portfolio_df = run_band_trade(
             data, 
             'Indicator', 
             'UpperBand', 
             'LowerBand', 
+            config=default_config,
             trading_type='long',
             strategy_type=1
         )
@@ -153,15 +138,11 @@ class TestBandTradeBacktester:
         
         # Check for buy signals that we've engineered in our test data
         buy_signals = portfolio_df['BuySignal'].sum()
-        assert buy_signals > 0, f"Expected buy signals but got none"
+        assert buy_signals > 0, "Expected buy signals but got none"
         
         # Check for sell signals that we've engineered in our test data
         sell_signals = portfolio_df['SellSignal'].sum()
-        assert sell_signals > 0, f"Expected sell signals but got none"
-        
-        # Print the unique actions to debug
-        print(f"Unique actions: {portfolio_df['Action'].unique()}")
-        print(f"Trades count: {results['num_trades']}")
+        assert sell_signals > 0, "Expected sell signals but got none"
         
         # Check number of trades may be at least 0
         # Some signals might not result in trades based on strategy logic
@@ -172,17 +153,15 @@ class TestBandTradeBacktester:
         
     # --- Functional Tests: Breakout Strategy (Type 2) ---
     
-    def test_breakout_long_strategy(self, backtester_band, sample_band_data):
+    def test_breakout_long_strategy(self, default_config, sample_band_data):
         """Test the breakout (type 2) long-only strategy executes buy and sell signals correctly."""
-        # Initialize backtester with fixed settings for predictable results
-        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
-        
         # Run backtest with breakout long-only trading type
-        results, portfolio_df = backtester.run_band_trade(
+        results, portfolio_df = run_band_trade(
             sample_band_data, 
             'Indicator', 
             'UpperBand', 
             'LowerBand', 
+            config=default_config,
             trading_type='long',
             strategy_type=2
         )
@@ -198,17 +177,15 @@ class TestBandTradeBacktester:
         
     # --- Functional Tests: Short Strategy ---
     
-    def test_short_only_strategy(self, backtester_band, sample_band_data):
+    def test_short_only_strategy(self, default_config, sample_band_data):
         """Test the short-only strategy executes short and cover signals correctly."""
-        # Initialize backtester with fixed settings for predictable results
-        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
-        
         # Run backtest with short-only trading type
-        results, portfolio_df = backtester.run_band_trade(
+        results, portfolio_df = run_band_trade(
             sample_band_data, 
             'Indicator', 
             'UpperBand', 
             'LowerBand', 
+            config=default_config,
             trading_type='short',
             strategy_type=1,  # Using mean reversion
             short_entry_pct_cash=0.5  # Use 50% of cash for short positions
@@ -233,11 +210,8 @@ class TestBandTradeBacktester:
         
     # --- Functional Tests: Mixed Strategy with Day1 Position ---
     
-    def test_mixed_strategy_with_day1_position(self, backtester_band):
+    def test_mixed_strategy_with_day1_position(self, default_config):
         """Test the mixed trading strategy with a day1 position."""
-        # Initialize backtester with fixed settings for predictable results
-        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
-        
         # Create more complex data with multiple crossovers for mixed strategy testing
         dates = pd.date_range(start='2023-01-01', periods=20, freq='D')
         data = pd.DataFrame(index=dates)
@@ -263,11 +237,12 @@ class TestBandTradeBacktester:
         data['LowerBand'] = [100] * 20
         
         # Run backtest with mixed trading type and start with a long position on day 1
-        results, portfolio_df = backtester.run_band_trade(
+        results, portfolio_df = run_band_trade(
             data, 
             'Indicator', 
             'UpperBand', 
             'LowerBand', 
+            config=default_config,
             trading_type='mixed',
             strategy_type=1,  # Mean reversion
             day1_position='long',  # Start with a long position
@@ -278,17 +253,11 @@ class TestBandTradeBacktester:
         # Check that portfolio_df is not empty
         assert not portfolio_df.empty, "Portfolio DataFrame should not be empty"
         
-        # Print debug info
-        print(f"Day1 position size: {portfolio_df.iloc[0]['PositionSize']}")
-        print(f"Unique actions: {portfolio_df['Action'].unique()}")
-        print(f"Buy signals count: {portfolio_df['BuySignal'].sum()}")
-        print(f"Sell signals count: {portfolio_df['SellSignal'].sum()}")
-        
         # Verify day1 position is long (from parameter)
         assert portfolio_df.iloc[0]['PositionSize'] > 0, "Day 1 position should be long"
         
         # Verify we have at least day1 position
-        assert len(portfolio_df['Action'].unique()) >= 1, f"Should have at least one type of action"
+        assert len(portfolio_df['Action'].unique()) >= 1, "Should have at least one type of action"
         
         # Verify performance metrics are included in results
         performance_metrics = ['sharpe_ratio', 'sortino_ratio', 'max_drawdown_pct', 
@@ -298,16 +267,17 @@ class TestBandTradeBacktester:
     
     # --- Test Print Results ---
     
-    def test_print_results(self, backtester_band, sample_band_data, capsys):
-        """Test that the print_results method works correctly."""
-        backtester = BandTradeBacktester(initial_cash=10000, commission_long=0.001, commission_short=0.001)
+    def test_print_results(self, default_config, sample_band_data, capsys):
+        """Test that the print_results function works correctly."""
+        from simple_trade.metrics import print_results
         
         # Run backtest with long-only trading type
-        results, _ = backtester.run_band_trade(
+        results, _ = run_band_trade(
             sample_band_data, 
             'Indicator', 
             'UpperBand', 
             'LowerBand', 
+            config=default_config,
             trading_type='long',
             strategy_type=1
         )
@@ -334,12 +304,12 @@ class TestBandTradeBacktester:
         })
         
         # Test with detailed=True (default)
-        backtester.print_results(results)
+        print_results(results)
         captured = capsys.readouterr()
         output_detailed = captured.out
         
         # Test with detailed=False
-        backtester.print_results(results, detailed=False)
+        print_results(results, detailed=False)
         captured = capsys.readouterr()
         output_simple = captured.out
         

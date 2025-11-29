@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from unittest.mock import patch
-from simple_trade.resistance_support import (
+from simple_trade.compute_resistance_support import (
     find_pivot_points, 
     find_resistance_support_lines, 
     plot_resistance_support
@@ -337,7 +337,7 @@ class TestPlotResistanceSupport:
         assert mock_axhline.call_count == expected_calls
 
     @patch('matplotlib.pyplot.show')
-    @patch('simple_trade.resistance_support.find_resistance_support_lines')
+    @patch('simple_trade.compute_resistance_support.find_resistance_support_lines')
     def test_plot_resistance_support_uses_find_function(self, mock_find_lines, mock_show,
                                                        sample_price_series):
         """Test that plotting function uses find_resistance_support_lines."""

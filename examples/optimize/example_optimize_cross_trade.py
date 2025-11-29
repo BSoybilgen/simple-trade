@@ -1,8 +1,7 @@
 # examples/optimize/example_optimize_strategy.py
 
 from simple_trade import download_data, compute_indicator
-from simple_trade import CrossTradeBacktester
-from simple_trade import Optimizer
+from simple_trade import run_cross_trade, custom_optimizer
 
 # --- Configuration ---
 ticker = "AAPL"
@@ -28,16 +27,8 @@ def run_cross_trade_with_windows(data, short_window, long_window, **kwargs):
     short_window_indicator = f"EMA_{short_window}"
     long_window_indicator = f"EMA_{long_window}"
     
-    # Create a backtester instance
-    backtester = CrossTradeBacktester(
-        initial_cash=kwargs.pop('initial_cash', 10000),
-        commission_long=kwargs.pop('commission_long', 0.001),
-        short_borrow_fee_inc_rate=kwargs.pop('short_borrow_fee_inc_rate', 0.0),
-        long_borrow_fee_inc_rate=kwargs.pop('long_borrow_fee_inc_rate', 0.0)
-    )
-    
-    # Run the backtest
-    return backtester.run_cross_trade(
+    # Run the backtest using function-based API
+    return run_cross_trade(
         data=df,
         short_window_indicator=short_window_indicator,
         long_window_indicator=long_window_indicator,
@@ -64,18 +55,18 @@ maximize_metric = True
 
 # --- Instantiate and Run Optimizer ---
 print("Initializing Optimizer...")
-optimizer = Optimizer(
+print("\nRunning Optimization (Parallel)...")
+# Run optimization with parallel processing (adjust n_jobs as needed)
+results = custom_optimizer(
     data=data,
-    backtest_func=run_cross_trade_with_windows,  # Use our wrapper function
+    backtest_func=run_cross_trade_with_windows,
     param_grid=param_grid,
     metric_to_optimize=metric_to_optimize,
     maximize_metric=maximize_metric,
-    constant_params=constant_params
+    constant_params=constant_params,
+    parallel=True,
+    n_jobs=-1  # n_jobs=-1 uses all available cores
 )
-
-print("\nRunning Optimization (Parallel)...")
-# Run optimization with parallel processing (adjust n_jobs as needed)
-results = optimizer.optimize(parallel=True, n_jobs=-1) # n_jobs=-1 uses all available cores
 
 # --- Display Results ---
 print("\n--- Optimization Results ---")
@@ -112,21 +103,13 @@ long_window = best_params['long_window']
 final_data, _, _ = compute_indicator(final_data, indicator='ema', parameters={'window': short_window})
 final_data, _, _ = compute_indicator(final_data, indicator='ema', parameters={'window': long_window})
 
-# Extract backtester initialization parameters
-bt_init_args = {
-    'initial_cash': constant_params.get('initial_cash', 10000.0),
-    'commission_long': constant_params.get('commission_long', 0.001)
-}
-
-# Create backtester with proper initialization parameters
-best_backtester = CrossTradeBacktester(**bt_init_args)
-
-# Run backtest with the best parameters
-results, portfolio_df = best_backtester.run_cross_trade(
+# Run backtest with the best parameters using function-based API
+results, portfolio_df = run_cross_trade(
     data=final_data,
     short_window_indicator=f"EMA_{short_window}",
     long_window_indicator=f"EMA_{long_window}",
-    price_col='Close'
+    price_col='Close',
+    config=None  # Uses default config
 )
 
 print("\n--- Performance Metrics (Best Parameters) ---")

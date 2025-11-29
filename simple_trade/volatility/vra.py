@@ -59,3 +59,79 @@ def vra(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     vr_values.name = f'VR_{short_period}_{long_period}'
     columns_list = [vr_values.name]
     return vr_values, columns_list
+
+
+def strategy_vra(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    VRA (Volatility Ratio) - Volatility Regime Strategy
+    
+    LOGIC: Buy when VR rises above upper threshold (volatility expansion),
+           sell when drops below lower threshold (volatility contraction).
+    WHY: VR compares short-term to long-term volatility. VR > 1 indicates
+         expanding volatility, VR < 1 indicates contracting volatility.
+    BEST MARKETS: All markets. Good for volatility regime detection.
+    TIMEFRAME: Daily charts. 5/20 periods is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'short_period' (default 5), 'long_period' (default 20),
+                    'upper' (default 1.5), 'lower' (default 0.7)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    short_period = int(parameters.get('short_period', 5))
+    long_period = int(parameters.get('long_period', 20))
+    upper = float(parameters.get('upper', 1.5))
+    lower = float(parameters.get('lower', 0.7))
+    price_col = 'Close'
+    indicator_col = f'VR_{short_period}_{long_period}'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='vra',
+        parameters={"short_period": short_period, "long_period": long_period},
+        figure=False
+    )
+    
+    data['upper'] = upper
+    data['lower'] = lower
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data
