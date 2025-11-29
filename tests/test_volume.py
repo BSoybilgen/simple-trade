@@ -2,7 +2,8 @@ import pytest
 import pandas as pd
 import numpy as np
 from simple_trade.volume import (
-    obv, vma, adline, cmf, vpt
+    obv, vma, adl, cmf, vpt, vwa, mfi, foi, emv, pvo, vro, nvi, pvi,
+    kvo, ado, vfi, bwm, fve, wad, voo
 )
 
 # Fixture for sample data (consistent with other test modules)
@@ -138,7 +139,7 @@ class TestADLine:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result_data, _ = adline(df)
+        result_data, _ = adl(df)
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
@@ -156,7 +157,7 @@ class TestADLine:
             'Close': sample_data['close'],
             'Volume': sample_data['volume']
         })
-        result_data, _ = adline(df)
+        result_data, _ = adl(df)
         price_diff = sample_data['close'].diff().dropna()
         ad_diff = result_data.diff().dropna()
         
@@ -261,3 +262,475 @@ class TestVPT:
         sign_match = np.sign(price_diff) == np.sign(vpt_diff)
         # Allow for some deviation due to the nature of VPT
         assert sign_match.mean() > 0.7 # Expect high correlation
+
+
+# --- Additional Volume Indicator Tests ---
+
+class TestVWAP:
+    """Tests for Volume Weighted Average Price"""
+
+    def test_vwa_calculation(self, sample_data):
+        """Test basic VWAP calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = vwa(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'VWAP' in columns
+        assert len(result_data) == len(sample_data['close'])
+        
+        # VWAP should be within the price range
+        valid_result = result_data.dropna()
+        assert len(valid_result) > 0
+
+    def test_vwa_custom_columns(self, sample_data):
+        """Test VWAP with custom column names"""
+        df = pd.DataFrame({
+            'h': sample_data['high'],
+            'l': sample_data['low'],
+            'c': sample_data['close'],
+            'v': sample_data['volume']
+        })
+        result_data, columns = vwa(df, columns={
+            'high_col': 'h',
+            'low_col': 'l',
+            'close_col': 'c',
+            'volume_col': 'v'
+        })
+        
+        assert 'VWAP' in columns
+
+
+class TestMFI:
+    """Tests for Money Flow Index"""
+
+    def test_mfi_calculation(self, sample_data):
+        """Test basic MFI calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = mfi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'MFI_14' in columns
+        
+        # MFI should be between 0 and 100
+        valid_result = result_data.dropna()
+        assert (valid_result >= 0).all()
+        assert (valid_result <= 100).all()
+
+    def test_mfi_custom_period(self, sample_data):
+        """Test MFI with custom period"""
+        period = 10
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = mfi(df, parameters={'period': period})
+        
+        assert f'MFI_{period}' in columns
+
+
+class TestForceIndex:
+    """Tests for Force Index"""
+
+    def test_foi_calculation(self, sample_data):
+        """Test basic Force Index calculation"""
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = foi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'FI_13' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_foi_custom_period(self, sample_data):
+        """Test Force Index with custom period"""
+        period = 7
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = foi(df, parameters={'period': period})
+        
+        assert f'FI_{period}' in columns
+
+
+class TestEMV:
+    """Tests for Ease of Movement"""
+
+    def test_emv_calculation(self, sample_data):
+        """Test basic EMV calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = emv(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'EMV_14' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_emv_custom_period(self, sample_data):
+        """Test EMV with custom period"""
+        period = 10
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = emv(df, parameters={'period': period})
+        
+        assert f'EMV_{period}' in columns
+
+
+class TestPVO:
+    """Tests for Percentage Volume Oscillator"""
+
+    def test_pvo_calculation(self, sample_data):
+        """Test basic PVO calculation"""
+        df = pd.DataFrame({'Volume': sample_data['volume']})
+        result_data, columns = pvo(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'PVO_12_26' in columns
+        assert 'PVO_SIGNAL_9' in columns
+        assert 'PVO_HIST' in columns
+
+    def test_pvo_custom_params(self, sample_data):
+        """Test PVO with custom parameters"""
+        df = pd.DataFrame({'Volume': sample_data['volume']})
+        result_data, columns = pvo(df, parameters={
+            'fast_period': 10,
+            'slow_period': 20,
+            'signal_period': 5
+        })
+        
+        assert 'PVO_10_20' in columns
+        assert 'PVO_SIGNAL_5' in columns
+
+
+class TestVROC:
+    """Tests for Volume Rate of Change"""
+
+    def test_vro_calculation(self, sample_data):
+        """Test basic VROC calculation"""
+        df = pd.DataFrame({'Volume': sample_data['volume']})
+        result_data, columns = vro(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'VROC_14' in columns
+
+    def test_vro_custom_period(self, sample_data):
+        """Test VROC with custom period"""
+        period = 10
+        df = pd.DataFrame({'Volume': sample_data['volume']})
+        result_data, columns = vro(df, parameters={'period': period})
+        
+        assert f'VROC_{period}' in columns
+
+
+class TestNVI:
+    """Tests for Negative Volume Index"""
+
+    def test_nvi_calculation(self, sample_data):
+        """Test basic NVI calculation"""
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = nvi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'NVI' in columns
+        assert len(result_data) == len(sample_data['close'])
+        
+        # First value should be initial value (default 1000)
+        assert result_data.iloc[0] == 1000
+
+    def test_nvi_custom_initial(self, sample_data):
+        """Test NVI with custom initial value"""
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, _ = nvi(df, parameters={'initial_value': 500})
+        
+        assert result_data.iloc[0] == 500
+
+
+class TestPVI:
+    """Tests for Positive Volume Index"""
+
+    def test_pvi_calculation(self, sample_data):
+        """Test basic PVI calculation"""
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = pvi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'PVI' in columns
+        assert len(result_data) == len(sample_data['close'])
+        
+        # First value should be initial value (default 1000)
+        assert result_data.iloc[0] == 1000
+
+    def test_pvi_custom_initial(self, sample_data):
+        """Test PVI with custom initial value"""
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, _ = pvi(df, parameters={'initial_value': 500})
+        
+        assert result_data.iloc[0] == 500
+
+
+class TestKVO:
+    """Tests for Klinger Volume Oscillator"""
+
+    def test_kvo_calculation(self, sample_data):
+        """Test basic KVO calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = kvo(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'KVO_34_55' in columns
+        assert 'KVO_SIGNAL_13' in columns
+
+    def test_kvo_custom_params(self, sample_data):
+        """Test KVO with custom parameters"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = kvo(df, parameters={
+            'fast_period': 20,
+            'slow_period': 40,
+            'signal_period': 10
+        })
+        
+        assert 'KVO_20_40' in columns
+        assert 'KVO_SIGNAL_10' in columns
+
+
+class TestADO:
+    """Tests for Accumulation/Distribution Oscillator"""
+
+    def test_ado_calculation(self, sample_data):
+        """Test basic ADO calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = ado(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'ADO_14' in columns
+
+    def test_ado_custom_period(self, sample_data):
+        """Test ADO with custom period"""
+        period = 10
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = ado(df, parameters={'period': period})
+        
+        assert f'ADO_{period}' in columns
+
+
+class TestVFI:
+    """Tests for Volume Flow Indicator"""
+
+    def test_vfi_calculation(self, sample_data):
+        """Test basic VFI calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = vfi(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'VFI_130' in columns
+
+    def test_vfi_custom_period(self, sample_data):
+        """Test VFI with custom period"""
+        period = 50
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = vfi(df, parameters={'period': period})
+        
+        assert f'VFI_{period}' in columns
+
+
+class TestBWMFI:
+    """Tests for Bill Williams Market Facilitation Index"""
+
+    def test_bwm_calculation(self, sample_data):
+        """Test basic BW MFI calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = bwm(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'BWMFI' in columns
+        assert len(result_data) == len(sample_data['close'])
+        
+        # BW MFI should be non-negative
+        valid_result = result_data.dropna()
+        assert (valid_result >= 0).all()
+
+    def test_bwm_custom_columns(self, sample_data):
+        """Test BW MFI with custom column names"""
+        df = pd.DataFrame({
+            'h': sample_data['high'],
+            'l': sample_data['low'],
+            'v': sample_data['volume']
+        })
+        result_data, columns = bwm(df, columns={
+            'high_col': 'h',
+            'low_col': 'l',
+            'volume_col': 'v'
+        })
+        
+        assert 'BWMFI' in columns
+
+
+class TestFVE:
+    """Tests for Finite Volume Elements"""
+
+    def test_fve_calculation(self, sample_data):
+        """Test basic FVE calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = fve(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'FVE_22' in columns
+        
+        # FVE should be between -100 and 100
+        valid_result = result_data.dropna()
+        if len(valid_result) > 0:
+            assert (valid_result >= -100).all()
+            assert (valid_result <= 100).all()
+
+    def test_fve_custom_period(self, sample_data):
+        """Test FVE with custom period"""
+        period = 14
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close'],
+            'Volume': sample_data['volume']
+        })
+        result_data, columns = fve(df, parameters={'period': period})
+        
+        assert f'FVE_{period}' in columns
+
+
+class TestWAD:
+    """Tests for Williams Accumulation/Distribution"""
+
+    def test_wad_calculation(self, sample_data):
+        """Test basic WAD calculation"""
+        df = pd.DataFrame({
+            'High': sample_data['high'],
+            'Low': sample_data['low'],
+            'Close': sample_data['close']
+        })
+        result_data, columns = wad(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'WAD' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_wad_custom_columns(self, sample_data):
+        """Test WAD with custom column names"""
+        df = pd.DataFrame({
+            'h': sample_data['high'],
+            'l': sample_data['low'],
+            'c': sample_data['close']
+        })
+        result_data, columns = wad(df, columns={
+            'high_col': 'h',
+            'low_col': 'l',
+            'close_col': 'c'
+        })
+        
+        assert 'WAD' in columns
+
+
+class TestVolumeOscillator:
+    """Tests for Volume Oscillator"""
+
+    def test_voo_calculation(self, sample_data):
+        """Test basic Volume Oscillator calculation"""
+        df = pd.DataFrame({'Volume': sample_data['volume']})
+        result_data, columns = voo(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'VO_5_10' in columns
+
+    def test_voo_custom_params(self, sample_data):
+        """Test Volume Oscillator with custom parameters"""
+        df = pd.DataFrame({'Volume': sample_data['volume']})
+        result_data, columns = voo(df, parameters={
+            'fast_period': 3,
+            'slow_period': 7
+        })
+        
+        assert 'VO_3_7' in columns

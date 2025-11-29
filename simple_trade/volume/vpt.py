@@ -7,44 +7,38 @@ def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     Calculates the Volume Price Trend (VPT), a volume-based indicator that relates
     volume to price change percentage to create a cumulative indicator of buying/selling
     pressure.
-    
+
     Args:
-        df (pd.DataFrame): The DataFrame containing the data.
-        parameters (dict, optional): Dictionary containing calculation parameters. This indicator does not use any calculation parameters.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters.
+            No parameters are used.
         columns (dict, optional): Dictionary containing column name mappings:
             - close_col (str): The column name for closing prices. Default is 'Close'.
             - volume_col (str): The column name for volume. Default is 'Volume'.
-    
+
     Returns:
         tuple: A tuple containing the VPT series and a list of column names.
-    
-    VPT is similar to OBV but instead of just using the direction of price change,
-    it uses the percentage change in price to give more weight to more significant
-    price movements.
-    
-    Calculation:
-    1. Calculate percentage price change for each period:
-       Price Change % = (Today's Close - Yesterday's Close) / Yesterday's Close
-    
-    2. For each period, multiply the percentage price change by volume:
-       VPT = Previous VPT + (Price Change % * Volume)
-    
+
+    The Volume Price Trend is calculated as follows:
+
+    1. Calculate Percentage Price Change:
+       PctChange = (Close - Previous Close) / Previous Close
+
+    2. Calculate Period Change:
+       Period Change = PctChange * Volume
+
+    3. Calculate VPT (Cumulative):
+       VPT = Previous VPT + Period Change
+
     Interpretation:
-    - Rising VPT: Indicates buying pressure (accumulation)
-    - Falling VPT: Indicates selling pressure (distribution)
-    - The steepness of the VPT line indicates the strength of the buying/selling pressure
-    
+    - Rising VPT: Buying pressure (Accumulation).
+    - Falling VPT: Selling pressure (Distribution).
+    - Steep Slope: Strong conviction behind the move.
+
     Use Cases:
-    
-    - Trend confirmation: VPT should move in the same direction as price in a valid trend.
-    - Divergence analysis: If price makes new highs/lows but VPT doesn't, it suggests
-      the trend may be weakening.
-    - Volume analysis: VPT gives a cumulative view of volume weighted by price change %,
-      providing insight into the conviction behind price movements.
-    - Breakout validation: Significant volume should accompany breakouts, visible as
-      a steep change in the VPT.
-    - Accumulation/distribution identification: VPT can help identify periods of
-      accumulation or distribution before major price moves.
+    - Trend Confirmation: VPT should move with price.
+    - Divergence: Price/VPT disagreement signals potential reversal.
+    - Breakout Validation: High volume move leads to steep VPT rise.
     """
     # Set default values
     if parameters is None:
@@ -95,3 +89,73 @@ def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     vpt_values.name = 'VPT'
     columns_list = [vpt_values.name]
     return vpt_values, columns_list
+
+
+def strategy_vpt(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    VPT (Volume Price Trend) - SMA Crossover Strategy
+    
+    LOGIC: Buy when VPT crosses above its SMA (accumulation),
+           sell when VPT crosses below its SMA (distribution).
+    WHY: VPT relates volume to price change percentage. Rising VPT indicates
+         buying pressure, falling indicates selling pressure.
+    BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
+    TIMEFRAME: Daily charts. Good for swing trading.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'sma_period' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    sma_period = int(parameters.get('sma_period', 20))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='vpt',
+        parameters={},
+        figure=False
+    )
+    
+    # Calculate SMA of VPT for crossover signals
+    data[f'VPT_SMA_{sma_period}'] = data['VPT'].rolling(window=sma_period).mean()
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator='VPT',
+        long_window_indicator=f'VPT_SMA_{sma_period}',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = ['VPT', f'VPT_SMA_{sma_period}']
+    
+    return results, portfolio, indicator_cols_to_plot, data

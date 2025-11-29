@@ -4,8 +4,7 @@ This example shows how to optimize different strategies using the simple_trade l
 """
 
 from simple_trade import download_data
-from simple_trade.premade_optimizer import premade_optimizer
-from simple_trade.plot_test import BacktestPlotter
+from simple_trade import premade_optimizer
 import pandas as pd
 
 # --- Configuration ---
@@ -156,7 +155,7 @@ print(f"  Total combinations: {len(macd_param_grid['window_fast']) * len(macd_pa
 print("\nRunning MACD optimization...")
 macd_best_results, macd_best_params, macd_all_results = premade_optimizer(
     data=data,
-    strategy_name='macd',
+    strategy_name='mac',
     parameters=macd_base_params,
     param_grid=macd_param_grid
 )
@@ -211,86 +210,3 @@ if strategies_results:
     print(f"\nBest Performing Strategy: {best_strategy['Strategy']}")
     print(f"Parameters: {best_strategy['Parameters']}")
     print(f"Total Return: {best_strategy['Total Return (%)']:.2f}%")
-
-# --- Advanced Example: Custom Metric Optimization ---
-print("\n" + "="*60)
-print("EXAMPLE 4: Custom Metric Optimization (Risk-Adjusted Return)")
-print("="*60)
-
-# For this example, we'll optimize RSI using a custom approach
-# We'll run the optimization and then calculate a custom risk-adjusted metric
-print("Optimizing RSI strategy with custom risk-adjusted analysis...")
-
-# Smaller parameter grid for demonstration
-custom_param_grid = {
-    'window': [14, 20],
-    'upper': [70, 80],
-    'lower': [20, 30]
-}
-
-custom_base_params = {
-    'initial_cash': 100000.0,
-    'commission_long': 0.001,
-    'commission_short': 0.001,
-    'trading_type': 'long',
-    'day1_position': 'none',
-    'risk_free_rate': 0.02,
-    'metric': 'total_return_pct',
-    'maximize': True,
-    'parallel': False,
-    'fig_control': 0
-}
-
-custom_best_results, custom_best_params, custom_all_results = premade_optimizer(
-    data=data,
-    strategy_name='rsi',
-    parameters=custom_base_params,
-    param_grid=custom_param_grid
-)
-
-if custom_all_results:
-    print("\nCustom Risk-Adjusted Analysis:")
-    print("Calculating custom risk-adjusted scores...")
-    
-    # Calculate custom risk-adjusted score for each result
-    custom_scores = []
-    for result in custom_all_results:
-        results_df = result['results_summary']
-        total_return = results_df['total_return_pct']
-        max_drawdown = abs(results_df['max_drawdown_pct'])
-        sharpe_ratio = results_df['sharpe_ratio']
-        
-        # Custom risk-adjusted score: (Total Return / Max Drawdown) * Sharpe Ratio
-        if max_drawdown > 0:
-            custom_score = (total_return / max_drawdown) * sharpe_ratio
-        else:
-            custom_score = total_return * sharpe_ratio
-            
-        custom_scores.append({
-            'params': result['params'],
-            'total_return': total_return,
-            'max_drawdown': max_drawdown,
-            'sharpe_ratio': sharpe_ratio,
-            'custom_score': custom_score
-        })
-    
-    # Sort by custom score
-    custom_scores.sort(key=lambda x: x['custom_score'], reverse=True)
-    
-    print("\nTop 3 by Custom Risk-Adjusted Score:")
-    for i, score_data in enumerate(custom_scores[:3]):
-        print(f"  {i+1}. {score_data['params']}")
-        print(f"     Return: {score_data['total_return']:.2f}%, Drawdown: {score_data['max_drawdown']:.2f}%")
-        print(f"     Sharpe: {score_data['sharpe_ratio']:.4f}, Custom Score: {score_data['custom_score']:.4f}")
-
-print("\n" + "="*60)
-print("OPTIMIZATION EXAMPLES COMPLETED")
-print("="*60)
-print("\nKey Takeaways:")
-print("1. The premade_optimizer allows easy optimization of multiple strategy parameters")
-print("2. Different metrics can be optimized (total_return_pct, sharpe_ratio, etc.)")
-print("3. Parallel processing can significantly speed up optimization")
-print("4. Custom analysis can be performed on optimization results")
-print("5. Multiple strategies can be compared to find the best approach")
-
-print(f"\nOptimization complete for {ticker}!")

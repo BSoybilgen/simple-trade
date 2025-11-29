@@ -1,46 +1,42 @@
 import pandas as pd
-import numpy as np
 
 
 def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the On-Balance Volume (OBV), a volume-based momentum indicator that 
-    relates volume flow to price changes.
-    
+    Calculates the On-Balance Volume (OBV), a volume-based momentum indicator that
+    relates volume flow to price changes. It measures buying and selling pressure
+    as a cumulative indicator that adds volume on up days and subtracts it on down days.
+
     Args:
-        df (pd.DataFrame): The DataFrame containing the data.
-        parameters (dict, optional): Dictionary containing calculation parameters. This indicator does not use any calculation parameters.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters.
+            No parameters are used.
         columns (dict, optional): Dictionary containing column name mappings:
             - close_col (str): The column name for closing prices. Default is 'Close'.
             - volume_col (str): The column name for volume. Default is 'Volume'.
-    
+
     Returns:
         tuple: A tuple containing the OBV series and a list of column names.
-    
-    On-Balance Volume is calculated by adding volume on up days and subtracting 
-    volume on down days:
-    
-    1. If today's close is higher than yesterday's close:
-       OBV = Previous OBV + Today's Volume
-    
-    2. If today's close is lower than yesterday's close:
-       OBV = Previous OBV - Today's Volume
-    
-    3. If today's close is equal to yesterday's close:
-       OBV = Previous OBV
-    
-    The absolute OBV value is not important; rather, the trend and slope of the 
-    OBV line should be considered.
-    
+
+    The On-Balance Volume is calculated as follows:
+
+    1. Determine Price Direction:
+       If Close > Previous Close: Direction = +1
+       If Close < Previous Close: Direction = -1
+       If Close = Previous Close: Direction = 0
+
+    2. Calculate OBV:
+       OBV = Previous OBV + (Volume * Direction)
+
+    Interpretation:
+    - Rising OBV: Buying pressure (Accumulation).
+    - Falling OBV: Selling pressure (Distribution).
+    - Trend Confirmation: OBV should move in the direction of the price trend.
+
     Use Cases:
-    
-    - Trend confirmation: Rising OBV confirms an uptrend; falling OBV confirms a downtrend.
-    - Divergence detection: If price makes a new high but OBV doesn't, it may indicate weakness.
-    - Potential breakouts: A sharp rise in OBV might precede a price breakout.
-    - Support/resistance validation: Volume should increase when price breaks through 
-      significant levels.
-    - Accumulation/distribution identification: Increasing OBV during sideways price 
-      movement may indicate accumulation.
+    - Trend Confirmation: Confirm the strength of a trend.
+    - Divergence Detection: Divergences between Price and OBV often precede reversals.
+    - Breakout Validation: Rising OBV during consolidation can signal a breakout.
     """
     # Set default values
     if parameters is None:
@@ -70,3 +66,73 @@ def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     obv_values.name = 'OBV'
     columns_list = [obv_values.name]
     return obv_values, columns_list
+
+
+def strategy_obv(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    OBV (On-Balance Volume) - SMA Crossover Strategy
+    
+    LOGIC: Buy when OBV crosses above its SMA (accumulation),
+           sell when OBV crosses below its SMA (distribution).
+    WHY: OBV measures buying/selling pressure as cumulative volume.
+         Rising OBV indicates accumulation, falling indicates distribution.
+    BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
+    TIMEFRAME: Daily charts. Good for swing trading.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'sma_period' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    sma_period = int(parameters.get('sma_period', 20))
+    price_col = 'Close'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='obv',
+        parameters={},
+        figure=False
+    )
+    
+    # Calculate SMA of OBV for crossover signals
+    data[f'OBV_SMA_{sma_period}'] = data['OBV'].rolling(window=sma_period).mean()
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator='OBV',
+        long_window_indicator=f'OBV_SMA_{sma_period}',
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = ['OBV', f'OBV_SMA_{sma_period}']
+    
+    return results, portfolio, indicator_cols_to_plot, data

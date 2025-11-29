@@ -5,35 +5,38 @@ from .wma import wma
 def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Hull Moving Average (HMA) of a series.
-
     The HMA is a moving average that reduces lag and improves smoothing.
     It is calculated using weighted moving averages (WMAs) with specific
     window lengths to achieve this effect.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        parameter (dict): The parameter dictionary that includes the window size for the HMA.
-        columns (dict): The column dictionary that includes close column name.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the HMA. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
         tuple: A tuple containing the HMA series and a list of column names.
 
-    The Hull Moving Average (HMA) is a type of moving average that is designed
-    to reduce lag and improve smoothing compared to traditional moving averages.
-    It achieves this by using a combination of weighted moving averages (WMAs)
-    with different window lengths.
+    Calculation Steps:
+    1. Calculate WMA of Half Length:
+       WMA1 = WMA(Close, window / 2)
 
-    The formula for calculating the HMA is as follows:
+    2. Calculate WMA of Full Length:
+       WMA2 = WMA(Close, window)
 
-    1. Calculate a WMA of the input series with a window length of half the
-       specified window size (half_length).
-    2. Calculate a WMA of the input series with the full specified window size.
-    3. Calculate the difference between 2 times the first WMA and the second WMA.
-    4. Calculate a WMA of the result from step 3 with a window length equal to
-       the square root of the specified window size.
+    3. Calculate Raw HMA:
+       Raw = 2 * WMA1 - WMA2
+
+    4. Calculate Final HMA:
+       HMA = WMA(Raw, sqrt(window))
+
+    Interpretation:
+    - HMA hugs the price action much closer than SMA or EMA.
+    - The turning points in HMA are often sharper and more timely.
 
     Use Cases:
-
     - Identifying trends: The HMA can be used to identify the direction of a
       price trend.
     - Smoothing price data: The HMA can smooth out short-term price fluctuations
@@ -70,3 +73,83 @@ def hma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
 
     columns_list = [hma_series.name]
     return hma_series, columns_list
+
+
+def strategy_hma(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    HMA (Hull Moving Average) - Dual MA Crossover Strategy
+    
+    LOGIC: Buy when fast HMA crosses above slow HMA, sell when crosses below.
+    WHY: HMA reduces lag significantly while maintaining smoothness. Uses WMA
+         combination to achieve near-zero lag with good noise filtering.
+    BEST MARKETS: Trending markets where quick response is needed. Stocks, forex.
+                  Excellent for swing trading due to reduced lag.
+    TIMEFRAME: All timeframes. Particularly effective on 4H and daily charts.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'short_window' (default 9), 'long_window' (default 21)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    short_window = int(parameters.get('short_window', 9))
+    long_window = int(parameters.get('long_window', 21))
+    price_col = 'Close'
+    
+    if short_window == 0:
+        short_window_indicator = 'Close'
+    else:
+        short_window_indicator = f'HMA_{short_window}'
+        data, _, _ = compute_indicator(
+            data=data,
+            indicator='hma',
+            parameters={"window": short_window},
+            figure=False
+        )
+    
+    long_window_indicator = f'HMA_{long_window}'
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='hma',
+        parameters={"window": long_window},
+        figure=False
+    )
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

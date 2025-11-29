@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from unittest.mock import patch, MagicMock
-from simple_trade.premade_optimizer import (
+from simple_trade.optimize_premade_strategies import (
     premade_optimizer,
     _generate_parameter_combinations,
     _run_backtest_worker
@@ -131,7 +131,7 @@ class TestParameterGridGeneration:
 class TestBacktestWorker:
     """Test the backtest worker function"""
     
-    @patch('simple_trade.premade_optimizer.premade_backtest')
+    @patch('simple_trade.optimize_premade_strategies.run_premade_trade')
     def test_run_backtest_worker_success(self, mock_premade_backtest, sample_ohlcv_data, base_parameters):
         """Test successful backtest worker execution"""
         # Mock successful backtest result
@@ -152,7 +152,7 @@ class TestBacktestWorker:
         assert result['score'] == 15.5
         assert result['results_df'] == mock_results
         
-    @patch('simple_trade.premade_optimizer.premade_backtest')
+    @patch('simple_trade.optimize_premade_strategies.run_premade_trade')
     def test_run_backtest_worker_missing_metric(self, mock_premade_backtest, sample_ohlcv_data, base_parameters):
         """Test backtest worker with missing metric"""
         # Mock backtest result without the requested metric
@@ -178,7 +178,7 @@ class TestBacktestWorker:
             # Expected behavior when metric is missing
             pass
         
-    @patch('simple_trade.premade_optimizer.premade_backtest')
+    @patch('simple_trade.optimize_premade_strategies.run_premade_trade')
     def test_run_backtest_worker_parameter_combination(self, mock_premade_backtest, sample_ohlcv_data, base_parameters):
         """Test that parameters are correctly combined"""
         mock_results = {'total_return_pct': 10.0}
@@ -205,7 +205,7 @@ class TestBacktestWorker:
 class TestPremadeOptimizer:
     """Test the main premade_optimizer function"""
     
-    @patch('simple_trade.premade_optimizer._run_backtest_worker')
+    @patch('simple_trade.optimize_premade_strategies._run_backtest_worker')
     def test_premade_optimizer_sequential(self, mock_worker, sample_ohlcv_data, optimization_parameters, simple_param_grid):
         """Test sequential optimization"""
         # Mock worker results
@@ -232,7 +232,7 @@ class TestPremadeOptimizer:
         # Check that worker was called 8 times (2*2*2 combinations)
         assert mock_worker.call_count == 8
         
-    @patch('simple_trade.premade_optimizer._run_backtest_worker')
+    @patch('simple_trade.optimize_premade_strategies._run_backtest_worker')
     def test_premade_optimizer_maximize_false(self, mock_worker, sample_ohlcv_data, optimization_parameters, simple_param_grid):
         """Test optimization with maximize=False"""
         optimization_parameters['maximize'] = False
@@ -255,8 +255,8 @@ class TestPremadeOptimizer:
         assert best_params == {'window': 10}
         assert best_results == {'max_drawdown_pct': -5.0}
         
-    @patch('simple_trade.premade_optimizer.Parallel')
-    @patch('simple_trade.premade_optimizer._run_backtest_worker')
+    @patch('simple_trade.optimize_premade_strategies.Parallel')
+    @patch('simple_trade.optimize_premade_strategies._run_backtest_worker')
     def test_premade_optimizer_parallel(self, mock_worker, mock_parallel, sample_ohlcv_data, optimization_parameters, simple_param_grid):
         """Test parallel optimization"""
         optimization_parameters['parallel'] = True
@@ -283,7 +283,7 @@ class TestPremadeOptimizer:
         
     def test_premade_optimizer_no_valid_results(self, sample_ohlcv_data, optimization_parameters, simple_param_grid):
         """Test optimizer when no valid results are generated"""
-        with patch('simple_trade.premade_optimizer._run_backtest_worker') as mock_worker:
+        with patch('simple_trade.optimize_premade_strategies._run_backtest_worker') as mock_worker:
             # Mock worker to return None scores
             mock_worker.return_value = {'params': {}, 'score': None, 'results_df': None}
             
@@ -302,7 +302,7 @@ class TestPremadeOptimizer:
             'fig_control': 0
         }
         
-        with patch('simple_trade.premade_optimizer._run_backtest_worker') as mock_worker:
+        with patch('simple_trade.optimize_premade_strategies._run_backtest_worker') as mock_worker:
             mock_worker.return_value = {
                 'params': {'window': 14}, 
                 'score': 10.0, 
@@ -326,7 +326,7 @@ class TestPremadeOptimizerEdgeCases:
         """Test optimizer with empty parameter grid"""
         empty_grid = {}
         
-        with patch('simple_trade.premade_optimizer._run_backtest_worker') as mock_worker:
+        with patch('simple_trade.optimize_premade_strategies._run_backtest_worker') as mock_worker:
             mock_worker.return_value = {
                 'params': {}, 
                 'score': 5.0, 
@@ -344,7 +344,7 @@ class TestPremadeOptimizerEdgeCases:
         """Test optimizer with single parameter combination"""
         single_grid = {'window': [14]}
         
-        with patch('simple_trade.premade_optimizer._run_backtest_worker') as mock_worker:
+        with patch('simple_trade.optimize_premade_strategies._run_backtest_worker') as mock_worker:
             mock_worker.return_value = {
                 'params': {'window': 14}, 
                 'score': 8.0, 
@@ -362,7 +362,7 @@ class TestPremadeOptimizerEdgeCases:
         """Test optimizer with mix of valid and invalid results"""
         param_grid = {'window': [10, 14, 20]}
         
-        with patch('simple_trade.premade_optimizer._run_backtest_worker') as mock_worker:
+        with patch('simple_trade.optimize_premade_strategies._run_backtest_worker') as mock_worker:
             mock_worker.side_effect = [
                 {'params': {'window': 10}, 'score': 12.0, 'results_df': {'total_return_pct': 12.0}},
                 {'params': {'window': 14}, 'score': None, 'results_df': None},  # Invalid
@@ -422,7 +422,7 @@ class TestPremadeOptimizerIntegration:
             'extra_param': 'should_be_in_base'
         }
         
-        with patch('simple_trade.premade_optimizer._run_backtest_worker') as mock_worker:
+        with patch('simple_trade.optimize_premade_strategies._run_backtest_worker') as mock_worker:
             mock_worker.return_value = {
                 'params': {'window': 14}, 
                 'score': 1.5, 

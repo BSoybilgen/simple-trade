@@ -5,47 +5,34 @@ import numpy as np
 def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
     Calculates the Weighted Moving Average (WMA) of a series.
+    The WMA is a moving average that assigns different weights to data points,
+    typically giving more weight to recent data.
 
     Args:
-        df (pd.DataFrame): The dataframe containing price data. Must have close column.
-        parameters (dict): The parameter dictionary that includes window size for the WMA.
-        columns (dict): The column dictionary that includes close column name.
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for the WMA. Default is 20.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: Tuple containing the WMA series and a list of column names.
+        tuple: A tuple containing the WMA series and a list of column names.
 
-    The (WMA) is a type of moving average that assigns different 
-    weights to the data points in the window, with more recent 
-    data points receiving higher weights. This makes the WMA more 
-    responsive to recent price changes compared to a Simple Moving 
-    Average (SMA), which gives equal weight to all data points.
+    Calculation Steps:
+    1. Generate Weights:
+       Create an array of weights from 1 to window.
+       Weights = [1, 2, ..., window]
+    2. Calculate Weighted Average:
+       WMA = Sum(Price * Weight) / Sum(Weights)
 
-    The formula for calculating the WMA is as follows:
-
-    1. weights = np.arange(1, window + 1): This line creates an array of 
-    weights, where the weight for each data point increases linearly 
-    from 1 to window. So, the most recent data point has a weight of 
-    window, the second most recent has a weight of window - 1, and so 
-    on.
-    2. series.rolling(window).apply(lambda prices: np.dot(prices, weights)
-    / weights.sum(), raw=True): This line calculates the WMA. It first 
-    creates a rolling window of size window over the input series. 
-    Then, for each window, it calculates the weighted average by 
-    taking the dot product of the prices in the window and the weights,
-    and dividing by the sum of the weights.
+    Interpretation:
+    - More responsive to recent price changes than SMA due to linear weighting.
+    - Less lag than SMA but more than EMA (typically).
 
     Use Cases:
-
-    - Price Trend Identification: WMAs are commonly used to identify 
-    the direction of a price trend. Because they give more weight 
-    to recent prices, they react more quickly to changes in trend 
-    than SMAs. Traders might use multiple WMAs with different window 
-    sizes to identify potential buy or sell signals.
-    - Smoothing Price Data: WMAs can smooth out short-term price 
-    fluctuations to provide a clearer view of the underlying trend.
-    - Crossover Systems: Traders may use WMA crossovers (e.g., a 
-    short-term WMA crossing above a long-term WMA) as buy signals, 
-    and vice versa for sell signals.
+    - Trend Identification: Identifying direction with less lag than SMA.
+    - Crossovers: Using WMA in crossover strategies for faster signals.
+    - Smoothing: General price smoothing.
     """
     # Set default values
     if parameters is None:
@@ -63,3 +50,83 @@ def wma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     series.name = f'WMA_{window}'
     columns = [series.name]
     return series, columns
+
+
+def strategy_wma(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    WMA (Weighted Moving Average) - Dual MA Crossover Strategy
+    
+    LOGIC: Buy when fast WMA crosses above slow WMA, sell when crosses below.
+    WHY: WMA gives linear weighting to recent prices, more responsive than SMA
+         but less than EMA. Good balance of smoothness and responsiveness.
+    BEST MARKETS: Trending markets. Stocks, forex, commodities.
+                  Good for medium-term trend following.
+    TIMEFRAME: All timeframes. Common pairs: 10/20, 20/50.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'short_window' (default 10), 'long_window' (default 20)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    short_window = int(parameters.get('short_window', 10))
+    long_window = int(parameters.get('long_window', 20))
+    price_col = 'Close'
+    
+    if short_window == 0:
+        short_window_indicator = 'Close'
+    else:
+        short_window_indicator = f'WMA_{short_window}'
+        data, _, _ = compute_indicator(
+            data=data,
+            indicator='wma',
+            parameters={"window": short_window},
+            figure=False
+        )
+    
+    long_window_indicator = f'WMA_{long_window}'
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='wma',
+        parameters={"window": long_window},
+        figure=False
+    )
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

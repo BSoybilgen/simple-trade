@@ -6,8 +6,7 @@ Example script for optimizing BandTrade strategy parameters.
 """
 
 from simple_trade import download_data, compute_indicator
-from simple_trade import BandTradeBacktester
-from simple_trade import Optimizer
+from simple_trade import run_band_trade, custom_optimizer
 
 # --- Load Data ---
 ticker = 'SPY'
@@ -58,17 +57,8 @@ def run_band_trade_with_windows(data, rsi_upper_threshold, rsi_lower_threshold, 
     df, _, _ = compute_indicator(df, indicator='rsi', parameters={'window': rsi_window}, columns={'close_col': 'Close'})
     indicator_col = f'RSI_{rsi_window}'
     
-    # Create a backtester instance
-    backtester = BandTradeBacktester(
-        initial_cash=kwargs.pop('initial_cash', 10000),
-        commission_long=kwargs.pop('commission_long', 0.001),
-        commission_short=kwargs.pop('commission_short', 0.001),
-        short_borrow_fee_inc_rate=kwargs.pop('short_borrow_fee_inc_rate', 0.0),
-        long_borrow_fee_inc_rate=kwargs.pop('long_borrow_fee_inc_rate', 0.0)
-    )
-    
-    # Run the backtest with the properly named method
-    return backtester.run_band_trade(
+    # Run the backtest using the function-based API
+    return run_band_trade(
         data=df,
         indicator_col=indicator_col,
         upper_band_col=upper_threshold_col,
@@ -78,18 +68,18 @@ def run_band_trade_with_windows(data, rsi_upper_threshold, rsi_lower_threshold, 
 
 # --- Start Optimizer ---
 print("Initializing Optimizer...")
-optimizer = Optimizer(
+print("\nRunning Optimization (Parallel)...")
+# Run optimization with parallel processing
+results = custom_optimizer(
     data=data,
-    backtest_func=run_band_trade_with_windows,  # Use our wrapper function
+    backtest_func=run_band_trade_with_windows,
     param_grid=param_grid,
     metric_to_optimize=metric_to_optimize,
     maximize_metric=maximize_metric,
-    constant_params=constant_params
+    constant_params=constant_params,
+    parallel=True,
+    n_jobs=-1  # n_jobs=-1 uses all available cores
 )
-
-print("\nRunning Optimization (Parallel)...")
-# Run optimization with parallel processing
-results = optimizer.optimize(parallel=True, n_jobs=-1)  # n_jobs=-1 uses all available cores
 
 # --- Display Results ---
 print("\n--- Optimization Results ---")
@@ -128,20 +118,14 @@ else:
     final_data['RSI_Lower'] = rsi_lower_threshold
     final_data, _, _ = compute_indicator(final_data, indicator='rsi', parameters={'window': rsi_window}, columns={'close_col': 'Close'})
     
-    # Create backtester with best parameters
-    best_backtester = BandTradeBacktester(
-        initial_cash=constant_params.get('initial_cash', 10000.0),
-        commission_long=constant_params.get('commission_long', 0.001),
-        commission_short=constant_params.get('commission_short', 0.001)
-    )
-    
-    # Run backtest with best parameters
-    results, portfolio_df = best_backtester.run_band_trade(
+    # Run backtest with best parameters using function-based API
+    results, portfolio_df = run_band_trade(
         data=final_data,
         indicator_col=f'RSI_{rsi_window}',
         upper_band_col='RSI_Upper',
         lower_band_col='RSI_Lower',
-        price_col='Close'
+        price_col='Close',
+        config=None  # Uses default config
     )
     
     print("\n--- Performance Metrics (Best Parameters) ---")

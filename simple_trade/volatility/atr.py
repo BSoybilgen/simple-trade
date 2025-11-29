@@ -19,32 +19,23 @@ def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     Returns:
         tuple: A tuple containing the ATR series and a list of column names.
 
-    The ATR is calculated in three steps:
-
+    Calculation Steps:
     1. Calculate the True Range (TR) for each period:
        TR = max(high - low, abs(high - prev_close), abs(low - prev_close))
-       Where:
-       - high - low = current period range
-       - abs(high - prev_close) = current high minus previous close
-       - abs(low - prev_close) = current low minus previous close
+    2. Calculate Average True Range (ATR):
+       - First value: Simple average of TR over the window.
+       - Subsequent values: ((Prior ATR * (window-1)) + Current TR) / window (Wilder's Smoothing).
 
-    2. For the first ATR value, take the simple average of TR values over the specified window.
-    
-    3. For subsequent ATR values, use a smoothing technique:
-       ATR = ((Prior ATR * (window-1)) + Current TR) / window
-
-    The ATR is primarily used to measure volatility, not to indicate trend direction.
+    Interpretation:
+    - Higher ATR values indicate higher volatility.
+    - Lower ATR values indicate lower volatility.
+    - Does not indicate trend direction, only magnitude of price movement.
 
     Use Cases:
-
-    - Volatility measurement: Higher ATR values indicate higher volatility, while lower ATR values
-      indicate lower volatility.
-    - Position sizing: Traders often use ATR to determine position size and set stop-loss orders
-      that adjust for volatility.
-    - Trend confirmation: ATR can be used to confirm trend strength; increasing ATR during price
-      moves may indicate stronger trends.
-    - Breakout identification: Significant increases in ATR may precede or confirm breakouts.
-    - Entry/exit signals: Some trading systems use ATR-based indicators for trade signals.
+    - Volatility measurement: Gauging market activity.
+    - Position sizing: Adjusting trade size inversely to volatility.
+    - Stop-loss placement: Setting stops based on a multiple of ATR (e.g., 2 * ATR).
+    - Breakout identification: Rising ATR often accompanies breakouts.
     """
     # Set default values
     if parameters is None:
@@ -88,3 +79,82 @@ def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     atr_values.name = f'ATR_{window}'
     columns_list = [atr_values.name]
     return atr_values, columns_list
+
+
+def strategy_atr(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    ATR (Average True Range) - Volatility Threshold Strategy
+    
+    LOGIC: Buy when ATR drops below lower percentile (low volatility squeeze),
+           sell when rises above upper percentile (high volatility).
+    WHY: ATR measures market volatility. Low ATR indicates consolidation and
+         potential breakout setup. High ATR indicates strong moves or overextension.
+    BEST MARKETS: All markets. Good for volatility-based position sizing.
+                  Combine with trend indicators for directional trades.
+    TIMEFRAME: Daily charts. 14-period is standard.
+    NOTE: Uses rolling percentile bands since ATR is in price units.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'window' (default 14), 'upper_pct' (default 80),
+                    'lower_pct' (default 20), 'lookback' (default 100)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_band_trade_strategies import run_band_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    window = int(parameters.get('window', 14))
+    upper_pct = float(parameters.get('upper_pct', 80))
+    lower_pct = float(parameters.get('lower_pct', 20))
+    lookback = int(parameters.get('lookback', 100))
+    price_col = 'Close'
+    indicator_col = f'ATR_{window}'
+    
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='atr',
+        parameters={"window": window},
+        figure=False
+    )
+    
+    # Calculate rolling percentile bands for ATR
+    data['upper'] = data[indicator_col].rolling(window=lookback, min_periods=window).quantile(upper_pct / 100)
+    data['lower'] = data[indicator_col].rolling(window=lookback, min_periods=window).quantile(lower_pct / 100)
+    
+    results, portfolio = run_band_trade(
+        data=data,
+        indicator_col=indicator_col,
+        upper_band_col="upper",
+        lower_band_col="lower",
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [indicator_col, 'lower', 'upper']
+    
+    return results, portfolio, indicator_cols_to_plot, data

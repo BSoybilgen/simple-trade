@@ -1,11 +1,10 @@
 import pytest
 import pandas as pd
-import numpy as np
-from unittest.mock import patch, MagicMock, call, ANY
+from unittest.mock import patch, MagicMock
 import matplotlib.pyplot as plt # Import for mocking targets
 import pandas.testing as pdt # Import pandas testing utilities
 
-from simple_trade.plot_test import BacktestPlotter
+from simple_trade.plot_test import plot_backtest_results
 
 # --- Fixtures --- 
 
@@ -43,10 +42,10 @@ def sample_history_data_complex_signals() -> pd.DataFrame:
 # --- Test Classes --- 
 
 class TestBacktestPlotter:
-    """Tests for the BacktestPlotter class."""
+    """Tests for the plot_backtest_results function."""
 
     @pytest.fixture(autouse=True)
-    def mock_matplotlib(self, mocker):
+    def mock_matplotlib(self):
         """Mock matplotlib.pyplot to prevent actual plot generation."""
         self.mock_fig = MagicMock(spec=plt.Figure)
         self.mock_ax1 = MagicMock(spec=plt.Axes)
@@ -58,25 +57,20 @@ class TestBacktestPlotter:
         self.mock_axes = [self.mock_ax1, self.mock_ax2, self.mock_ax3]
 
         # Patch the module-level function plt.subplots where it's used
-        self.mock_plt = mocker.patch('simple_trade.plot_test.plt')
-        self.mock_plt.subplots.return_value = (self.mock_fig, self.mock_axes)
-        # We don't need to mock style.use, tight_layout, or show on the module level
-        # as the implementation calls fig.tight_layout() and returns fig.
-        # self.mock_plt.style.use.return_value = None # No longer needed
-        # self.mock_plt.tight_layout.return_value = None # No longer needed
-        # self.mock_plt.show.return_value = None # No longer needed
+        with patch('simple_trade.plot_test.plt') as self.mock_plt:
+            self.mock_plt.subplots.return_value = (self.mock_fig, self.mock_axes)
+            yield
 
     def test_init(self):
         """Test BacktestPlotter initialization."""
-        plotter = BacktestPlotter()
-        assert isinstance(plotter, BacktestPlotter)
+        # Function-based API doesn't need initialization test
+        pass
 
     def test_plot_results_structure(self, sample_line_data, sample_history_data):
         """Test the basic structure and calls of plot_results."""
-        plotter = BacktestPlotter()
         # Align data lengths for this test
         line_data_aligned = sample_line_data.loc[sample_history_data.index]
-        plotter.plot_results(data_df=line_data_aligned, history_df=sample_history_data)
+        plot_backtest_results(data_df=line_data_aligned, history_df=sample_history_data)
 
         # Assert subplots called correctly (expecting 3 rows)
         self.mock_plt.subplots.assert_called_once_with(3, 1, sharex=True, figsize=(12, 10), gridspec_kw={'height_ratios': [3, 1, 2]})
@@ -87,10 +81,9 @@ class TestBacktestPlotter:
 
     def test_plot_results_ax1_price_and_signals(self, sample_line_data, sample_history_data):
         """Test plotting on Ax1 (Price and Signals)."""
-        plotter = BacktestPlotter()
         # Align data lengths for this test
         line_data_aligned = sample_line_data.loc[sample_history_data.index]
-        plotter.plot_results(data_df=line_data_aligned, history_df=sample_history_data, price_col='Close')
+        plot_backtest_results(data_df=line_data_aligned, history_df=sample_history_data, price_col='Close')
 
         mock_ax1 = self.mock_axes[0] # Get the first mock axis
 
@@ -130,10 +123,9 @@ class TestBacktestPlotter:
 
     def test_plot_results_ax2_portfolio_value(self, sample_line_data, sample_history_data):
         """Test plotting on Ax2 (Portfolio Value)."""
-        plotter = BacktestPlotter()
         # Align data lengths for this test
         line_data_aligned = sample_line_data.loc[sample_history_data.index]
-        plotter.plot_results(data_df=line_data_aligned, history_df=sample_history_data)
+        plot_backtest_results(data_df=line_data_aligned, history_df=sample_history_data)
 
         mock_ax2 = self.mock_axes[1] # Get the second mock axis
 
@@ -151,12 +143,11 @@ class TestBacktestPlotter:
 
     def test_plot_results_ax3_indicator_plotting(self, sample_line_data, sample_history_data):
         """Test plotting on Ax3 (Indicators)."""
-        plotter = BacktestPlotter()
         # Align data lengths for this test
         line_data_aligned = sample_line_data.loc[sample_history_data.index]
         # Pass empty indicator_cols for now, just check setup
         self.mock_ax3.reset_mock() # Reset mock before the call
-        plotter.plot_results(data_df=line_data_aligned, history_df=sample_history_data, indicator_cols=[])
+        plot_backtest_results(data_df=line_data_aligned, history_df=sample_history_data, indicator_cols=[])
 
         mock_ax3 = self.mock_axes[2] # Get the third mock axis
 
@@ -173,9 +164,8 @@ class TestBacktestPlotter:
 
     def test_plot_results_complex_signals(self, sample_line_data, sample_history_data_complex_signals):
         """Test plotting with complex signals like 'Sell and Short'."""
-        plotter = BacktestPlotter()
         # Data is already aligned for this fixture
-        plotter.plot_results(data_df=sample_line_data, history_df=sample_history_data_complex_signals)
+        plot_backtest_results(data_df=sample_line_data, history_df=sample_history_data_complex_signals)
 
         mock_ax1 = self.mock_axes[0]
         mock_ax3 = self.mock_axes[2]
