@@ -104,7 +104,7 @@ Use the `run_premade_trade` function to select from premade strategies or create
 
 # Load Packages and Functions
 from simple_trade import download_data
-from simple_trade import premade_backtest
+from simple_trade import run_premade_trade
 from simple_trade import list_premade_strategies
 from simple_trade import print_results
 
@@ -137,15 +137,13 @@ specific_parameters = {
 
 # Step 4: Run Backtest
 parameters = {**global_parameters, **specific_parameters}
-results, portfolio, fig = premade_backtest(data, strategy_name, parameters)
+results, portfolio, fig = run_premade_trade(data, strategy_name, parameters)
 print_results(results)
 ```
 
 **Plot of Results**
 <img src="https://i.imgur.com/4qxr0dp.png" alt="Figure 2" width="900" height="600">
-
-============================================================
-              ✨ Cross Trade (SMA_25/SMA_75) ✨               
+         
 ============================================================
 
 🗓️ BACKTEST PERIOD:
@@ -181,7 +179,7 @@ To see a list of all indicators, use `list_premade_strategies()` function.
 
 ### Optimizing Strategies
 
-Use the `premade_optimizer` function to find the best parameters for your premade strategies or optimize your custom strategies using `optimize` function.
+Use the `premade_optimizer` function to find the best parameters for your premade strategies or optimize your custom strategies using `custom_optimizer` function.
 
 ```python
 # Example for optimizing a premade strategy
