@@ -175,7 +175,7 @@ print_results(results)
 
 ============================================================
 
-To see a list of all indicators, use `list_premade_strategies()` function.
+To see a list of all premade strategies, use `list_premade_strategies()` function.
 
 ### Optimizing Strategies
 
