@@ -221,7 +221,7 @@ class TestPremadeOptimizer:
         ]
         
         best_results, best_params, all_results = premade_optimizer(
-            sample_ohlcv_data, 'rsi', optimization_parameters, simple_param_grid
+            sample_ohlcv_data, 'rsi', simple_param_grid, optimization_parameters
         )
         
         # Should find the best result (highest score)
@@ -248,7 +248,7 @@ class TestPremadeOptimizer:
         ]
         
         best_results, best_params, all_results = premade_optimizer(
-            sample_ohlcv_data, 'rsi', optimization_parameters, small_grid
+            sample_ohlcv_data, 'rsi', small_grid, optimization_parameters
         )
         
         # Should find the minimum (best) drawdown
@@ -271,7 +271,7 @@ class TestPremadeOptimizer:
         ]
         
         best_results, best_params, all_results = premade_optimizer(
-            sample_ohlcv_data, 'rsi', optimization_parameters, simple_param_grid
+            sample_ohlcv_data, 'rsi', simple_param_grid, optimization_parameters
         )
         
         # Check that Parallel was called with correct parameters
@@ -288,7 +288,7 @@ class TestPremadeOptimizer:
             mock_worker.return_value = {'params': {}, 'score': None, 'results_df': None}
             
             best_results, best_params, all_results = premade_optimizer(
-                sample_ohlcv_data, 'rsi', optimization_parameters, simple_param_grid
+                sample_ohlcv_data, 'rsi', simple_param_grid, optimization_parameters
             )
             
             assert best_results is None
@@ -310,7 +310,7 @@ class TestPremadeOptimizer:
             }
             
             best_results, best_params, all_results = premade_optimizer(
-                sample_ohlcv_data, 'rsi', minimal_params, {'window': [14]}
+                sample_ohlcv_data, 'rsi', {'window': [14]}, minimal_params
             )
             
             assert best_results is not None
@@ -334,7 +334,7 @@ class TestPremadeOptimizerEdgeCases:
             }
             
             best_results, best_params, all_results = premade_optimizer(
-                sample_ohlcv_data, 'rsi', optimization_parameters, empty_grid
+                sample_ohlcv_data, 'rsi', empty_grid, optimization_parameters
             )
             
             assert best_params == {}
@@ -352,7 +352,7 @@ class TestPremadeOptimizerEdgeCases:
             }
             
             best_results, best_params, all_results = premade_optimizer(
-                sample_ohlcv_data, 'rsi', optimization_parameters, single_grid
+                sample_ohlcv_data, 'rsi', single_grid, optimization_parameters
             )
             
             assert best_params == {'window': 14}
@@ -370,7 +370,7 @@ class TestPremadeOptimizerEdgeCases:
             ]
             
             best_results, best_params, all_results = premade_optimizer(
-                sample_ohlcv_data, 'rsi', optimization_parameters, param_grid
+                sample_ohlcv_data, 'rsi', param_grid, optimization_parameters
             )
             
             # Should only include valid results
@@ -400,7 +400,7 @@ class TestPremadeOptimizerIntegration:
         }
         
         best_results, best_params, all_results = premade_optimizer(
-            sample_ohlcv_data, 'rsi', params, small_grid
+            sample_ohlcv_data, 'rsi', small_grid, params
         )
         
         # Should get some results (even if not great with small dataset)
@@ -429,7 +429,7 @@ class TestPremadeOptimizerIntegration:
                 'results_df': {'sharpe_ratio': 1.5}
             }
             
-            premade_optimizer(sample_ohlcv_data, 'rsi', params, {'window': [14]})
+            premade_optimizer(sample_ohlcv_data, 'rsi', {'window': [14]}, params)
             
             # Check that worker was called and parameters were passed correctly
             assert mock_worker.called

@@ -32,7 +32,7 @@ def _run_backtest_worker(params: dict, data: pd.DataFrame, strategy_name: str, b
 
     return {'params': params, 'score': score, 'results_df': results_df}
 
-def premade_optimizer(data: pd.DataFrame, strategy_name: str, parameters: dict, param_grid: dict):
+def premade_optimizer(data: pd.DataFrame, strategy_name: str, param_grid: dict, parameters: dict | None = None):
     """
     Optimizes a trading strategy by searching through a grid of parameters, with optional parallel processing.
 
@@ -50,8 +50,12 @@ def premade_optimizer(data: pd.DataFrame, strategy_name: str, parameters: dict, 
         A tuple containing the best results DataFrame, a dictionary with the best parameters,
         and a list of all results.
     """
+        
     parameter_combinations = _generate_parameter_combinations(param_grid)
     num_combinations = len(parameter_combinations)
+
+    if parameters is None:
+        parameters = {'metric': 'total_return_pct', 'maximize': True, 'parallel': False, 'n_jobs': -1}
 
     # Extract settings from the parameters dict
     metric = parameters.get('metric', 'total_return_pct')
