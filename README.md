@@ -6,21 +6,28 @@
 [![build](https://github.com/BSoybilgen/simple-trade/actions/workflows/tests.yml/badge.svg)](https://github.com/BSoybilgen/simple-trade/actions/workflows/tests.yml)
 [![codecov.io](https://codecov.io/github/BSoybilgen/simple-trade/coverage.svg?branch=master)](https://codecov.io/github/BSoybilgen/simple-trade)
 
-A Python library that allows you to compute technical indicators and build trade strategies in a simple way.
+A Python package for downloading market data, computing 100+ technical indicators, and backtesting trading strategies with ease. Build, backtest, and optimize trading strategies quickly using this comprehensive package.
+
+## Why simple-trade
+
+* 100+ built-in indicators spanning trend, momentum, volume, and volatility.
+* Plug-and-play 100+ premade strategies plus tools for custom strategy design.
+* Integrated backtesting and optimization, and signal-combining tools in one package.
+* Unified plotting, metrics, and reporting so results are easy to compare and share.
 
 ## Features
 
 *   **Data Fetching:** Easily download historical stock data using `yfinance`.
-*   **Technical Indicators:** Compute a variety of technical indicators:
+*   **Technical Indicators:** Compute more than 100+ technical indicators:
     *   Trend (e.g., Moving Averages, MACD, ADX)
     *   Momentum (e.g., RSI, Stochastics)
     *   Volatility (e.g., Bollinger Bands, ATR)
     *   Volume (e.g., On-Balance Volume)
-*   **Trading Strategies:** Implement custom trading strategies or select from premade trading strategies.
+*   **Trading Strategies:** Implement custom trading strategies or select from 100+ premade ones.
 *   **Backtesting:** Evaluate the performance of your trading strategies on historical data.
 *   **Optimization:** Optimize strategy parameters using techniques like grid search.
 *   **Plotting:** Visualize data, indicators, and backtest results using `matplotlib`.
-*   **Combining:** Combine different strategies to create a more complex strategies.
+*   **Combining:** Combine different strategies to create more complex strategies.
 
 ## Installation
 
@@ -41,7 +48,7 @@ A Python library that allows you to compute technical indicators and build trade
     ```bash
     pip install .
     ```
-    Alternatively, installed with PyPI:
+    Alternatively, install with PyPI:
     ```bash
     pip install simple-trade
     ```
@@ -59,11 +66,19 @@ These will be installed automatically when you install `simple-trade` using `pip
 
 ## Basic Usage
 
+### Table of Contents for Code Snippets
+1. [Calculate Indicators](#calculate-indicators)
+2. [Backtesting Strategies](#backtesting-strategies)
+3. [Optimizing Strategies](#optimizing-strategies)
+4. [Combining Strategies](#combining-strategies)
+
 ### Calculate Indicators
 
-Here's a quick example of how to download data and compute a technical indicator:
+Use `download_data` function to download data using `yfinance` and use `compute_indicator` function to compute a technical indicator.
 
 ```python
+# Example for downloading data and computing a technical indicator
+
 # Load Packages and Functions
 from simple_trade import compute_indicator, download_data
 from simple_trade import list_indicators
@@ -143,7 +158,9 @@ print_results(results)
 
 **Plot of Results**
 <img src="https://i.imgur.com/4qxr0dp.png" alt="Figure 2" width="900" height="600">
-         
+
+**Print of Results**
+```         
 ============================================================
 
 🗓️ BACKTEST PERIOD:
@@ -174,6 +191,7 @@ print_results(results)
   • Annualized Volatility: 25.89%
 
 ============================================================
+```
 
 To see a list of all premade strategies, use `list_premade_strategies()` function.
 
