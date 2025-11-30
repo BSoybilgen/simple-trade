@@ -6,12 +6,12 @@
 [![build](https://github.com/BSoybilgen/simple-trade/actions/workflows/tests.yml/badge.svg)](https://github.com/BSoybilgen/simple-trade/actions/workflows/tests.yml)
 [![codecov.io](https://codecov.io/github/BSoybilgen/simple-trade/coverage.svg?branch=master)](https://codecov.io/github/BSoybilgen/simple-trade)
 
-A Python package for downloading market data, computing 100+ technical indicators, and backtesting trading strategies with ease. Build, backtest, and optimize trading strategies quickly using this comprehensive package.
+`simple-trade` is a Python package for downloading market data, computing 100+ technical indicators, and backtesting trading strategies with ease. Build, backtest, and optimize your own trading strategies—or choose from 100+ premade trading strategies—without extra boilerplate.
 
 ## Why simple-trade
 
 * 100+ built-in indicators spanning trend, momentum, volume, and volatility.
-* Plug-and-play 100+ premade strategies plus tools for custom strategy design.
+* Plug-and-play 100+ premade trading strategies plus tools for custom strategy design.
 * Integrated backtesting and optimization, and signal-combining tools in one package.
 * Unified plotting, metrics, and reporting so results are easy to compare and share.
 
@@ -31,38 +31,34 @@ A Python package for downloading market data, computing 100+ technical indicator
 
 ## Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository_url> # Replace with your repo URL
-    cd simple-trade
-    ```
-2.  **Create and activate a virtual environment (recommended):**
-    ```bash
-    python -m venv myenv
-    # On Windows
-    myenv\Scripts\activate
-    # On macOS/Linux
-    source myenv/bin/activate
-    ```
-3.  **Install the package and dependencies:**
-    ```bash
-    pip install .
-    ```
-    Alternatively, install with PyPI:
-    ```bash
-    pip install simple-trade
-    ```
+### Python
 
-## Dependencies
+```
+pip install simple-trade
+or
+python -m pip install simple-trade
+```
 
-*   Python >= 3.10
-*   [yfinance](https://pypi.org/project/yfinance/)
-*   [pandas](https://pandas.pydata.org/)
-*   [numpy](https://numpy.org/)
-*   [joblib](https://joblib.readthedocs.io/en/latest/)
-*   [matplotlib](https://matplotlib.org/)
+## QuickStart
 
-These will be installed automatically when you install `simple-trade` using `pip`.
+Compute a technical indicator in three lines of code.
+
+```python
+from simple_trade import download_data, compute_indicator 
+data = download_data('TSLA', '2024-01-01', '2025-01-01', '1d')
+data, columns, _ = compute_indicator(data, 'adx')
+```
+
+Choose, backtest, and optimize a premade strategy in six lines of code.
+
+```python
+from simple_trade import download_data, run_premade_trade, premade_optimizer
+data = download_data('TSLA', '2024-01-01', '2025-01-01', '1d')
+param_grid = {'short_window': [10, 20, 30], 'long_window': [50, 100, 150]}
+_, best_results, _ = premade_optimizer(data, 'sma', param_grid)
+sma_params = {'short_window': best_results['short_window'], 'long_window': best_results['long_window']}
+sma_results, sma_portfolio, _ = run_premade_trade(data, "sma", sma_params)
+```
 
 ## Basic Usage
 
@@ -79,7 +75,7 @@ Use `download_data` function to download data using `yfinance` and use `compute_
 ```python
 # Example for downloading data and computing a technical indicator
 
-# Load Packages and Functions
+# Load packages and functions
 from simple_trade import compute_indicator, download_data
 from simple_trade import list_indicators
 
@@ -101,7 +97,7 @@ data, columns, fig = compute_indicator(
     parameters=parameters
 )
 
-# Step 3: Display the plot
+# Step 3: Display result
 fig.show()
 ```
 
@@ -117,7 +113,7 @@ Use the `run_premade_trade` function to select from premade strategies or create
 ```python
 # Example for backtesting a premade strategy
 
-# Load Packages and Functions
+# Load packages and functions
 from simple_trade import download_data
 from simple_trade import run_premade_trade
 from simple_trade import list_premade_strategies
@@ -130,7 +126,7 @@ end_date = '2022-12-31'
 interval = '1d'
 data = download_data(symbol, start_date, end_date, interval=interval)
 
-# Step 2: Set Global Parameters
+# Step 2: Set global parameters
 global_parameters = {
     'initial_cash': 10000,
     'commission_long': 0.001,
@@ -142,7 +138,7 @@ global_parameters = {
     'risk_free_rate': 0.0,
 }
 
-# Step 3: Set Strategy Parameters
+# Step 3: Set strategy parameters
 strategy_name = 'sma'
 specific_parameters = {
     'short_window': 25,
@@ -150,9 +146,12 @@ specific_parameters = {
     'fig_control': 1,
 }
 
-# Step 4: Run Backtest
+# Step 4: Run backtest
 parameters = {**global_parameters, **specific_parameters}
 results, portfolio, fig = run_premade_trade(data, strategy_name, parameters)
+
+# Step 5: Display and print results
+fig.show()
 print_results(results)
 ```
 
@@ -202,25 +201,25 @@ Use the `premade_optimizer` function to find the best parameters for your premad
 ```python
 # Example for optimizing a premade strategy
 
-# Load Packages and Functions
+# Load packages and functions
 from simple_trade import download_data
 from simple_trade import premade_optimizer
 
-# Step 1: Load Data
+# Step 1: Load data
 ticker = "AAPL"
 start_date = "2020-01-01"
 end_date = "2023-12-31"
 
 data = download_data(ticker, start_date, end_date)
 
-# Step 2: Load Optimization Parameters
+# Step 2: Load optimization parameters
 # Define the parameter grid to search
 param_grid = {
     'short_window': [10, 20, 30],
     'long_window': [50, 100, 150],
 }
 
-# Step 3: Set Base Parameters
+# Step 3: Set base parameters
 base_params = {
     'initial_cash': 100000.0,
     'commission_long': 0.001,         # 0.1% commission
@@ -234,7 +233,7 @@ base_params = {
     'fig_control': 0                  # No plotting during optimization
 }
 
-# Step 4: Run Optimization
+# Step 4: Run optimization
 best_results, best_params, all_results = premade_optimizer(
     data=data,
     strategy_name='sma',
@@ -242,7 +241,7 @@ best_results, best_params, all_results = premade_optimizer(
     param_grid=param_grid
 )
 
-# Show top 3 parameter combinations
+# Step 5: Show top 3 parameter combinations
 print("\nTop 3 SMA Parameter Combinations:")
 sorted_results = sorted(all_results, key=lambda x: x['score'], reverse=True)
 for i, result in enumerate(sorted_results[:3]):
@@ -264,11 +263,10 @@ Use the `run_combined_trade` function to combine multiple strategies.
 ```python
 # Example for combining premade strategies
 
-# Load Packages and Functions
+# Load packages and functions
 from simple_trade import download_data
 from simple_trade import run_premade_trade
 from simple_trade import run_combined_trade
-
 
 # Step 1: Download data
 print("Downloading stock data...")
@@ -278,7 +276,7 @@ end_date = '2022-12-31'
 interval = '1d'
 data = download_data(symbol, start_date, end_date, interval=interval)
 
-# Step 2: Set Global Parameters
+# Step 2: Set global parameters
 global_parameters = {
     'initial_cash': 10000,
     'commission_long': 0.001,
@@ -290,7 +288,7 @@ global_parameters = {
     'risk_free_rate': 0.0,
 }
 
-# Step 3: Compute RSI Strategy
+# Step 3: Compute RSI strategy
 rsi_params = {
     'window': 14,
     'upper': 70,
@@ -301,7 +299,7 @@ rsi_params = {
 rsi_params = {**global_parameters, **rsi_params}
 rsi_results, rsi_portfolio, _ = run_premade_trade(data, "rsi", rsi_params)
 
-# Step 3: Compute SMA Strategy 
+# Step 4: Compute SMA strategy 
 sma_params = {
     'short_window': 20,
     'long_window': 50,
@@ -311,12 +309,11 @@ sma_params = {
 sma_params = {**global_parameters, **sma_params}
 sma_results, sma_portfolio, _ = run_premade_trade(data, "sma", sma_params)
 
-# Step 4: Combine RSI and SMA Strategies 
+# Step 5: Combine RSI and SMA strategies 
 strategies = {
     'RSI': {'results': rsi_results, 'portfolio': rsi_portfolio},
     'SMA': {'results': sma_results, 'portfolio': sma_portfolio}
 }
-
 combined_results, combined_portfolio, _ = run_combined_trade(
     portfolio_dfs=[rsi_portfolio, sma_portfolio],
     price_data=data,
@@ -331,6 +328,7 @@ combined_results, combined_portfolio, _ = run_combined_trade(
     commission_short=0.001
 )
 
+# Step 6: Show results
 print(f"2 Trading Strategy Combination - Final Value: ${combined_results['final_value']:.2f}")
 print(f"2 Trading Strategy Combination - Total Return: {combined_results['total_return_pct']}%")
 print(f"2 Trading Strategy Combination - Number of Trades: {combined_results['num_trades']}")
