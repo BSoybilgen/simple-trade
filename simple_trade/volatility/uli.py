@@ -4,7 +4,7 @@ import numpy as np
 
 def uli(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Ulcer Index (UI), a volatility indicator that measures downside risk
+    Calculates the Ulcer Index (uli), a volatility indicator that measures downside risk
     by focusing on the depth and duration of price drawdowns from recent peaks, rather
     than treating upside and downside volatility equally.
 
@@ -30,12 +30,12 @@ def uli(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        Mean = Sum(Squared Drawdowns) / period
 
     4. Calculate Ulcer Index:
-       UI = sqrt(Mean)
+       ULI = sqrt(Mean)
 
     Interpretation:
-    - Higher UI values indicate greater downside risk and deeper/longer drawdowns.
-    - Lower UI values indicate stability or upward trends.
-    - Unlike standard deviation, UI does not penalize upside volatility.
+    - Higher ULI values indicate greater downside risk and deeper/longer drawdowns.
+    - Lower ULI values indicate stability or upward trends.
+    - Unlike standard deviation, ULI does not penalize upside volatility.
 
     Use Cases:
     - Downside risk measurement.
@@ -71,7 +71,7 @@ def uli(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     # Take the square root to get the Ulcer Index
     ulcer_index = np.sqrt(mean_squared_drawdown)
     
-    ulcer_index.name = f'UI_{period}'
+    ulcer_index.name = f'ULI_{period}'
     columns_list = [ulcer_index.name]
     return ulcer_index, columns_list
 
@@ -87,11 +87,11 @@ def strategy_uli(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ULI (Ulcer Index) - Downside Risk Strategy
+    uli (Ulcer Index) - Downside Risk Strategy
     
-    LOGIC: Buy when UI drops below lower threshold (low downside risk),
+    LOGIC: Buy when uli drops below lower threshold (low downside risk),
            sell when rises above upper threshold (high downside risk).
-    WHY: Ulcer Index measures downside risk by focusing on drawdowns.
+    WHY: uli measures downside risk by focusing on drawdowns.
          Unlike std dev, it doesn't penalize upside volatility.
     BEST MARKETS: All markets. Good for downside risk measurement.
     TIMEFRAME: Daily charts. 14-period is standard.
@@ -120,7 +120,7 @@ def strategy_uli(
     upper = float(parameters.get('upper', 10))
     lower = float(parameters.get('lower', 3))
     price_col = 'Close'
-    indicator_col = f'UI_{period}'
+    indicator_col = f'ULI_{period}'
     
     data, _, _ = compute_indicator(
         data=data,

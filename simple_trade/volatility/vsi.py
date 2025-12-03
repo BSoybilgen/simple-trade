@@ -3,7 +3,7 @@ import pandas as pd
 
 def vsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Volatility Switch Index (VSI), a binary indicator that identifies
+    Calculates the Volatility Switch Index (vsi), a binary indicator that identifies
     volatility regime changes by comparing current volatility to historical levels.
 
     Args:
@@ -76,12 +76,12 @@ def strategy_vsi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VSI (Volatility Switch Index) - Binary Regime Strategy
+    vsi (Volatility Switch Index) - Binary Regime Strategy
     
-    LOGIC: Buy when VSI drops below lower threshold (low volatility regime),
+    LOGIC: Buy when vsi drops below lower threshold (low volatility regime),
            sell when rises above upper threshold (high volatility regime).
-    WHY: VSI is a binary indicator that identifies volatility regime changes.
-         VSI = 1 means high volatility, VSI = 0 means low/normal volatility.
+    WHY: vsi is a binary indicator that identifies volatility regime changes.
+         vsi = 1 means high volatility, vsi = 0 means low/normal volatility.
     BEST MARKETS: All markets. Good for binary volatility regime identification.
     TIMEFRAME: Daily charts. 10/50 periods with 1.2 threshold is standard.
     

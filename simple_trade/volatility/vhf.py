@@ -3,7 +3,7 @@ import pandas as pd
 
 def vhf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Vertical Horizontal Filter (VHF), which determines whether prices
+    Calculates the Vertical Horizontal Filter (vhf), which determines whether prices
     are in a trending phase or a congestion phase by comparing the range of prices
     to the sum of price changes.
 
@@ -81,12 +81,12 @@ def strategy_vhf(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VHF (Vertical Horizontal Filter) - Trend vs Congestion Strategy
+    vhf (Vertical Horizontal Filter) - Trend vs Congestion Strategy
     
-    LOGIC: Buy when VHF rises above upper threshold (trending phase),
+    LOGIC: Buy when vhf rises above upper threshold (trending phase),
            sell when drops below lower threshold (congestion phase).
-    WHY: VHF compares price range to sum of changes. High VHF = trending,
-         low VHF = choppy/congestion.
+    WHY: vhf compares price range to sum of changes. High vhf = trending,
+         low vhf = choppy/congestion.
     BEST MARKETS: All markets. Use to select trend vs mean-reversion strategies.
     TIMEFRAME: Daily charts. 28-period is standard.
     

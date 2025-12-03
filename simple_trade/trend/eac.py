@@ -3,8 +3,8 @@ import pandas as pd
 
 def eac(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Ehlers Adaptive CyberCycle (EAC) indicator.
-    The Adaptive CyberCycle is based on John Ehlers' work on cycle analysis.
+    Calculates the Ehlers Adaptive CyberCycle (eac) indicator.
+    The eac is based on John Ehlers' work on cycle analysis.
     It adapts to the dominant market cycle and provides a smooth, low-lag
     trend indicator that oscillates around the price.
 
@@ -94,10 +94,10 @@ def strategy_eac(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    EAC (Ehlers Adaptive CyberCycle) - Price vs Trend Crossover Strategy
+    eac (Ehlers Adaptive CyberCycle) - Price vs Trend Crossover Strategy
     
-    LOGIC: Buy when price crosses above EAC trendline, sell when crosses below.
-    WHY: EAC separates cycle from trend using Ehlers' cycle analysis.
+    LOGIC: Buy when price crosses above eac trendline, sell when crosses below.
+    WHY: eac separates cycle from trend using Ehlers' cycle analysis.
          Provides smooth, low-lag trendline that tracks underlying trend.
     BEST MARKETS: All markets. Particularly good for cycle analysis.
                   Stocks, forex, futures.

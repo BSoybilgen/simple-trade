@@ -3,8 +3,8 @@ import pandas as pd
 
 def htt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Hilbert Transform Trendline (HTT).
-    HTT approximates John Ehlers' Hilbert Transform smoothing by filtering the
+    Calculates the Hilbert Transform Trendline (htt).
+    htt approximates John Ehlers' Hilbert Transform smoothing by filtering the
     close series with the standard detrender kernel and subtracting it from the
     original price to derive a low-lag trendline.
 
@@ -28,12 +28,12 @@ def htt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        Apply EMA smoothing to the result.
 
     Interpretation:
-    - HTT provides a trendline that reacts faster than traditional MAs.
+    - htt provides a trendline that reacts faster than traditional MAs.
     - It is effectively an Instantaneous Trendline derived from signal processing principles.
 
     Use Cases:
-    - Trend Following: Using the slope of HTT to determine trend direction.
-    - Crossovers: Price crossing HTT.
+    - Trend Following: Using the slope of htt to determine trend direction.
+    - Crossovers: Price crossing htt.
     """
     if parameters is None:
         parameters = {}
@@ -73,10 +73,10 @@ def strategy_htt(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    HTT (Hilbert Transform Trendline) - Dual-HTT Crossover Strategy
+    htt (Hilbert Transform Trendline) - Dual-htt Crossover Strategy
     
-    LOGIC: Generate signals when a faster HTT line crosses a slower HTT line.
-    WHY: Using two HTT windows preserves the low-lag benefits of the indicator
+    LOGIC: Generate signals when a faster htt line crosses a slower htt line.
+    WHY: Using two htt windows preserves the low-lag benefits of the indicator
          while adding confirmation through crossover behavior similar to MA pairs.
     BEST MARKETS: All markets. Stocks, forex, futures. Particularly useful when
                   you want smooth, low-lag crossovers without reverting to MAs.

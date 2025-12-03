@@ -3,7 +3,7 @@ import numpy as np
 
 def bwm(df, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Bill Williams Market Facilitation Index (BW MFI), which measures
+    Calculates the Bill Williams Market Facilitation Index (bwm), which measures
     the efficiency of price movement by analyzing the change in price per unit of volume.
     It helps determine the willingness of the market to move the price.
 
@@ -57,7 +57,7 @@ def bwm(df, parameters: dict = None, columns: dict = None) -> tuple:
     mfi_values = (high - low) / volume.replace(0, np.nan)
     mfi_values = mfi_values.fillna(0)
     
-    mfi_values.name = 'BWMFI'
+    mfi_values.name = 'BWM'
     columns_list = [mfi_values.name]
     return mfi_values, columns_list
 
@@ -73,11 +73,11 @@ def strategy_bwm(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    BWM (Bill Williams Market Facilitation Index) - Percentile Strategy
+    bwm (Bill Williams Market Facilitation Index) - Percentile Strategy
     
-    LOGIC: Buy when BWMFI drops below lower percentile (low facilitation),
+    LOGIC: Buy when bwm drops below lower percentile (low facilitation),
            sell when rises above upper percentile (high facilitation).
-    WHY: BWMFI measures price movement efficiency per unit of volume.
+    WHY: bwm measures price movement efficiency per unit of volume.
          Low values indicate consolidation, high values indicate strong moves.
     BEST MARKETS: All markets. Good for identifying breakout potential.
     TIMEFRAME: Daily charts. Good for swing trading.
@@ -107,7 +107,7 @@ def strategy_bwm(
     lower_pct = float(parameters.get('lower_pct', 20))
     lookback = int(parameters.get('lookback', 100))
     price_col = 'Close'
-    indicator_col = 'BWMFI'
+    indicator_col = 'BWM'
     
     data, _, _ = compute_indicator(
         data=data,
@@ -134,6 +134,6 @@ def strategy_bwm(
         risk_free_rate=risk_free_rate
     )
     
-    indicator_cols_to_plot = ['BWMFI', 'lower', 'upper']
+    indicator_cols_to_plot = ['BWM', 'lower', 'upper']
     
     return results, portfolio, indicator_cols_to_plot, data

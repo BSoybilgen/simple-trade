@@ -3,7 +3,7 @@ import pandas as pd
 
 def efr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Efficiency Ratio (ER), also known as Kaufman Efficiency, which
+    Calculates the Efficiency Ratio (efr), also known as Kaufman Efficiency, which
     measures the efficiency of price movement by comparing net price change to the
     sum of absolute price changes.
 
@@ -26,13 +26,13 @@ def efr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        Volatility = Sum(abs(Close - Close[previous])) over period
 
     3. Calculate Ratio:
-       ER = Change / Volatility
+       EFR = Change / Volatility
 
     Interpretation:
-    - ER near 1.0: Highly efficient, strong trending market.
-    - ER near 0.0: Inefficient, choppy/sideways market.
-    - ER > 0.7: Strong trend.
-    - ER < 0.3: Choppy/Range.
+    - EFR near 1.0: Highly efficient, strong trending market.
+    - EFR near 0.0: Inefficient, choppy/sideways market.
+    - EFR > 0.7: Strong trend.
+    - EFR < 0.3: Choppy/Range.
 
     Use Cases:
     - Trend vs. noise identification: Distinguish trending from ranging markets.
@@ -57,14 +57,14 @@ def efr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     sum_changes = price_changes.rolling(window=period).sum()
     
     # Calculate Efficiency Ratio
-    er_values = net_change / sum_changes
+    efr_values = net_change / sum_changes
     
     # Ensure values are between 0 and 1
-    er_values = er_values.clip(0, 1)
+    efr_values = efr_values.clip(0, 1)
     
-    er_values.name = f'ER_{period}'
-    columns_list = [er_values.name]
-    return er_values, columns_list
+    efr_values.name = f'EFR_{period}'
+    columns_list = [efr_values.name]
+    return efr_values, columns_list
 
 
 def strategy_efr(
@@ -78,12 +78,12 @@ def strategy_efr(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    EFR (Efficiency Ratio) - Trend vs Noise Strategy
+    efr (Efficiency Ratio) - Trend vs Noise Strategy
     
-    LOGIC: Buy when ER rises above upper threshold (trending market),
+    LOGIC: Buy when efr rises above upper threshold (trending market),
            sell when drops below lower threshold (choppy market).
-    WHY: ER measures efficiency of price movement. High ER indicates
-         strong trending, low ER indicates choppy/sideways market.
+    WHY: efr measures efficiency of price movement. High efr indicates
+         strong trending, low efr indicates choppy/sideways market.
     BEST MARKETS: All markets. Use to filter trend-following strategies.
     TIMEFRAME: Daily charts. 10-period is standard.
     
@@ -111,7 +111,7 @@ def strategy_efr(
     upper = float(parameters.get('upper', 0.7))
     lower = float(parameters.get('lower', 0.3))
     price_col = 'Close'
-    indicator_col = f'ER_{period}'
+    indicator_col = f'EFR_{period}'
     
     data, _, _ = compute_indicator(
         data=data,

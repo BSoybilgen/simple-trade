@@ -2,7 +2,7 @@ import pandas as pd
 
 def mac(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Moving Average Convergence Divergence (MACD), Signal Line, and Histogram.
+    Calculates the Moving Average Convergence Divergence (mac), Signal Line, and Histogram.
     It is a trend-following momentum indicator that shows the relationship between two moving averages of a security’s price.
 
     Args:
@@ -15,7 +15,7 @@ def mac(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the MACD DataFrame (MACD, Signal, Hist) and a list of column names.
+        tuple: A tuple containing the MAC DataFrame (MAC, Signal, Hist) and a list of column names.
 
     Calculation Steps:
     1. Calculate the Fast EMA:
@@ -24,19 +24,19 @@ def mac(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     2. Calculate the Slow EMA:
        Slow EMA = EMA(Close, window_slow)
 
-    3. Calculate the MACD Line:
-       MACD Line = Fast EMA - Slow EMA
+    3. Calculate the MAC Line:
+       MAC Line = Fast EMA - Slow EMA
 
     4. Calculate the Signal Line:
-       Signal Line = EMA(MACD Line, window_signal)
+       Signal Line = EMA(MAC Line, window_signal)
 
-    5. Calculate the MACD Histogram:
-       Histogram = MACD Line - Signal Line
+    5. Calculate the MAC Histogram:
+       Histogram = MAC Line - Signal Line
 
     Interpretation:
-    - Crossovers: MACD crossing above Signal Line is bullish; crossing below is bearish.
-    - Zero Line: MACD crossing above zero suggests uptrend (Fast EMA > Slow EMA); below zero suggests downtrend.
-    - Divergence: Divergence between Price and MACD/Histogram suggests waning momentum and potential reversal.
+    - Crossovers: MAC crossing above Signal Line is bullish; crossing below is bearish.
+    - Zero Line: MAC crossing above zero suggests uptrend (Fast EMA > Slow EMA); below zero suggests downtrend.
+    - Divergence: Divergence between Price and MAC/Histogram suggests waning momentum and potential reversal.
 
     Use Cases:
     - Trend Identification: Confirming trend direction and strength.
@@ -58,19 +58,19 @@ def mac(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     series = df[close_col]
     ema_fast = series.ewm(span=window_fast, adjust=False).mean()
     ema_slow = series.ewm(span=window_slow, adjust=False).mean()
-    macd_line = ema_fast - ema_slow
-    signal_line = macd_line.ewm(span=window_signal, adjust=False).mean()
-    histogram = macd_line - signal_line
+    mac_line = ema_fast - ema_slow
+    signal_line = mac_line.ewm(span=window_signal, adjust=False).mean()
+    histogram = mac_line - signal_line
     # Return DataFrame for multi-output indicators
-    df_macd = pd.DataFrame({
-        f'MACD_{window_fast}_{window_slow}': macd_line,
+    df_mac = pd.DataFrame({
+        f'MAC_{window_fast}_{window_slow}': mac_line,
         f'Signal_{window_signal}': signal_line,
         f'Hist_{window_fast}_{window_slow}_{window_signal}': histogram
     })
     # Ensure index is passed explicitly, just in case
-    df_macd.index = series.index
-    columns_list = list(df_macd.columns)
-    return df_macd, columns_list
+    df_mac.index = series.index
+    columns_list = list(df_mac.columns)
+    return df_mac, columns_list
 
 
 def strategy_mac(
@@ -84,10 +84,10 @@ def strategy_mac(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    MAC (MACD) - Signal Line Crossover Strategy
+    mac - Signal Line Crossover Strategy
     
-    LOGIC: Buy when MACD line crosses above signal line, sell when crosses below.
-    WHY: MACD captures momentum shifts by comparing fast and slow EMAs. Signal line
+    LOGIC: Buy when mac line crosses above signal line, sell when crosses below.
+    WHY: mac captures momentum shifts by comparing fast and slow EMAs. Signal line
          crossovers indicate changes in trend momentum. Classic trend-following indicator.
     BEST MARKETS: Trending markets across all asset classes. Stocks, forex, crypto,
                   commodities. One of the most versatile and widely-used indicators.
@@ -122,7 +122,7 @@ def strategy_mac(
         "window_slow": window_slow,
         "window_signal": window_signal
     }
-    short_window_indicator = f'MACD_{window_fast}_{window_slow}'
+    short_window_indicator = f'MAC_{window_fast}_{window_slow}'
     long_window_indicator = f'Signal_{window_signal}'
     price_col = 'Close'
     

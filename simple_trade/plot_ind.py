@@ -197,7 +197,7 @@ def plot_indicator(
         
         for i, col in enumerate(indicator_plot_cols):
             # Special handling for PSAR - display as dots instead of lines
-            if 'PSAR' in col or 'Supertrend' in col:
+            if 'PSA' in col or 'STR' in col:
                 # Determine whether dots should be above or below the price (above in downtrend, below in uptrend)
                 # PSAR dots are above price in a downtrend (bearish) and below price in an uptrend (bullish)
                 above_price = df[col] > df[price_col]

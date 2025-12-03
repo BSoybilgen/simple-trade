@@ -4,22 +4,29 @@ from .core import INDICATORS
 
 # Import all indicators from core
 from .core import (
+    # Moving Average indicators
+    ads, alm, ama, dem, ema, fma, gma, hma, jma, kma, lsm, sma,
+    soa, swm, tem, tma, vid, vma, wma, zma,
+
     # Trend indicators
-    sma, ema, wma, hma, adx, psa, tri, aro, str, vid,
-    ich, ama, eit, fma, gma, htt, jma, kma, soa, tma, zma,
-    ads, alm, dem, eac, lsm, mgd, swm, tem,
+    adx, aro, eac, eit, htt, ich, mgd, pro, psa, str, tri, vqi,
 
     # Momentum indicators
-    rsi, mac, sto, cci, roc, wil, cmo, ult, dpo, eri, rmi, tsi, qst, crs, msi, fis, stc, ttm, kst, cog, vor, lsi,
-    awo, bop, imi, pgo, ppo, psy, rvg, sri,
+    awo, bop, cci, cmo, cog, crs, dpo, eri, fis, imi, kst, lsi,
+    mac, msi, pgo, ppo, psy, qst, roc, rmi, rsi, rvg, sri, stc, sto,
+    tsi, ttm, ult, vor, wad, wil,
 
     # Volatility indicators
-    bol, atr, kel, don, cha,
-    acb, atp, bbw, cho, dvi, efr, fdi, grv, hav, hiv, mad, mai, nat, pav, pcw, pro, rsv, rvi, std, svi, uli, vhf, vqi, vsi, vra, tsv,
+    acb, atr, bbw, bol, cha, cho, don, dvi, efr, fdi, grv,
+    hav, hiv, kel, mad, mai, nat, pav, pcw, rsv, rvi, svi, tsv,
+    uli, vhf, vra, vsi,
+
+    # Statistics indicators
+    kur, mab, med, qua, skw, std, var, zsc,
 
     # Volume indicators
-    obv, vma, adl, cmf, vpt,
-    vwa, mfi, foi, emv, pvo, vro, nvi, pvi, kvo, ado, vfi, bwm, fve, wad, voo
+    ado, adl, bwm, cmf, emv, foi, fve, kvo, mfi, nvi, obv, pvi,
+    pvo, vfi, voo, vpt, vro, vwa
 )
 
 # Import configuration
@@ -53,58 +60,65 @@ __all__ = [
     # Configuration
     "BacktestConfig",
     "get_default_config",
-    
+
     # Metrics functions
-    "compute_benchmark_return",
     "calculate_performance_metrics",
-    "print_results",
+    "compute_benchmark_return",
     "count_trades",
-    
+    "print_results",
+
     # Backtesting functions
-    "run_band_trade",
-    "run_cross_trade",
-    "run_combined_trade",
     "custom_optimizer",
-    "premade_optimizer",
     "get_top_results",
+    "premade_optimizer",
     "results_to_dataframe",
-    
+    "run_band_trade",
+    "run_combined_trade",
+    "run_cross_trade",
+
     # Plotting functions
-    "plot_indicator",
     "plot_backtest_results",
     "plot_combined_results",
-    
+    "plot_indicator",
+
     # Premade backtest
-    "run_premade_trade",
     "list_premade_strategies",
-    
+    "run_premade_trade",
+
     # Technical analysis tools
     "calculate_fibonacci_levels",
-    "plot_fibonacci_retracement",
     "find_pivot_points",
     "find_resistance_support_lines",
+    "plot_fibonacci_retracement",
     "plot_resistance_support",
-    
+
     # Data functions
-    "download_data", "compute_indicator", "list_indicators",
-    
+    "compute_indicator", "download_data", "list_indicators",
+
     # Indicators dictionary
     "INDICATORS",
-    
+
+    # Moving Average indicators
+    "ads", "alm", "ama", "dem", "ema", "fma", "gma", "hma", "jma", "kma", "lsm", "sma",
+    "soa", "swm", "tem", "tma", "vid", "vma", "wma", "zma",
+
     # Trend indicators
-    "sma", "ema", "wma", "hma", "adx", "psa", "tri", "aro", "str", "vid",
-    "ich", "ama", "eit", "fma", "gma", "htt", "jma", "kma", "soa", "tma", "zma",
-    "ads", "alm", "dem", "eac", "lsm", "mgd", "swm", "tem",
-    
+    "adx", "aro", "eac", "eit", "htt", "ich", "mgd", "pro", "psa", "str", "tri", "vqi",
+
     # Momentum indicators
-    "rsi", "mac", "sto", "cci", "roc", "wil", "cmo", "ult", "dpo", "eri", "rmi", "tsi", "qst", "crs", "msi", "fis", "stc", "ttm", "kst", "cog", "vor", "lsi",
-    "awo", "bop", "imi", "pgo", "ppo", "psy", "rvg", "sri",
-    
+    "awo", "bop", "cci", "cmo", "cog", "crs", "dpo", "eri", "fis", "imi", "kst", "lsi",
+    "mac", "msi", "pgo", "ppo", "psy", "qst", "roc", "rmi", "rsi", "rvg", "sri", "stc", "sto",
+    "tsi", "ttm", "ult", "vor", "wad", "wil",
+
     # Volatility indicators
-    "bol", "atr", "kel", "don", "cha",
-    "acb", "atp", "bbw", "cho", "dvi", "efr", "fdi", "grv", "hav", "hiv", "mad", "mai", "nat", "pav", "pcw", "pro", "rsv", "rvi", "std", "svi", "uli", "vhf", "vqi", "vsi", "vra", "tsv",
-    
+    "acb", "atp", "atr", "bbw", "bol", "cha", "cho", "don", "dvi", "efr", "fdi", "grv",
+    "hav", "hiv", "kel", "mad", "mai", "nat", "pav", "pcw", "rsv", "rvi", "svi", "tsv",
+    "uli", "vhf", "vra", "vsi",
+
+    # Statistics indicators
+    "kur", "mab", "med", "qua", "skw", "std", "var", "zsc",
+
     # Volume indicators
-    "obv", "vma", "adl", "cmf", "vpt",
-    "vwa", "mfi", "foi", "emv", "pvo", "vro", "nvi", "pvi", "kvo", "ado", "vfi", "bwm", "fve", "wad", "voo"
+    "ado", "adl", "bwm", "cmf", "emv", "foi", "fve", "kvo", "mfi", "nvi", "obv", "pvi",
+    "pvo", "vfi", "voo", "vpt", "vro", "vwa"
 ]

@@ -4,7 +4,7 @@ import numpy as np
 
 def fdi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Fractal Dimension Index (FDI), which measures market complexity
+    Calculates the Fractal Dimension Index (fdi), which measures market complexity
     and choppiness based on fractal geometry. Values near 1.5 indicate random walk.
 
     Args:
@@ -91,11 +91,11 @@ def strategy_fdi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    FDI (Fractal Dimension Index) - Market Structure Strategy
+    fdi (Fractal Dimension Index) - Market Structure Strategy
     
-    LOGIC: Buy when FDI drops below lower threshold (trending/persistent),
+    LOGIC: Buy when fdi drops below lower threshold (trending/persistent),
            sell when rises above upper threshold (choppy/mean-reverting).
-    WHY: FDI measures market complexity. Near 1.0 = trending, near 1.5 = random,
+    WHY: fdi measures market complexity. Near 1.0 = trending, near 1.5 = random,
          near 2.0 = mean-reverting. Use to select appropriate strategy.
     BEST MARKETS: All markets. Use to identify market structure.
     TIMEFRAME: Daily charts. 20-period is standard.

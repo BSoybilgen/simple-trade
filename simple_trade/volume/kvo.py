@@ -4,7 +4,7 @@ import numpy as np
 
 def kvo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Klinger Volume Oscillator (KVO), a long-term money flow indicator
+    Calculates the Klinger Volume Oscillator (kvo), a long-term money flow indicator
     that compares volume flowing through securities with price movements. It is designed
     to detect long-term money flow trends while remaining sensitive to short-term fluctuations.
 
@@ -115,11 +115,11 @@ def strategy_kvo(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    KVO (Klinger Volume Oscillator) - Signal Line Crossover Strategy
+    kvo (Klinger Volume Oscillator) - Signal Line Crossover Strategy
     
-    LOGIC: Buy when KVO crosses above signal line (bullish money flow),
-           sell when KVO crosses below signal line (bearish money flow).
-    WHY: KVO compares volume flowing through securities with price movements.
+    LOGIC: Buy when kvo crosses above signal line (bullish money flow),
+           sell when kvo crosses below signal line (bearish money flow).
+    WHY: kvo compares volume flowing through securities with price movements.
          Designed for long-term money flow trends while sensitive to short-term.
     BEST MARKETS: Stocks, ETFs. Good for trend identification and divergence.
     TIMEFRAME: Daily charts. 34/55 fast/slow with 13 signal is standard.

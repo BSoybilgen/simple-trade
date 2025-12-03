@@ -4,7 +4,7 @@ import numpy as np
 
 def rsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Rogers-Satchell Volatility, which accounts for drift in price movements
+    Calculates Rogers-Satchell Volatility (rsv), which accounts for drift in price movements
     and handles trending markets better than Garman-Klass. Uses all OHLC components.
 
     Args:
@@ -83,7 +83,7 @@ def rsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     rsv_values = rs_volatility * 100
     
-    rsv_values.name = f'RS_VOL_{period}_Ann' if annualized else f'RS_VOL_{period}'
+    rsv_values.name = f'RSV_{period}_Ann' if annualized else f'RSV_{period}'
     return rsv_values, [rsv_values.name]
 
 
@@ -98,11 +98,11 @@ def strategy_rsv(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    RSV (Rogers-Satchell Volatility) - Volatility Threshold Strategy
+    rsv (Rogers-Satchell Volatility) - Volatility Threshold Strategy
     
-    LOGIC: Buy when RSV drops below lower threshold (low volatility),
+    LOGIC: Buy when rsv drops below lower threshold (low volatility),
            sell when rises above upper threshold (high volatility).
-    WHY: RSV accounts for drift in price movements. Better for trending
+    WHY: rsv accounts for drift in price movements. Better for trending
          markets than Garman-Klass.
     BEST MARKETS: Trending markets. Good for advanced volatility analysis.
     TIMEFRAME: Daily charts. 20-period is standard.
@@ -131,7 +131,7 @@ def strategy_rsv(
     upper = float(parameters.get('upper', 30))
     lower = float(parameters.get('lower', 15))
     price_col = 'Close'
-    indicator_col = f'RS_VOL_{period}_Ann'
+    indicator_col = f'RSV_{period}_Ann'
     
     data, _, _ = compute_indicator(
         data=data,

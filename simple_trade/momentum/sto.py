@@ -3,7 +3,7 @@ import pandas as pd
 
 def sto(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Stochastic Oscillator, a momentum indicator that compares a security's 
+    Calculates the Stochastic Oscillator (sto), a momentum indicator that compares a security's 
     closing price to its price range over a given time period.
 
     Args:
@@ -77,8 +77,8 @@ def sto(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     # Prepare the result DataFrame
     result = pd.DataFrame({
-        f'STOCH_K_{k_period}_{d_period}_{smooth_k}': k,
-        f'STOCH_D_{k_period}_{d_period}_{smooth_k}': d
+        f'STO_K_{k_period}_{d_period}_{smooth_k}': k,
+        f'STO_D_{k_period}_{d_period}_{smooth_k}': d
     }, index=close.index)
     columns_list = list(result.columns)
     return result, columns_list
@@ -95,10 +95,10 @@ def strategy_sto(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    STO (Stochastic Oscillator) - Mean Reversion Strategy
+    sto (Stochastic Oscillator) - Mean Reversion Strategy
     
     LOGIC: Buy when %K drops below 20 (oversold), sell when above 80 (overbought).
-    WHY: Stochastic compares close to high-low range. Low values = close near lows (oversold),
+    WHY: sto compares close to high-low range. Low values = close near lows (oversold),
          high values = close near highs (overbought). Classic mean reversion indicator.
     BEST MARKETS: Range-bound markets and consolidating assets. Stocks, forex, commodities.
                   Use with trend filter in trending markets.
@@ -135,7 +135,7 @@ def strategy_sto(
         "d_period": d_period,
         "smooth_k": smooth_k
     }
-    indicator_col = f'STOCH_K_{k_period}_{d_period}_{smooth_k}'
+    indicator_col = f'STO_K_{k_period}_{d_period}_{smooth_k}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(
@@ -162,6 +162,6 @@ def strategy_sto(
         risk_free_rate=risk_free_rate
     )
     
-    indicator_cols_to_plot = [indicator_col, f'STOCH_D_{k_period}_{d_period}_{smooth_k}', 'lower', 'upper']
+    indicator_cols_to_plot = [indicator_col, f'STO_D_{k_period}_{d_period}_{smooth_k}', 'lower', 'upper']
     
     return results, portfolio, indicator_cols_to_plot, data

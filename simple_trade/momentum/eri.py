@@ -3,7 +3,7 @@ import pandas as pd
 
 def eri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Elder-Ray Index (ERI), a technical indicator developed by Dr. Alexander Elder.
+    Calculates the Elder Ray Index (eri), a technical indicator developed by Dr. Alexander Elder.
     It measures the amount of buying and selling pressure in the market.
 
     Args:
@@ -16,9 +16,9 @@ def eri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - low_col (str): The column name for low prices. Default is 'Low'.
 
     Returns:
-        tuple: A tuple containing the ERI DataFrame (with Bull and Bear power) and a list of column names.
+        tuple: A tuple containing the eri DataFrame (with Bull and Bear power) and a list of column names.
 
-    The Elder-Ray Index consists of three components (calculated as follows):
+    The eri consists of three components (calculated as follows):
 
     1. Calculate the Exponential Moving Average (EMA):
        EMA = EMA(Close, window) (Often a 13-period EMA)
@@ -79,11 +79,11 @@ def strategy_eri(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ERI (Elder-Ray Index) - Bear Power Zero Line Crossover Strategy
+    eri (Elder Ray Index) - Bull/Bear Power Strategy
     
-    LOGIC: Buy when Bear Power crosses above zero (buyers gaining control), sell when crosses below.
-    WHY: Elder-Ray measures buying/selling pressure. Bear Power above zero means lows are above
-         the EMA (bullish). Below zero means sellers pushing prices below consensus value.
+    LOGIC: Buy when Bull Power is positive and rising, sell when Bear Power is negative and falling.
+    WHY: eri measures buying/selling pressure relative to EMA. Positive Bull Power
+         = buyers pushing above average, negative Bear Power = sellers pushing below prices below consensus value.
     BEST MARKETS: Trending stocks and indices with clear institutional participation.
                   Works well when combined with EMA trend filter.
     TIMEFRAME: Daily charts. 13-period EMA is standard (Elder's recommendation).

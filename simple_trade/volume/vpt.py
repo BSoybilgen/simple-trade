@@ -4,7 +4,7 @@ import numpy as np
 
 def vpt(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Volume Price Trend (VPT), a volume-based indicator that relates
+    Calculates the Volume Price Trend (vpt), a volume-based indicator that relates
     volume to price change percentage to create a cumulative indicator of buying/selling
     pressure.
 
@@ -102,11 +102,11 @@ def strategy_vpt(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VPT (Volume Price Trend) - SMA Crossover Strategy
+    vpt (Volume Price Trend) - SMA Crossover Strategy
     
-    LOGIC: Buy when VPT crosses above its SMA (accumulation),
-           sell when VPT crosses below its SMA (distribution).
-    WHY: VPT relates volume to price change percentage. Rising VPT indicates
+    LOGIC: Buy when vpt crosses above its SMA (accumulation),
+           sell when vpt crosses below its SMA (distribution).
+    WHY: vpt relates volume to price change percentage. Rising vpt indicates
          buying pressure, falling indicates selling pressure.
     BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
     TIMEFRAME: Daily charts. Good for swing trading.

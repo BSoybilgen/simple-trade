@@ -3,7 +3,7 @@ import pandas as pd
 
 def kst(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Know Sure Thing (KST), a momentum oscillator developed by Martin Pring 
+    Calculates the Know Sure Thing (kst), a momentum oscillator developed by Martin Pring 
     that combines multiple Rate of Change (ROC) timeframes into a single indicator.
 
     Args:
@@ -96,10 +96,10 @@ def strategy_kst(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    KST (Know Sure Thing) - Signal Line Crossover Strategy
+    kst (Know Sure Thing) - Signal Line Crossover Strategy
     
-    LOGIC: Buy when KST crosses above its signal line, sell when crosses below.
-    WHY: KST combines 4 ROC timeframes with smoothing, capturing momentum across
+    LOGIC: Buy when kst crosses above its signal line, sell when crosses below.
+    WHY: kst combines 4 ROC timeframes with smoothing, capturing momentum across
          multiple cycles. Signal crossovers indicate momentum shifts confirmed by
          multiple timeframes.
     BEST MARKETS: Trending markets across all asset classes. Stocks, forex, commodities.

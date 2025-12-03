@@ -3,7 +3,7 @@ import pandas as pd
 
 def cmo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Chande Momentum Oscillator (CMO), a technical momentum indicator developed by Tushar Chande.
+    Calculates the Chande Momentum Oscillator (cmo), developed by Tushar Chande.
     It compares the sum of recent gains to the sum of recent losses to determine momentum.
 
     Args:
@@ -14,7 +14,7 @@ def cmo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the CMO series and a list of column names.
+        tuple: A tuple containing the cmo series and a list of column names.
 
     The Chande Momentum Oscillator is calculated as follows:
 
@@ -29,8 +29,8 @@ def cmo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        Sum Gains = Sum(Gain, window)
        Sum Losses = Sum(Loss, window)
 
-    4. Calculate CMO:
-       CMO = 100 * (Sum Gains - Sum Losses) / (Sum Gains + Sum Losses)
+    4. Calculate cmo:
+       cmo = 100 * (Sum Gains - Sum Losses) / (Sum Gains + Sum Losses)
 
     Interpretation:
     - Range: The oscillator fluctuates between -100 and +100.
@@ -39,10 +39,10 @@ def cmo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     - Trend Strength: High absolute values indicate strong trends.
 
     Use Cases:
-    - Overbought/Oversold Levels: Identifying potential reversal points when CMO reaches extremes.
+    - Overbought/Oversold Levels: Identifying potential reversal points when cmo reaches extremes.
     - Trend Strength: Measuring the strength of the trend (higher absolute value = stronger trend).
     - Crosses: Crossing the zero line can be used as a signal (Bullish > 0, Bearish < 0).
-    - Divergence: Divergence between price and CMO can signal potential reversals.
+    - Divergence: Divergence between price and cmo can signal potential reversals.
     """
     if parameters is None:
         parameters = {}
@@ -80,11 +80,11 @@ def strategy_cmo(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    CMO (Chande Momentum Oscillator) - Mean Reversion Strategy
+    cmo (Chande Momentum Oscillator) - Mean Reversion Strategy
     
-    LOGIC: Buy when CMO drops below -50 (oversold), sell when rises above +50 (overbought).
-    WHY: CMO compares sum of gains to losses, oscillating between -100 and +100.
-         Unlike RSI, it's not bounded by smoothing, making it more responsive.
+    LOGIC: Buy when cmo drops below -50 (oversold), sell when rises above +50 (overbought).
+    WHY: cmo measures momentum using both up and down days equally weighted. Range -100 to +100.
+         Extreme readings suggest exhaustion. More responsive than RSI to price changes.
     BEST MARKETS: Range-bound markets and mean-reverting assets. Stocks in consolidation,
                   forex pairs, and ETFs. Less effective in strong trends.
     TIMEFRAME: Daily or 4-hour charts. Adjust thresholds based on asset volatility.

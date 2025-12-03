@@ -3,21 +3,21 @@ import pandas as pd
 
 def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Average Directional Index (ADX) along with the Positive
+    Calculates the Average Directional Index (adx) along with the Positive
     Directional Indicator (+DI) and Negative Directional Indicator (-DI).
-    The ADX is a technical indicator used to measure the strength of a trend.
+    The adx is a technical indicator used to measure the strength of a trend.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
-            - window (int): The lookback period for the ADX calculation. Default is 14.
+            - window (int): The lookback period for the adx calculation. Default is 14.
         columns (dict, optional): Dictionary containing column name mappings:
             - high_col (str): The column name for high prices. Default is 'High'.
             - low_col (str): The column name for low prices. Default is 'Low'.
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the ADX DataFrame (ADX, +DI, -DI) and a list of column names.
+        tuple: A tuple containing the adx DataFrame (adx, +DI, -DI) and a list of column names.
 
     Calculation Steps:
     1. Calculate True Range (TR):
@@ -39,22 +39,22 @@ def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     5. Calculate Directional Index (DX):
        DX = 100 * Abs(+DI - -DI) / (+DI + -DI)
 
-    6. Calculate ADX:
-       ADX = Smooth(DX)
+    6. Calculate adx:
+       adx = Smooth(DX)
 
     Interpretation:
-    - ADX > 25: Strong trend.
-    - ADX < 20: Weak trend or non-trending market.
+    - adx > 25: Strong trend.
+    - adx < 20: Weak trend or non-trending market.
     - +DI > -DI: Bullish trend.
     - -DI > +DI: Bearish trend.
 
     Use Cases:
-    - Identifying trend strength: The ADX can be used to determine whether a
+    - Identifying trend strength: The adx can be used to determine whether a
       trend is strong or weak.
     - Identifying trend direction: The +DI and -DI can be used to determine
       the direction of the trend.
     - Generating buy and sell signals: Crossovers of +DI and -DI.
-    - Filtering: Using ADX to filter out trades in sideways markets.
+    - Filtering: Using adx to filter out trades in sideways markets.
     """
     # Set default values
     if parameters is None:
@@ -108,12 +108,12 @@ def strategy_adx(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ADX (Average Directional Index) - DI Crossover Strategy
+    adx (Average Directional Index) - DI Crossover Strategy
     
     LOGIC: Trade the crossovers between +DI and -DI to capture directional shifts.
-    WHY: ADX package produces +DI/-DI which directly encode bullish vs bearish pressure.
+    WHY: adx package produces +DI/-DI which directly encode bullish vs bearish pressure.
          Using their crossover keeps the trading logic consistent with the plotted values.
-    BEST MARKETS: Any market. ADX provides additional context on trend strength if you
+    BEST MARKETS: Any market. adx provides additional context on trend strength if you
                   choose to inspect it, but signals rely purely on DI crossovers now.
     TIMEFRAME: Daily or weekly. Window 14 remains the default.
     

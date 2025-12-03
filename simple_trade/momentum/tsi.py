@@ -3,7 +3,7 @@ import pandas as pd
 
 def tsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the True Strength Index (TSI), a momentum oscillator developed by William Blau.
+    Calculates the True Strength Index (tsi), a momentum oscillator developed by William Blau.
     It uses double smoothing of price changes to filter out noise and highlight trend strength.
 
     Args:
@@ -31,18 +31,18 @@ def tsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        First Smooth Abs = EMA(Abs Momentum, slow)
        Second Smooth Abs = EMA(First Smooth Abs, fast)
 
-    4. Calculate TSI:
-       TSI = 100 * (Double Smoothed Momentum / Double Smoothed Abs Momentum)
+    4. Calculate tsi:
+       tsi = 100 * (Double Smoothed Momentum / Double Smoothed Abs Momentum)
 
     Interpretation:
     - Range: -100 to +100.
-    - Signal Line Crossovers: Can be used with a signal line (usually 7-12 period EMA of TSI) to generate buy/sell signals.
+    - Signal Line Crossovers: Can be used with a signal line (usually 7-12 period EMA of tsi) to generate buy/sell signals.
     - Centerline Crossovers: Crossing zero indicates a change in the overall trend direction.
     - Overbought/Oversold: Extremes can vary but generally > +25 or < -25 indicate strong trends.
 
     Use Cases:
-    - Trend Direction: Positive TSI indicates uptrend, negative TSI indicates downtrend.
-    - Divergence: Divergence between price and TSI can signal reversals.
+    - Trend Direction: Positive tsi indicates uptrend, negative tsi indicates downtrend.
+    - Divergence: Divergence between price and tsi can signal reversals.
     - Overbought/Oversold: Identifying potential exhaustion points.
     """
     if parameters is None:
@@ -82,10 +82,10 @@ def strategy_tsi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    TSI (True Strength Index) - Zero Line Crossover Strategy
+    tsi (True Strength Index) - Zero Line Crossover Strategy
     
-    LOGIC: Buy when TSI crosses above zero (bullish momentum), sell when crosses below.
-    WHY: TSI uses double smoothing to filter noise and highlight trend strength.
+    LOGIC: Buy when tsi crosses above zero (bullish momentum), sell when crosses below.
+    WHY: tsi uses double smoothing to filter noise and highlight trend strength.
          Zero crossings indicate changes in overall trend direction.
     BEST MARKETS: Trending markets across all asset classes. Stocks, forex, futures.
                   Double smoothing reduces false signals compared to single-smoothed indicators.

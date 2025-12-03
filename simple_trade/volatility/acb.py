@@ -3,7 +3,7 @@ import pandas as pd
 
 def acb(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Acceleration Bands, a volatility-based indicator that creates dynamic
+    Calculates Acceleration Bands (acb), a volatility-based indicator that creates dynamic
     upper and lower bands around price using a percentage of the high and low prices.
     Unlike Bollinger Bands which use standard deviation, Acceleration Bands use a
     fixed percentage multiplier applied to highs and lows.
@@ -103,11 +103,11 @@ def strategy_acb(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ACB (Acceleration Bands) - Band Breakout Strategy
+    acb (Acceleration Bands) - Band Breakout Strategy
     
     LOGIC: Buy when price breaks above upper band (bullish breakout),
            sell when below lower band (bearish breakout).
-    WHY: Acceleration Bands use percentage-based bands around price.
+    WHY: acb uses percentage-based bands around price.
          Price breaking above upper band indicates strong uptrend momentum.
     BEST MARKETS: Trending markets. Stocks, forex, futures. Good for breakout
                   trading. Avoid in choppy, range-bound markets.

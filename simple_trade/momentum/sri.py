@@ -4,7 +4,7 @@ import pandas as pd
 
 def sri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Stochastic RSI (StochRSI), a technical indicator used to measure the level of RSI relative to its high-low range over a set time period.
+    Calculates the Stochastic RSI (sri), a technical indicator used to measure the level of RSI relative to its high-low range over a set time period.
     It applies the Stochastic Oscillator formula to RSI values.
 
     Args:
@@ -25,8 +25,8 @@ def sri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     1. Calculate RSI:
        RSI = RSI(Close, rsi_window)
 
-    2. Calculate StochRSI (%K Raw):
-       StochRSI = (RSI - Lowest RSI) / (Highest RSI - Lowest RSI)
+    2. Calculate sri (%K Raw):
+       sri = (RSI - Lowest RSI) / (Highest RSI - Lowest RSI)
        (Where Lowest/Highest RSI are over stoch_window)
 
     3. Calculate %K:
@@ -39,7 +39,7 @@ def sri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     - Range: 0 to 100.
     - Overbought: Values above 80 are considered overbought.
     - Oversold: Values below 20 are considered oversold.
-    - Sensitivity: StochRSI is much more sensitive than RSI and reaches extremes more frequently.
+    - Sensitivity: sri is much more sensitive than RSI and reaches extremes more frequently.
 
     Use Cases:
     - Entry Signals: Crossing above 20 (Buy) or below 80 (Sell).
@@ -102,10 +102,10 @@ def strategy_sri(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    SRI (Stochastic RSI) - Mean Reversion Strategy
+    sri (Stochastic RSI) - Mean Reversion Strategy
     
-    LOGIC: Buy when StochRSI %K drops below 20 (oversold), sell when above 80.
-    WHY: StochRSI applies stochastic formula to RSI, creating a more sensitive oscillator.
+    LOGIC: Buy when sri %K drops below 20 (oversold), sell when above 80.
+    WHY: sri applies stochastic formula to RSI, creating a more sensitive oscillator.
          Reaches extremes more frequently than RSI, good for short-term reversals.
     BEST MARKETS: Range-bound markets and short-term trading. Forex, stocks, crypto.
                   Very sensitive - use with trend filter to avoid whipsaws.

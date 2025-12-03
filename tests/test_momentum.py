@@ -4,7 +4,7 @@ import numpy as np
 from simple_trade.momentum import (
     rsi, mac, sto, cci, roc, wil, cmo, ult, dpo, eri,
     rmi, tsi, qst, crs, msi, fis, stc, ttm, kst, cog,
-    vor, lsi, awo, ppo, sri, rvg, bop, psy, imi, pgo
+    vor, lsi, awo, ppo, sri, rvg, bop, psy, imi, pgo, wad
 )
 
 @pytest.fixture
@@ -127,7 +127,7 @@ class TestMACD:
         assert not result_data.empty
         
         # Check column names (with default parameters)
-        assert 'MACD_12_26' in result_data.columns
+        assert 'MAC_12_26' in result_data.columns
         assert 'Signal_9' in result_data.columns
         assert 'Hist_12_26_9' in result_data.columns
         
@@ -149,7 +149,7 @@ class TestMACD:
                      }, columns=None)
         
         # Check that column names reflect custom parameters
-        assert f'MACD_{window_fast}_{window_slow}' in result_data.columns
+        assert f'MAC_{window_fast}_{window_slow}' in result_data.columns
         assert f'Signal_{window_signal}' in result_data.columns
         assert f'Hist_{window_fast}_{window_slow}_{window_signal}' in result_data.columns
 
@@ -186,8 +186,8 @@ class TestStoch:
         assert not result_data.empty
         
         # Check column names (with default parameters: k_period=14, d_period=3, smooth_k=3)
-        k_col = 'STOCH_K_14_3_3'
-        d_col = 'STOCH_D_14_3_3'
+        k_col = 'STO_K_14_3_3'
+        d_col = 'STO_D_14_3_3'
         assert k_col in result_data.columns
         assert d_col in result_data.columns
         
@@ -215,8 +215,8 @@ class TestStoch:
         result_data, _ = sto(df, parameters={'k_period': k_period, 'd_period': d_period, 'smooth_k': smooth_k}, columns=None)
         
         # Create column names with the custom parameters
-        k_col = f'STOCH_K_{k_period}_{d_period}_{smooth_k}'
-        d_col = f'STOCH_D_{k_period}_{d_period}_{smooth_k}'
+        k_col = f'STO_K_{k_period}_{d_period}_{smooth_k}'
+        d_col = f'STO_D_{k_period}_{d_period}_{smooth_k}'
         
         # First k_period values should be NaN for K
         assert result_data[k_col].iloc[:k_period].isna().all()
@@ -378,7 +378,7 @@ class TestWilliamsR:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'WILLR_14' in columns
+        assert 'WIL_14' in columns
         
         # Williams %R should be between -100 and 0
         valid_result = result_data.dropna()
@@ -395,7 +395,7 @@ class TestWilliamsR:
         })
         result_data, columns = wil(df, parameters={'window': window})
         
-        assert f'WILLR_{window}' in columns
+        assert f'WIL_{window}' in columns
         # First window-1 values should be NaN
         assert result_data.iloc[:window-1].isna().all()
 
@@ -440,7 +440,7 @@ class TestUltimateOscillator:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'ULTOSC_7_14_28' in columns
+        assert 'ULT_7_14_28' in columns
         
         # Ultimate Oscillator should be between 0 and 100
         valid_result = result_data.dropna()
@@ -460,7 +460,7 @@ class TestUltimateOscillator:
             'long_window': 20
         })
         
-        assert 'ULTOSC_5_10_20' in columns
+        assert 'ULT_5_10_20' in columns
 
 
 class TestDPO:
@@ -592,7 +592,7 @@ class TestQstick:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'QSTICK_10' in columns
+        assert 'QST_10' in columns
 
     def test_qst_custom_window(self, sample_data):
         """Test Qstick with custom window"""
@@ -604,7 +604,7 @@ class TestQstick:
         })
         result_data, columns = qst(df, parameters={'window': 14})
         
-        assert 'QSTICK_14' in columns
+        assert 'QST_14' in columns
 
 
 class TestConnorsRSI:
@@ -618,7 +618,7 @@ class TestConnorsRSI:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'CRSI_3_2_50' in columns
+        assert 'CRS_3_2_50' in columns
         
         # CRSI should be between 0 and 100
         valid_result = result_data.dropna()
@@ -635,7 +635,7 @@ class TestConnorsRSI:
             'rank_window': 30
         })
         
-        assert 'CRSI_5_3_30' in columns
+        assert 'CRS_5_3_30' in columns
 
 
 class TestMSI:
@@ -679,7 +679,7 @@ class TestFisherTransform:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'FISH_9' in columns
+        assert 'FIS_9' in columns
 
     def test_fis_custom_window(self, sample_data):
         """Test Fisher Transform with custom window"""
@@ -689,7 +689,7 @@ class TestFisherTransform:
         })
         result_data, columns = fis(df, parameters={'window': 14})
         
-        assert 'FISH_14' in columns
+        assert 'FIS_14' in columns
 
 
 class TestSTC:
@@ -810,12 +810,12 @@ class TestVortex:
         
         assert isinstance(result_data, pd.DataFrame)
         assert not result_data.empty
-        assert 'VI_Plus_14' in columns
-        assert 'VI_Minus_14' in columns
+        assert 'VOR_Plus_14' in columns
+        assert 'VOR_Minus_14' in columns
         
         # VI values should be positive
-        valid_plus = result_data['VI_Plus_14'].dropna()
-        valid_minus = result_data['VI_Minus_14'].dropna()
+        valid_plus = result_data['VOR_Plus_14'].dropna()
+        valid_minus = result_data['VOR_Minus_14'].dropna()
         assert valid_plus.min() >= 0
         assert valid_minus.min() >= 0
 
@@ -828,8 +828,8 @@ class TestVortex:
         })
         result_data, columns = vor(df, parameters={'window': 21})
         
-        assert 'VI_Plus_21' in columns
-        assert 'VI_Minus_21' in columns
+        assert 'VOR_Plus_21' in columns
+        assert 'VOR_Minus_21' in columns
 
 
 class TestLaguerreRSI:
@@ -842,7 +842,7 @@ class TestLaguerreRSI:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'LRSI_0.5' in columns
+        assert 'LSI_0.5' in columns
         
         # LRSI should be between 0 and 100 (with small tolerance for floating point)
         valid_result = result_data.dropna()
@@ -854,7 +854,7 @@ class TestLaguerreRSI:
         df = pd.DataFrame({'Close': sample_data['close']})
         result_data, columns = lsi(df, parameters={'gamma': 0.7})
         
-        assert 'LRSI_0.7' in columns
+        assert 'LSI_0.7' in columns
 
 
 class TestAWO:
@@ -870,7 +870,7 @@ class TestAWO:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'AO_5_34' in columns
+        assert 'AWO_5_34' in columns
         
         # AO should have both positive and negative values
         valid_result = result_data.dropna()
@@ -888,7 +888,7 @@ class TestAWO:
             'slow_window': 20
         })
         
-        assert 'AO_3_20' in columns
+        assert 'AWO_3_20' in columns
 
 
 class TestPPO:

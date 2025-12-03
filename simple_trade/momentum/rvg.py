@@ -3,7 +3,7 @@ import pandas as pd
 
 def rvg(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Relative Vigor Index (RVG/RVI), a technical indicator that measures the conviction 
+    Calculates the Relative Vigor Index (rvg), a technical indicator that measures the conviction 
     of a recent price action and the likelihood that it will continue.
 
     Args:
@@ -31,15 +31,15 @@ def rvg(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        SMA_Num = SMA(Num, window)
        SMA_Denom = SMA(Denom, window)
 
-    4. Calculate RVG:
-       RVG = SMA_Num / SMA_Denom
+    4. Calculate rvg:
+       rvg = SMA_Num / SMA_Denom
 
     5. Calculate Signal Line:
        Signal = (RVG + 2*RVG1 + 2*RVG2 + RVG3) / 6
 
     Interpretation:
     - Concept: Prices tend to close higher than they open in uptrends and lower in downtrends.
-    - Crossovers: RVG crossing above the Signal Line is a buy signal; below is a sell signal.
+    - Crossovers: rvg crossing above the Signal Line is a buy signal; below is a sell signal.
 
     Use Cases:
     - Trend Confirmation: Validating the strength of the current trend.
@@ -100,10 +100,10 @@ def strategy_rvg(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    RVG (Relative Vigor Index) - Signal Line Crossover Strategy
+    rvg (Relative Vigor Index) - Signal Line Crossover Strategy
     
-    LOGIC: Buy when RVG crosses above signal line, sell when crosses below.
-    WHY: RVG measures conviction of price action by comparing close-open to high-low.
+    LOGIC: Buy when rvg crosses above signal line, sell when crosses below.
+    WHY: rvg measures conviction of price action by comparing close-open to high-low.
          Prices tend to close higher in uptrends. Signal crossovers indicate momentum shifts.
     BEST MARKETS: Trending markets with clear directional moves. Stocks, forex, futures.
                   Good for confirming trend strength and timing entries.

@@ -4,8 +4,8 @@ import pandas as pd
 
 def mgd(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the McGinley Dynamic (MGD) indicator.
-    The McGinley Dynamic is a moving average that automatically adjusts its speed
+    Calculates the McGinley Dynamic (mgd) indicator.
+    The mgd is a moving average that automatically adjusts its speed
     based on market volatility. It speeds up in fast markets and slows down in
     ranging markets, minimizing whipsaws and price separation.
 
@@ -75,10 +75,10 @@ def strategy_mgd(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    MGD (McGinley Dynamic) - Dual MA Crossover Strategy
+    mgd (McGinley Dynamic) - Dual MA Crossover Strategy
     
-    LOGIC: Buy when fast MGD crosses above slow MGD, sell when crosses below.
-    WHY: MGD automatically adjusts speed based on volatility. Speeds up in
+    LOGIC: Buy when fast mgd crosses above slow mgd, sell when crosses below.
+    WHY: mgd automatically adjusts speed based on volatility. Speeds up in
          fast markets, slows in ranging markets. Minimizes whipsaws.
     BEST MARKETS: All market conditions. Stocks, forex, futures.
                   Excellent for avoiding whipsaws.

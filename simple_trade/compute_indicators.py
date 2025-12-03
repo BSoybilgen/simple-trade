@@ -5,7 +5,7 @@ import yfinance as yf
 import pandas as pd
 from .core import INDICATORS
 from simple_trade.plot_ind import plot_indicator
-from typing import Literal
+from typing import Literal, Optional
 
 
 def compute_indicator(
@@ -13,6 +13,7 @@ def compute_indicator(
     indicator: str,
     figure: bool=True,
     plot_type: Literal['line', 'candlestick'] = 'line',
+    title: Optional[str] = None,
     **indicator_kwargs
 ) -> tuple:
     """Computes a specified technical indicator on the provided financial data.
@@ -21,6 +22,7 @@ def compute_indicator(
         data: pandas.DataFrame containing the financial data (must include 'Close',
               and possibly 'High', 'Low' depending on the indicator).
         indicator: Technical indicator to compute (e.g., 'rsi', 'sma', 'mac', 'adx').
+        title: Optional title for the figure. Defaults to '{INDICATOR} Indicator'.
         **indicator_kwargs: Keyword arguments specific to the chosen indicator.
 
     Returns:
@@ -45,18 +47,18 @@ def compute_indicator(
         # Add the result to the original DataFrame
         df = _add_indicator_to_dataframe(df, indicator_result, indicator_kwargs)
 
-        if indicator in ('adx', 'aro', 'tri', 'cci', 'mac', 'roc', 
-                         'rsi', 'sto', 'atr', 'cha', 'adl', 'cmf',
-                         'obv', 'vpt', 'cmo', 'cog', 'crs', 'dpo', 'eri',
-                         'fis', 'kst', 'lsi', 'msi', 'qst', 'rmi', 'stc',
-                         'tsi', 'ttm', 'ult', 'vor', 'wil', 'awo', 'bop',
-                         'imi', 'pgo', 'ppo', 'psy', 'rvg', 'sri', 'atp', 'bbw',
-                         'cho', 'dvi', 'efr', 'fdi', 'grv', 'hav', 'hiv',
-                         'mad', 'mai', 'nat', 'pav', 'pcw', 'pro', 'rsv',
-                         'rvi', 'std', 'svi', 'uli', 'vhf', 'vqi', 'vsi',
-                         'ado', 'bwm', 'emv', 'fve', 'foi', 'kvo', 'mfi',
-                         'nvi', 'pvo', 'pvi', 'vfi', 'voo', 'vro', 'wad', 
-                         'htt'):
+        if indicator in (
+            'ado', 'adl', 'adx', 'aro', 'atp', 'atr', 'awo', 'bbw', 
+            'bop', 'bwm', 'cci', 'cha', 'cho', 'cmf', 'cmo', 'cog', 
+            'crs', 'dpo', 'dvi', 'efr', 'emv', 'eri', 'fdi', 'fis', 
+            'foi', 'fve', 'grv', 'hav', 'hiv', 'htt', 'imi', 'kst', 
+            'kur', 'kvo', 'lsi', 'mab', 'mac', 'mad', 'mai', 'mfi', 'msi', 
+            'nat', 'nvi', 'obv', 'pav', 'pcw', 'pgo', 'ppo', 'pro', 
+            'psy', 'pvi', 'pvo', 'qst', 'rmi', 'roc', 'rsi', 'rsv', 
+            'rvg', 'rvi', 'skw', 'sri', 'stc', 'std', 'sto', 'svi', 'tri', 
+            'tsi', 'tsv', 'ttm', 'uli', 'ult', 'var', 'vfi', 'vhf', 'voo', 
+            'vor', 'vpt', 'vra', 'vqi', 'vro', 'vsi', 'wad', 'wil', 'zsc'
+        ):
             plot_on_subplot=True
         else:
             plot_on_subplot=False
@@ -71,7 +73,7 @@ def compute_indicator(
                 column_names=columns,
                 plot_on_subplot=plot_on_subplot,
                 plot_type=plot_type,
-                title="Indicator Figure"
+                title=title if title else f"{indicator.upper()} Indicator"
             )
         
             return df, columns, fig
@@ -172,7 +174,7 @@ def list_indicators(category: str = None, return_dict: bool = False) -> dict | N
         >>> list_indicators(category='momentum')  # Print only momentum indicators
         >>> indicators = list_indicators(return_dict=True)  # Get dictionary of all indicators
     """
-    from . import momentum, trend, volatility, volume
+    from . import momentum, trend, volatility, volume, moving_average, statistics
     import inspect
     
     # Define indicator categories and their modules
@@ -180,7 +182,9 @@ def list_indicators(category: str = None, return_dict: bool = False) -> dict | N
         'momentum': momentum,
         'trend': trend,
         'volatility': volatility,
-        'volume': volume
+        'volume': volume,
+        'moving_average': moving_average,
+        'statistics': statistics,
     }
     
     # Filter by category if specified

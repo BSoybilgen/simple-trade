@@ -2,7 +2,6 @@
 Volume indicators module
 """
 from .obv import obv
-from .vma import vma
 from .adl import adl
 from .cmf import cmf
 from .vpt import vpt
@@ -19,7 +18,6 @@ from .ado import ado
 from .vfi import vfi
 from .bwm import bwm
 from .fve import fve
-from .wad import wad
 from .voo import voo
 
-__all__ = ['obv', 'vma', 'adl', 'cmf', 'vpt', 'vwa', 'mfi', 'foi', 'emv', 'pvo', 'vro', 'nvi', 'pvi', 'kvo', 'ado', 'vfi', 'bwm', 'fve', 'wad', 'voo']
+__all__ = ['obv', 'adl', 'cmf', 'vpt', 'vwa', 'mfi', 'foi', 'emv', 'pvo', 'vro', 'nvi', 'pvi', 'kvo', 'ado', 'vfi', 'bwm', 'fve', 'voo']

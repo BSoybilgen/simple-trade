@@ -4,7 +4,7 @@ import numpy as np
 
 def cmf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Chaikin Money Flow (CMF), a volume-based indicator that measures
+    Calculates the Chaikin Money Flow (cmf), a volume-based indicator that measures
     the amount of Money Flow Volume over a specific period. It combines price and
     volume to identify buying and selling pressure.
 
@@ -91,12 +91,12 @@ def strategy_cmf(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    CMF (Chaikin Money Flow) - Zero Line Cross Strategy
+    cmf (Chaikin Money Flow) - Zero Line Cross Strategy
     
-    LOGIC: Buy when CMF crosses above zero (buying pressure),
-           sell when CMF crosses below zero (selling pressure).
-    WHY: CMF measures money flow over a period. Positive CMF indicates accumulation,
-         negative CMF indicates distribution. Good for trend confirmation.
+    LOGIC: Buy when cmf crosses above zero (buying pressure),
+           sell when cmf crosses below zero (selling pressure).
+    WHY: cmf measures money flow over a period. Positive cmf indicates accumulation,
+         negative cmf indicates distribution. Good for trend confirmation.
     BEST MARKETS: Stocks, ETFs. Good for confirming breakouts and trends.
     TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
     

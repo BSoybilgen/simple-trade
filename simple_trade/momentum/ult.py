@@ -3,7 +3,7 @@ import pandas as pd
 
 def ult(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Ultimate Oscillator (ULTOSC), developed by Larry Williams.
+    Calculates the Ultimate Oscillator (ult), developed by Larry Williams.
     It combines short, medium, and long-term buying pressure to reduce volatility 
     and false signals associated with single-timeframe oscillators.
 
@@ -35,7 +35,7 @@ def ult(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        Avg28 = Sum(BP, 28) / Sum(TR, 28)
 
     4. Calculate Ultimate Oscillator:
-       UltOsc = 100 * ((4 * Avg7) + (2 * Avg14) + Avg28) / 7
+       ult = 100 * ((4 * Avg7) + (2 * Avg14) + Avg28) / 7
 
     Interpretation:
     - Range: 0 to 100.
@@ -80,7 +80,7 @@ def ult(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     avg_long = _avg_bp_tr(long_window)
 
     ultimate = 100 * ((4 * avg_short) + (2 * avg_medium) + avg_long) / 7
-    ultimate.name = f'ULTOSC_{short_window}_{medium_window}_{long_window}'
+    ultimate.name = f'ULT_{short_window}_{medium_window}_{long_window}'
 
     columns_list = [ultimate.name]
     return ultimate, columns_list
@@ -97,10 +97,10 @@ def strategy_ult(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ULT (Ultimate Oscillator) - Mean Reversion Strategy
+    ult (Ultimate Oscillator) - Mean Reversion Strategy
     
-    LOGIC: Buy when UltOsc drops below 30 (oversold), sell when above 70 (overbought).
-    WHY: Ultimate Oscillator combines 3 timeframes to reduce volatility and false signals.
+    LOGIC: Buy when ult drops below 30 (oversold), sell when above 70 (overbought).
+    WHY: ult combines 3 timeframes to reduce volatility and false signals.
          Multi-timeframe approach provides more reliable overbought/oversold readings.
     BEST MARKETS: Range-bound markets. Stocks, forex, commodities. Particularly good
                   for divergence trading in oversold/overbought zones.
@@ -137,7 +137,7 @@ def strategy_ult(
         "medium_window": medium_window,
         "long_window": long_window
     }
-    indicator_col = f'ULTOSC_{short_window}_{medium_window}_{long_window}'
+    indicator_col = f'ULT_{short_window}_{medium_window}_{long_window}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(

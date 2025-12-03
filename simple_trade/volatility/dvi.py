@@ -3,7 +3,7 @@ import pandas as pd
 
 def dvi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Dynamic Volatility Indicator (DVI), a composite indicator that combines
+    Calculates the Dynamic Volatility Indicator (dvi), a composite indicator that combines
     multiple volatility measures and price momentum to create a normalized oscillator that
     identifies overbought/oversold conditions based on volatility-adjusted price movements.
 
@@ -133,11 +133,11 @@ def strategy_dvi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    DVI (Dynamic Volatility Indicator) - Mean Reversion Strategy
+    dvi (Dynamic Volatility Indicator) - Mean Reversion Strategy
     
-    LOGIC: Buy when DVI drops below lower threshold (oversold),
+    LOGIC: Buy when dvi drops below lower threshold (oversold),
            sell when rises above upper threshold (overbought).
-    WHY: DVI combines magnitude and stretch components to identify
+    WHY: dvi combines magnitude and stretch components to identify
          overbought/oversold conditions based on volatility-adjusted moves.
     BEST MARKETS: Range-bound markets. Stocks, ETFs. Good for mean reversion.
     TIMEFRAME: Daily charts. Standard periods: 5/100/3.

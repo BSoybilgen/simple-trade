@@ -5,820 +5,236 @@ import pandas as pd
 
 from simple_trade import compute_indicator, download_data
 
-import warnings
-warnings.filterwarnings('ignore', category=RuntimeWarning, module='tkinter')
-
-# Set pandas display options for better output
+# Configure pandas display to make console output easier to scan
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-# ### Acceleration Bands (ACB)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 20
-parameters["factor"] = 0.001
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='acb',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+def _fetch_data(symbol: str, start: str, end: str, interval: str = '1d'):
+    print(f"\nDownloading data for {symbol} ({interval})...")
+    return download_data(symbol, start, end, interval=interval)
+
+
+def _maybe_show(fig):
+    if fig is not None:
+        plt.show(block=True)
+        plt.close(fig)
+
+
+# ### Acceleration Bands (ACB)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 20, "factor": 0.001}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'acb', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Average True Range (ATR)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='atr',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'atr', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Average True Range Percent (ATP)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='atp',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'atp', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Bollinger Band Width (BBW)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-parameters["num_std"] = 2.0
-parameters["normalize"] = True
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='bbw',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 20, "num_std": 2.0, "normalize": True}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'bbw', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Bollinger Bands (BOL)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-parameters["num_std"] = 2
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='bol',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 20, "num_std": 2}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'bol', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Chaikin Volatility (CHA)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["ema_window"] = 10
-parameters["roc_window"] = 10
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='cha',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"ema_window": 10, "roc_window": 10}
+cols = {"high_col": 'High', "low_col": 'Low'}
+_, _, fig = compute_indicator(data, 'cha', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Choppiness Index (CHO)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='cho',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'cho', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Donchian Channels (DON)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='don',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 20}
+cols = {"high_col": 'High', "low_col": 'Low'}
+_, _, fig = compute_indicator(data, 'don', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Dynamic Volatility Indicator (DVI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["magnitude_period"] = 5
-parameters["stretch_period"] = 100
-parameters["smooth_period"] = 3
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='dvi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"magnitude_period": 5, "stretch_period": 100, "smooth_period": 3}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'dvi', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Efficiency Ratio (EFR)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 10
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='efr',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 10}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'efr', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Fractal Dimension Index (FDI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 20
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='fdi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 20}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'fdi', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Garman-Klass Volatility (GRV)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-parameters["annualize"] = True
-parameters["trading_periods"] = 252
-columns["open_col"] = 'Open'
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='grv',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 20, "annualize": True, "trading_periods": 252}
+cols = {
+    "open_col": 'Open',
+    "high_col": 'High',
+    "low_col": 'Low',
+    "close_col": 'Close',
+}
+_, _, fig = compute_indicator(data, 'grv', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Heikin-Ashi Volatility (HAV)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-parameters["method"] = 'std'
-columns["open_col"] = 'Open'
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='hav',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 14, "method": 'std'}
+cols = {
+    "open_col": 'Open',
+    "high_col": 'High',
+    "low_col": 'Low',
+    "close_col": 'Close',
+}
+_, _, fig = compute_indicator(data, 'hav', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Historical Volatility (HIV)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-parameters["annualize"] = True
-parameters["trading_periods"] = 252
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='hiv',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 20, "annualize": True, "trading_periods": 252}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'hiv', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Keltner Channels (KEL)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["ema_window"] = 20
-parameters["atr_window"] = 10
-parameters["atr_multiplier"] = 2.0
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='kel',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"ema_window": 20, "atr_window": 10, "atr_multiplier": 2.0}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'kel', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Median Absolute Deviation (MAD)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 20
-parameters["scale_factor"] = 1.4826
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='mad',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 20, "scale_factor": 1.4826}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'mad', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Mass Index (MAI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["ema_window"] = 9
-parameters["sum_window"] = 25
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='mai',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"ema_window": 9, "sum_window": 25}
+cols = {"high_col": 'High', "low_col": 'Low'}
+_, _, fig = compute_indicator(data, 'mai', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Normalized Average True Range (NAT)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='nat',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'nat', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Parkinson Volatility (PAV)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-parameters["annualize"] = True
-parameters["trading_periods"] = 252
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='pav',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 20, "annualize": True, "trading_periods": 252}
+cols = {"high_col": 'High', "low_col": 'Low'}
+_, _, fig = compute_indicator(data, 'pav', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Price Channel Width (PCW)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 20
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='pcw',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
-
-# ### Projection Oscillator (PRO)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 14
-parameters["smooth_period"] = 3
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='pro',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 20}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'pcw', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Rogers-Satchell Volatility (RSV)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-parameters["annualize"] = True
-parameters["trading_periods"] = 252
-columns["open_col"] = 'Open'
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='rsv',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 20, "annualize": True, "trading_periods": 252}
+cols = {
+    "open_col": 'Open',
+    "high_col": 'High',
+    "low_col": 'Low',
+    "close_col": 'Close',
+}
+_, _, fig = compute_indicator(data, 'rsv', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Relative Volatility Index (RVI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["std_window"] = 10
-parameters["rsi_window"] = 14
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='rvi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
-
-# ### Standard Deviation (STD)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='std',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"std_window": 10, "rsi_window": 14}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'rvi', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Stochastic Volatility Indicator (SVI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {
+    "atr_period": 14,
+    "stoch_period": 14,
+    "smooth_k": 3,
+    "smooth_d": 3,
+}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'svi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["atr_period"] = 14
-parameters["stoch_period"] = 14
-parameters["smooth_k"] = 3
-parameters["smooth_d"] = 3
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='svi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
-
-# ### True Strength Index Volatility (TSI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["long_period"] = 25
-parameters["short_period"] = 13
-parameters["signal_period"] = 7
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='tsi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### True Strength Index Volatility (TSV)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"long_period": 25, "short_period": 13, "atr_period": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'tsv', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Ulcer Index (ULI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='uli',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'uli', parameters=params, columns=cols)
+_maybe_show(fig)
 
 # ### Vertical Horizontal Filter (VHF)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 28}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'vhf', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 28
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vhf',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Volatility Ratio (VRA)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"short_period": 5, "long_period": 20}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'vra', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### Volatility Quality Index (VQI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 9
-parameters["smooth_window"] = 9
-columns["open_col"] = 'Open'
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vqi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
-
-# ### Volatility Ratio (VOR)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["short_period"] = 6
-parameters["long_period"] = 100
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vor',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
 
 # ### Volatility Switch Index (VSI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
-
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["short_period"] = 10
-parameters["long_period"] = 50
-parameters["threshold"] = 1.2
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vsi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"short_period": 10, "long_period": 50, "threshold": 1.2}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'vsi', parameters=params, columns=cols)
+_maybe_show(fig)

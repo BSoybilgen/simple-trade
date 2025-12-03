@@ -2,7 +2,7 @@ import pandas as pd
 
 def rsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Relative Strength Index (RSI), a momentum indicator used in technical analysis.
+    Calculates the Relative Strength Index (rsi), a momentum indicator used in technical analysis.
     It measures the magnitude of recent price changes to evaluate overbought or oversold conditions.
 
     Args:
@@ -68,10 +68,10 @@ def strategy_rsi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    RSI (Relative Strength Index) - Mean Reversion Strategy
+    rsi (Relative Strength Index) - Mean Reversion Strategy
     
-    LOGIC: Buy when RSI drops below lower threshold (oversold), sell when above upper.
-    WHY: RSI measures speed and magnitude of price changes. Extreme readings suggest
+    LOGIC: Buy when rsi drops below lower threshold (oversold), sell when above upper.
+    WHY: rsi measures speed and magnitude of price changes. Extreme readings suggest
          exhaustion and potential reversal. Most popular momentum oscillator.
     BEST MARKETS: Range-bound markets, stocks in consolidation, forex pairs.
                   Use wider thresholds (80/20) in trending markets to avoid early exits.

@@ -4,7 +4,7 @@ import pandas as pd
 
 def rmi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Relative Momentum Index (RMI), a variation of the Relative Strength Index (RSI).
+    Calculates the Relative Momentum Index (rmi), a variation of the Relative Strength Index (RSI).
     Instead of using day-to-day price changes, RMI uses price changes over a specified momentum period.
 
     Args:
@@ -83,10 +83,10 @@ def strategy_rmi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    RMI (Relative Momentum Index) - Mean Reversion Strategy
+    rmi (Relative Momentum Index) - Mean Reversion Strategy
     
-    LOGIC: Buy when RMI drops below lower threshold (oversold), sell when above upper.
-    WHY: RMI is RSI with momentum lookback instead of 1-day changes. Smoother than RSI,
+    LOGIC: Buy when rmi drops below lower threshold (oversold), sell when above upper.
+    WHY: rmi is RSI with momentum lookback instead of 1-day changes. Smoother than RSI,
          better at highlighting cyclical turns. Momentum period adds flexibility.
     BEST MARKETS: Range-bound markets and cyclical assets. Stocks, forex, commodities.
                   Smoother signals reduce whipsaws compared to standard RSI.

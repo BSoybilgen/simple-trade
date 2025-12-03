@@ -3,7 +3,7 @@ import pandas as pd
 
 def mai(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Mass Index (MI), a volatility indicator designed to identify trend reversals
+    Calculates the Mass Index (mai), a volatility indicator designed to identify trend reversals
     by measuring the narrowing and widening of the range between high and low prices.
 
     Args:
@@ -28,16 +28,16 @@ def mai(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     4. Calculate EMA Ratio:
        Ratio = EMA1 / EMA2
     5. Calculate Mass Index:
-       MI = Sum(Ratio, sum_period)
+       MAI = Sum(Ratio, sum_period)
 
     Interpretation:
-    - MI typically ranges between 18 and 30.
-    - Reversal Bulge: MI rises above 27 then drops below 26.5.
+    - MAI typically ranges between 18 and 30.
+    - Reversal Bulge: MAI rises above 27 then drops below 26.5.
     - Suggests potential trend reversal (doesn't indicate direction).
 
     Use Cases:
     - Reversal detection: Identifying "reversal bulge" patterns.
-    - Volatility expansion/contraction: Rising MI = Expansion; Falling MI = Contraction.
+    - Volatility expansion/contraction: Rising MAI = Expansion; Falling MAI = Contraction.
     - Trend exhaustion: Extreme values suggest trend is losing momentum.
     """
     # Set default values
@@ -70,7 +70,7 @@ def mai(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     # Sum the EMA ratio over the sum_period
     mass_index = ema_ratio.rolling(window=sum_period).sum()
     
-    mass_index.name = f'MI_{ema_period}_{sum_period}'
+    mass_index.name = f'MAI_{ema_period}_{sum_period}'
     columns_list = [mass_index.name]
     return mass_index, columns_list
 
@@ -86,12 +86,12 @@ def strategy_mai(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    MAI (Mass Index) - Reversal Bulge Strategy
+    mai (Mass Index) - Reversal Bulge Strategy
     
-    LOGIC: Buy when MI drops below lower threshold after rising above upper (reversal bulge),
-           sell when MI rises above upper threshold.
-    WHY: Mass Index identifies trend reversals through "reversal bulge" pattern.
-         MI rising above 27 then dropping below 26.5 signals potential reversal.
+    LOGIC: Buy when mai drops below lower threshold after rising above upper (reversal bulge),
+           sell when mai rises above upper threshold.
+    WHY: mai identifies trend reversals through "reversal bulge" pattern.
+         mai rising above 27 then dropping below 26.5 signals potential reversal.
     BEST MARKETS: All markets. Good for reversal detection.
     TIMEFRAME: Daily charts. 9 EMA with 25 sum period is standard.
     
@@ -120,7 +120,7 @@ def strategy_mai(
     upper = float(parameters.get('upper', 27))
     lower = float(parameters.get('lower', 26.5))
     price_col = 'Close'
-    indicator_col = f'MI_{ema_period}_{sum_period}'
+    indicator_col = f'MAI_{ema_period}_{sum_period}'
     
     data, _, _ = compute_indicator(
         data=data,

@@ -3,13 +3,13 @@ import pandas as pd
 
 def bop(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Balance of Power (BOP), an indicator that measures the strength of buyers 
-    versus sellers by assessing the ability of each side to drive prices to extreme levels.
+    Calculates the Balance of Power (bop), a technical indicator that measures the strength 
+    of buyers versus sellers by assessing the ability of each to push price to an extreme level.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
-            - window (int): The smoothing window for the BOP. Default is 14.
+            - window (int): The smoothing window for the bop. Default is 14.
             - smooth (bool): Whether to smooth the result using an SMA. Default is True.
         columns (dict, optional): Dictionary containing column name mappings:
             - open_col (str): The column name for open prices. Default is 'Open'.
@@ -25,24 +25,24 @@ def bop(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     1. Calculate the Price Range:
        Range = High - Low
 
-    2. Calculate the Raw BOP:
-       BOP_Raw = (Close - Open) / Range
+    2. Calculate the Raw bop:
+       bop_Raw = (Close - Open) / Range
 
-    3. (Optional) Smooth the BOP:
+    3. (Optional) Smooth the bop:
        If smooth=True:
-           BOP = SMA(BOP_Raw, window)
+           bop = SMA(bop_Raw, window)
        Else:
-           BOP = BOP_Raw
+           bop = bop_Raw
 
     Interpretation:
-    - BOP > 0: Buyers are in control (Bullish pressure).
-    - BOP < 0: Sellers are in control (Bearish pressure).
-    - BOP near 0: Market is in equilibrium or indecision.
+    - bop > 0: Buyers are in control (Bullish pressure).
+    - bop < 0: Sellers are in control (Bearish pressure).
+    - bop near 0: Market is in equilibrium or indecision.
     - Extremes: High positive values indicate strong buying; low negative values indicate strong selling.
 
     Use Cases:
     - Trend Identification: Confirming the direction and strength of a trend.
-    - Divergence: Divergence between price and BOP can signal potential reversals.
+    - Divergence: Divergence between price and bop can signal potential reversals.
     - Overbought/Oversold: Extreme values can indicate potential exhaustion of the current trend.
     """
     if parameters is None:
@@ -88,11 +88,11 @@ def strategy_bop(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    BOP (Balance of Power) - Zero Line Crossover Strategy
+    bop (Balance of Power) - Zero Line Crossover Strategy
     
-    LOGIC: Buy when BOP crosses above zero (buyers in control), sell when crosses below.
-    WHY: BOP measures the strength of buyers vs sellers by comparing close-open to high-low.
-         Positive BOP = buyers driving prices up, negative = sellers in control.
+    LOGIC: Buy when bop crosses above zero (buyers dominating), sell when crosses below.
+    WHY: bop measures buyer vs seller strength by comparing close-open to high-low range.
+         Positive = buyers pushing close toward high, negative = sellers pushing toward low.
     BEST MARKETS: Stocks and indices with clear institutional participation.
                   Works well in trending markets with strong volume.
     TIMEFRAME: Daily charts. Smoothed version (default) reduces noise.

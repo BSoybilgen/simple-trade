@@ -3,7 +3,7 @@ import pandas as pd
 
 def svi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Stochastic Volatility Indicator (SVI), which applies the stochastic oscillator
+    Calculates the Stochastic Volatility Indicator (svi), which applies the stochastic oscillator
     formula to a volatility measure (typically ATR or standard deviation) to create a normalized
     volatility indicator that oscillates between 0 and 100.
 
@@ -114,12 +114,12 @@ def strategy_svi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    SVI (Stochastic Volatility Indicator) - Volatility Regime Strategy
+    svi (Stochastic Volatility Indicator) - Volatility Regime Strategy
     
-    LOGIC: Buy when SVI drops below lower threshold (low volatility regime),
+    LOGIC: Buy when svi drops below lower threshold (low volatility regime),
            sell when rises above upper threshold (high volatility regime).
-    WHY: SVI applies stochastic formula to ATR. Low SVI indicates low volatility
-         regime (potential breakout setup), high SVI indicates high volatility.
+    WHY: svi applies stochastic formula to ATR. Low svi indicates low volatility
+         regime (potential breakout setup), high svi indicates high volatility.
     BEST MARKETS: All markets. Good for volatility regime identification.
     TIMEFRAME: Daily charts. 14-period ATR with 14-period stochastic is standard.
     

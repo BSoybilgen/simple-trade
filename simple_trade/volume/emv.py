@@ -3,7 +3,7 @@ import numpy as np
 
 def emv(df, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Ease of Movement (EMV), an indicator that relates price change
+    Calculates the Ease of Movement (emv), an indicator that relates price change
     to volume and shows how easily a price can move up or down. High EMV values
     occur when price moves upward on low volume.
 
@@ -94,12 +94,12 @@ def strategy_emv(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    EMV (Ease of Movement) - Zero Line Cross Strategy
+    emv (Ease of Movement) - Zero Line Cross Strategy
     
-    LOGIC: Buy when EMV crosses above zero (price rising easily),
-           sell when EMV crosses below zero (price falling easily).
-    WHY: EMV relates price change to volume. Positive EMV means price moves up
-         with ease, negative EMV means price moves down with ease.
+    LOGIC: Buy when emv crosses above zero (price rising easily),
+           sell when emv crosses below zero (price falling easily).
+    WHY: emv relates price change to volume. Positive emv means price moves up
+         with ease, negative emv means price moves down with ease.
     BEST MARKETS: Stocks, ETFs. Good for volume-weighted momentum analysis.
     TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.
     

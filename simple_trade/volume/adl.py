@@ -4,9 +4,9 @@ import numpy as np
 
 def adl(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Accumulation/Distribution Line (A/D Line), a volume-based indicator
+    Calculates the Accumulation/Distribution Line (adl), a volume-based indicator
     that measures the cumulative flow of money into and out of a security. Unlike OBV
-    which only considers price direction, the A/D Line considers the position of the
+    which only considers price direction, the ADL considers the position of the
     close relative to the trading range.
 
     Args:
@@ -30,13 +30,13 @@ def adl(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     2. Calculate Money Flow Volume (MFV):
        MFV = MFM * Volume
 
-    3. Calculate A/D Line (Cumulative Sum):
-       A/D Line = Previous A/D Line + Current MFV
+    3. Calculate ADL (Cumulative Sum):
+       ADL = Previous ADL + Current MFV
 
     Interpretation:
-    - Rising A/D Line: Accumulation (buying pressure exceeds selling pressure).
-    - Falling A/D Line: Distribution (selling pressure exceeds buying pressure).
-    - Divergence: Price making new highs while A/D Line fails to do so suggests reversal.
+    - Rising ADL: Accumulation (buying pressure exceeds selling pressure).
+    - Falling ADL: Distribution (selling pressure exceeds buying pressure).
+    - Divergence: Price making new highs while ADL fails to do so suggests reversal.
 
     Use Cases:
     - Trend Confirmation: Confirm the strength and sustainability of a price trend.
@@ -73,9 +73,9 @@ def adl(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     # Calculate Money Flow Volume (MFV)
     mfv = mfm * volume
     
-    # Calculate A/D Line as cumulative sum of Money Flow Volume
+    # Calculate ADL as cumulative sum of Money Flow Volume
     ad_line = mfv.cumsum()
-    ad_line.name = 'ADLINE'
+    ad_line.name = 'ADL'
     columns_list = [ad_line.name]
     return ad_line, columns_list
 
@@ -91,12 +91,12 @@ def strategy_adl(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ADL (Accumulation/Distribution Line) - Trend Confirmation Strategy
+    adl (Accumulation/Distribution Line) - Trend Confirmation Strategy
     
-    LOGIC: Buy when ADL crosses above its SMA (accumulation),
-           sell when ADL crosses below its SMA (distribution).
-    WHY: ADL measures cumulative money flow. Rising ADL indicates buying pressure,
-         falling ADL indicates selling pressure. Divergence with price signals reversals.
+    LOGIC: Buy when adl crosses above its SMA (accumulation),
+           sell when adl crosses below its SMA (distribution).
+    WHY: adl measures cumulative money flow. Rising adl indicates buying pressure,
+         falling adl indicates selling pressure. Divergence with price signals reversals.
     BEST MARKETS: Stocks, ETFs. Good for confirming price trends with volume.
     TIMEFRAME: Daily charts. Good for swing trading and trend confirmation.
     
@@ -130,12 +130,12 @@ def strategy_adl(
     )
     
     # Calculate SMA of ADL for crossover signals
-    data[f'ADLINE_SMA_{sma_period}'] = data['ADLINE'].rolling(window=sma_period).mean()
+    data[f'ADL_SMA_{sma_period}'] = data['ADL'].rolling(window=sma_period).mean()
     
     results, portfolio = run_cross_trade(
         data=data,
-        short_window_indicator='ADLINE',
-        long_window_indicator=f'ADLINE_SMA_{sma_period}',
+        short_window_indicator='ADL',
+        long_window_indicator=f'ADL_SMA_{sma_period}',
         price_col=price_col,
         config=config,
         long_entry_pct_cash=long_entry_pct_cash,
@@ -145,6 +145,6 @@ def strategy_adl(
         risk_free_rate=risk_free_rate
     )
     
-    indicator_cols_to_plot = ['ADLINE', f'ADLINE_SMA_{sma_period}']
+    indicator_cols_to_plot = ['ADL', f'ADL_SMA_{sma_period}']
     
     return results, portfolio, indicator_cols_to_plot, data

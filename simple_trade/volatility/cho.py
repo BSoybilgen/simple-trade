@@ -4,7 +4,7 @@ import numpy as np
 
 def cho(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Choppiness Index (CHOP), a volatility indicator designed to determine
+    Calculates the Choppiness Index (cho), a volatility indicator designed to determine
     whether the market is trending or trading sideways (choppy). It measures the market's
     trendiness on a scale from 0 to 100.
 
@@ -24,13 +24,13 @@ def cho(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     1. Calculate True Range (TR) for each period.
     2. Sum True Range over the period: SumTR = Sum(TR, period)
     3. Calculate High-Low Range over the period: Range = Highest High - Lowest Low
-    4. Calculate CHOP: CHOP = 100 * log10(SumTR / Range) / log10(period)
+    4. Calculate CHO: CHO = 100 * log10(SumTR / Range) / log10(period)
 
     Interpretation:
-    - High CHOP (>61.8): Market is consolidating (choppy), avoid trend-following strategies.
-    - Low CHOP (<38.2): Market is trending, favorable for trend-following strategies.
-    - Rising CHOP: Trend is weakening, market entering consolidation.
-    - Falling CHOP: Consolidation is ending, potential breakout approaching.
+    - High cho (>61.8): Market is consolidating (choppy), avoid trend-following strategies.
+    - Low cho (<38.2): Market is trending, favorable for trend-following strategies.
+    - Rising cho: Trend is weakening, market entering consolidation.
+    - Falling cho: Consolidation is ending, potential breakout approaching.
 
     Use Cases:
     - Trend vs. Range identification: Determine market regime.
@@ -71,20 +71,20 @@ def cho(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     hl_range = highest_high - lowest_low
     
     # Calculate Choppiness Index
-    # CHOP = 100 * log10(sum_tr / hl_range) / log10(period)
+    # CHO = 100 * log10(sum_tr / hl_range) / log10(period)
     # Handle division by zero
-    chop_values = pd.Series(index=close.index, dtype=float)
+    cho_values = pd.Series(index=close.index, dtype=float)
     
     # Only calculate where hl_range > 0 to avoid division by zero
     valid_mask = hl_range > 0
     
-    chop_values[valid_mask] = (
+    cho_values[valid_mask] = (
         100 * np.log10(sum_tr[valid_mask] / hl_range[valid_mask]) / np.log10(period)
     )
     
-    chop_values.name = f'CHOP_{period}'
-    columns_list = [chop_values.name]
-    return chop_values, columns_list
+    cho_values.name = f'CHO_{period}'
+    columns_list = [cho_values.name]
+    return cho_values, columns_list
 
 
 def strategy_cho(
@@ -98,12 +98,12 @@ def strategy_cho(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    CHO (Choppiness Index) - Trend vs Range Strategy
+    cho (Choppiness Index) - Trend vs Range Strategy
     
-    LOGIC: Buy when CHOP drops below lower threshold (trending market),
+    LOGIC: Buy when cho drops below lower threshold (trending market),
            sell when rises above upper threshold (choppy/ranging market).
-    WHY: CHOP measures market trendiness on 0-100 scale. High CHOP (>61.8)
-         indicates consolidation, low CHOP (<38.2) indicates trending.
+    WHY: cho measures market trendiness on 0-100 scale. High cho (>61.8)
+         indicates consolidation, low cho (<38.2) indicates trending.
     BEST MARKETS: All markets. Use to filter trend-following strategies.
                   Avoid trend trades during high choppiness.
     TIMEFRAME: Daily charts. 14-period is standard.
@@ -132,7 +132,7 @@ def strategy_cho(
     upper = float(parameters.get('upper', 61.8))
     lower = float(parameters.get('lower', 38.2))
     price_col = 'Close'
-    indicator_col = f'CHOP_{period}'
+    indicator_col = f'CHO_{period}'
     
     data, _, _ = compute_indicator(
         data=data,

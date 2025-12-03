@@ -4,7 +4,7 @@ import numpy as np
 
 def hiv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Historical Volatility (HV), also known as realized volatility, which measures
+    Calculates Historical Volatility (hiv), also known as realized volatility, which measures
     the actual volatility of an asset's returns over a historical period. It is the annualized
     standard deviation of logarithmic returns.
 
@@ -28,15 +28,15 @@ def hiv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     2. Calculate Standard Deviation:
        Volatility = std(Log Returns, period)
     3. Annualize (if annualized=True):
-       Annualized HV = Volatility * sqrt(trading_periods)
+       Annualized HIV = Volatility * sqrt(trading_periods)
     4. Convert to Percentage:
-       HV (%) = Annualized HV * 100
+       HIV (%) = Annualized HIV * 100
 
     Interpretation:
-    - Low HV (<10%): Low volatility, stable price movements.
-    - Medium HV (10-20%): Normal volatility.
-    - High HV (20-30%): Elevated volatility.
-    - Very High HV (>30%): Extreme volatility.
+    - Low HIV (<10%): Low volatility, stable price movements.
+    - Medium HIV (10-20%): Normal volatility.
+    - High HIV (20-30%): Elevated volatility.
+    - Very High HIV (>30%): Extreme volatility.
 
     Use Cases:
     - Options pricing: Comparison with Implied Volatility (IV).
@@ -70,16 +70,16 @@ def hiv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         volatility = volatility * np.sqrt(trading_periods)
     
     # Convert to percentage
-    hv_values = volatility * 100
+    hiv_values = volatility * 100
     
     # Create appropriate name based on whether it's annualized
     if annualized:
-        hv_values.name = f'HV_{period}_Ann'
+        hiv_values.name = f'HIV_{period}_Ann'
     else:
-        hv_values.name = f'HV_{period}'
+        hiv_values.name = f'HIV_{period}'
     
-    columns_list = [hv_values.name]
-    return hv_values, columns_list
+    columns_list = [hiv_values.name]
+    return hiv_values, columns_list
 
 
 def strategy_hiv(
@@ -93,12 +93,12 @@ def strategy_hiv(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    HIV (Historical Volatility) - Volatility Threshold Strategy
+    hiv (Historical Volatility) - Volatility Threshold Strategy
     
-    LOGIC: Buy when HV drops below lower threshold (low volatility squeeze),
+    LOGIC: Buy when hiv drops below lower threshold (low volatility squeeze),
            sell when rises above upper threshold (high volatility).
-    WHY: HV is annualized standard deviation of log returns. Low HV indicates
-         consolidation, high HV indicates active trending or overextension.
+    WHY: hiv is annualized standard deviation of log returns. Low hiv indicates
+         consolidation, high hiv indicates active trending or overextension.
     BEST MARKETS: All markets. Good for volatility regime identification.
     TIMEFRAME: Daily charts. 20-period is standard.
     
@@ -126,7 +126,7 @@ def strategy_hiv(
     upper = float(parameters.get('upper', 30))
     lower = float(parameters.get('lower', 15))
     price_col = 'Close'
-    indicator_col = f'HV_{period}_Ann'
+    indicator_col = f'HIV_{period}_Ann'
     
     data, _, _ = compute_indicator(
         data=data,

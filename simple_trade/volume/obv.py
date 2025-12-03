@@ -3,7 +3,7 @@ import pandas as pd
 
 def obv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the On-Balance Volume (OBV), a volume-based momentum indicator that
+    Calculates the On-Balance Volume (obv), a volume-based momentum indicator that
     relates volume flow to price changes. It measures buying and selling pressure
     as a cumulative indicator that adds volume on up days and subtracts it on down days.
 
@@ -79,12 +79,12 @@ def strategy_obv(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    OBV (On-Balance Volume) - SMA Crossover Strategy
+    obv (On-Balance Volume) - SMA Crossover Strategy
     
-    LOGIC: Buy when OBV crosses above its SMA (accumulation),
-           sell when OBV crosses below its SMA (distribution).
-    WHY: OBV measures buying/selling pressure as cumulative volume.
-         Rising OBV indicates accumulation, falling indicates distribution.
+    LOGIC: Buy when obv crosses above its SMA (accumulation),
+           sell when obv crosses below its SMA (distribution).
+    WHY: obv measures buying/selling pressure as cumulative volume.
+         Rising obv indicates accumulation, falling indicates distribution.
     BEST MARKETS: Stocks, ETFs. Good for trend confirmation and divergence.
     TIMEFRAME: Daily charts. Good for swing trading.
     

@@ -18,8 +18,8 @@
 ## Features
 
 *   **Data Fetching:** Easily download historical stock data using `yfinance`.
-*   **Technical Indicators:** Compute more than 100+ technical indicators:
-    *   Trend (e.g., Moving Averages, MACD, ADX)
+*   **Technical Indicators:** Compute more than 100+ technical indicators such as:
+    *   Trend (e.g., MACD, ADX)
     *   Momentum (e.g., RSI, Stochastics)
     *   Volatility (e.g., Bollinger Bands, ATR)
     *   Volume (e.g., On-Balance Volume)
@@ -41,7 +41,7 @@ python -m pip install simple-trade
 
 ## QuickStart
 
-Compute a technical indicator in three lines of code.
+Compute a technical indicator in just three lines of code.
 
 ```python
 from simple_trade import download_data, compute_indicator 
@@ -49,7 +49,7 @@ data = download_data('TSLA', '2024-01-01', '2025-01-01', '1d')
 data, columns, _ = compute_indicator(data, 'adx')
 ```
 
-Choose, backtest, and optimize a premade strategy in six lines of code.
+Choose, backtest, and optimize a premade strategy in just six lines of code.
 
 ```python
 from simple_trade import download_data, run_premade_trade, premade_optimizer
