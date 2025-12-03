@@ -3,7 +3,7 @@ import pandas as pd
 
 def don(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Donchian Channels, a volatility indicator that plots the highest high and lowest low
+    Calculates Donchian Channels (don), a volatility indicator that plots the highest high and lowest low
     over a specified period.
 
     Args:
@@ -59,9 +59,9 @@ def don(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     # Prepare the result DataFrame
     result = pd.DataFrame({
-        f'DONCH_Upper_{window}': upper_band,
-        f'DONCH_Middle_{window}': middle_band,
-        f'DONCH_Lower_{window}': lower_band
+        f'DON_Upper_{window}': upper_band,
+        f'DON_Middle_{window}': middle_band,
+        f'DON_Lower_{window}': lower_band
     }, index=high.index)
     
     columns_list = list(result.columns)
@@ -79,14 +79,14 @@ def strategy_don(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    DON (Donchian Channels) - Breakout Strategy
+    don (Donchian Channels) - Cross Trade Strategy with Middle Line
     
-    LOGIC: Buy when price breaks above upper band (bullish breakout),
-           sell when price breaks below lower band (bearish breakout).
-    WHY: Donchian Channels plot highest high and lowest low over period.
-         Basis of the famous "Turtle Trading" system.
+    LOGIC: Buy when Close crosses above the middle band (bullish),
+           sell when Close crosses below the middle band (bearish).
+    WHY: The middle band represents the equilibrium between highest high and lowest low.
+         Price above middle = bullish momentum, price below = bearish momentum.
     BEST MARKETS: Trending markets. Commodities, forex, futures.
-                  Excellent for breakout and trend-following strategies.
+                  Good for trend-following strategies.
     TIMEFRAME: Daily charts. 20-period is standard. Good for swing trading.
     
     Args:
@@ -102,7 +102,7 @@ def strategy_don(
     Returns:
         tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
     """
-    from ..run_band_trade_strategies import run_band_trade
+    from ..run_cross_trade_strategies import run_cross_trade
     from ..compute_indicators import compute_indicator
     
     if parameters is None:
@@ -110,6 +110,7 @@ def strategy_don(
     
     window = int(parameters.get('window', 20))
     price_col = 'Close'
+    middle_col = f'DON_Middle_{window}'
     
     data, _, _ = compute_indicator(
         data=data,
@@ -118,11 +119,10 @@ def strategy_don(
         figure=False
     )
     
-    results, portfolio = run_band_trade(
+    results, portfolio = run_cross_trade(
         data=data,
-        indicator_col='Close',
-        upper_band_col=f'DONCH_Upper_{window}',
-        lower_band_col=f'DONCH_Lower_{window}',
+        short_window_indicator=price_col,
+        long_window_indicator=middle_col,
         price_col=price_col,
         config=config,
         long_entry_pct_cash=long_entry_pct_cash,
@@ -132,7 +132,7 @@ def strategy_don(
         risk_free_rate=risk_free_rate
     )
     
-    indicator_cols_to_plot = ['Close', f'DONCH_Upper_{window}', 
-                              f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
+    indicator_cols_to_plot = ['Close', f'DON_Upper_{window}', 
+                              f'DON_Middle_{window}', f'DON_Lower_{window}']
     
     return results, portfolio, indicator_cols_to_plot, data

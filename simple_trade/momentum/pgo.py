@@ -4,7 +4,7 @@ import pandas as pd
 
 def pgo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Pretty Good Oscillator (PGO), a momentum indicator developed by Mark Johnson.
+    Calculates the Pretty Good Oscillator (pgo), a momentum indicator developed by Mark Johnson.
     It measures the distance of the current close from its simple moving average, normalized by the average true range.
 
     Args:
@@ -87,10 +87,10 @@ def strategy_pgo(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    PGO (Pretty Good Oscillator) - Mean Reversion Strategy
+    pgo (Pretty Good Oscillator) - Mean Reversion Strategy
     
-    LOGIC: Buy when PGO drops below -3 (oversold), sell when rises above +3 (overbought).
-    WHY: PGO measures distance from SMA normalized by ATR. Values beyond ±3 indicate
+    LOGIC: Buy when pgo drops below -3 (oversold), sell when rises above +3 (overbought).
+    WHY: pgo measures distance from SMA normalized by ATR. Values beyond ±3 indicate
          price has moved significantly from its average relative to volatility.
     BEST MARKETS: Range-bound markets and mean-reverting assets. Stocks, forex, commodities.
                   Good for identifying overextended moves that may revert.

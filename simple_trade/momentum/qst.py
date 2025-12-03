@@ -3,7 +3,7 @@ import pandas as pd
 
 def qst(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Qstick Indicator, a technical indicator developed by Tushar Chande.
+    Calculates the Qstick Indicator (qst), a technical indicator developed by Tushar Chande.
     It quantifies the buying and selling pressure by averaging the difference between closing and opening prices.
 
     Args:
@@ -15,23 +15,23 @@ def qst(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - open_col (str): The column name for opening prices. Default is 'Open'.
 
     Returns:
-        tuple: A tuple containing the Qstick series and a list of column names.
+        tuple: A tuple containing the QST series and a list of column names.
 
-    The Qstick Indicator is calculated as follows:
+    The QST Indicator is calculated as follows:
 
     1. Calculate Candle Body:
        Body = Close - Open
 
     2. Calculate Moving Average of Body:
-       Qstick = SMA(Body, window)
+       QST = SMA(Body, window)
 
     Interpretation:
-    - Positive Qstick: Buying pressure is dominant (Closes > Opens on average).
-    - Negative Qstick: Selling pressure is dominant (Opens > Closes on average).
+    - Positive QST: Buying pressure is dominant (Closes > Opens on average).
+    - Negative QST: Selling pressure is dominant (Opens > Closes on average).
     - Zero Crossing: Crossing the zero line acts as a signal for trend change.
 
     Use Cases:
-    - Trend Confirmation: Confirming the validity of a trend (e.g., price rising but Qstick falling is a divergence).
+    - Trend Confirmation: Confirming the validity of a trend (e.g., price rising but QST falling is a divergence).
     - Signal Generation: Crossovers of the zero line.
     """
     if parameters is None:
@@ -47,11 +47,11 @@ def qst(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     open_price = df[open_col]
     body = close - open_price
 
-    qstick_values = body.rolling(window=window, min_periods=window).mean()
-    qstick_values.name = f'QSTICK_{window}'
+    qst_values = body.rolling(window=window, min_periods=window).mean()
+    qst_values.name = f'QST_{window}'
 
-    columns_list = [qstick_values.name]
-    return qstick_values, columns_list
+    columns_list = [qst_values.name]
+    return qst_values, columns_list
 
 
 def strategy_qst(
@@ -65,10 +65,10 @@ def strategy_qst(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    QST (Qstick) - Zero Line Crossover Strategy
+    qst - Zero Line Crossover Strategy
     
-    LOGIC: Buy when Qstick crosses above zero (buying pressure), sell when crosses below.
-    WHY: Qstick averages candle bodies (Close - Open). Positive = buyers dominating,
+    LOGIC: Buy when qst crosses above zero (buying pressure), sell when crosses below.
+    WHY: qst averages candle bodies (Close - Open). Positive = buyers dominating,
          negative = sellers dominating. Zero crossings signal pressure shifts.
     BEST MARKETS: Trending markets with clear candlestick patterns. Stocks, forex,
                   and futures. Good for confirming trend direction.
@@ -96,7 +96,7 @@ def strategy_qst(
     window = int(parameters.get('window', 10))
     
     indicator_params = {"window": window}
-    short_window_indicator = f'QSTICK_{window}'
+    short_window_indicator = f'QST_{window}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(

@@ -3,7 +3,7 @@ import pandas as pd
 
 def pvi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Positive Volume Index (PVI), an indicator that tracks price changes
+    Calculates the Positive Volume Index (pvi), an indicator that tracks price changes
     on days when volume increases from the previous day. It is based on the premise
     that the "crowd" or uninformed investors trade on high volume days.
 
@@ -85,11 +85,11 @@ def strategy_pvi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    PVI (Positive Volume Index) - EMA Crossover Strategy
+    pvi (Positive Volume Index) - EMA Crossover Strategy
     
-    LOGIC: Buy when PVI crosses above its EMA (crowd buying),
-           sell when PVI crosses below its EMA (crowd selling).
-    WHY: PVI tracks price changes on high volume days. Based on premise that
+    LOGIC: Buy when pvi crosses above its EMA (crowd buying),
+           sell when pvi crosses below its EMA (crowd selling).
+    WHY: pvi tracks price changes on high volume days. Based on premise that
          the "crowd" or uninformed investors trade on high volume days.
     BEST MARKETS: Stocks, ETFs. Good for sentiment analysis.
     TIMEFRAME: Daily charts. Often used with 255-day EMA.

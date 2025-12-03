@@ -3,7 +3,7 @@ import pandas as pd
 
 def atp(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Average True Range Percent (ATRP), which expresses the Average True Range
+    Calculates the Average True Range Percent (atp), which expresses the Average True Range
     as a percentage of the closing price. This normalization allows for comparison of volatility
     across different assets and price levels.
 
@@ -17,7 +17,7 @@ def atp(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the ATRP series and a list of column names.
+        tuple: A tuple containing the ATP series and a list of column names.
 
     Calculation Steps:
     1. Calculate the True Range (TR) for each period:
@@ -25,18 +25,18 @@ def atp(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     2. Calculate the Average True Range (ATR):
        Smoothed average of TR over the specified window (typically using Wilder's smoothing).
     3. Convert ATR to percentage of closing price:
-       ATRP = (ATR / Close) * 100
+       ATP = (ATR / Close) * 100
 
     Interpretation:
-    - Low ATRP (<2%): Low volatility, stable price movements.
-    - Medium ATRP (2-5%): Normal volatility, typical market conditions.
-    - High ATRP (5-10%): Elevated volatility, increased price swings.
-    - Very High ATRP (>10%): Extreme volatility, highly unstable market.
+    - Low ATP (<2%): Low volatility, stable price movements.
+    - Medium ATP (2-5%): Normal volatility, typical market conditions.
+    - High ATP (5-10%): Elevated volatility, increased price swings.
+    - Very High ATP (>10%): Extreme volatility, highly unstable market.
 
     Use Cases:
     - Cross-asset comparison: Compare volatility across assets with different prices.
     - Position sizing: Normalize position sizes across different assets based on relative volatility.
-    - Stop-loss placement: Set percentage-based stops using ATRP multiples.
+    - Stop-loss placement: Set percentage-based stops using ATP multiples.
     - Volatility screening: Screen for low or high volatility assets.
     """
     # Set default values
@@ -78,11 +78,11 @@ def atp(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         atr_values.iloc[i] = ((atr_values.iloc[i-1] * (window-1)) + tr.iloc[i]) / window
     
     # Convert ATR to percentage of closing price
-    atrp_values = (atr_values / close) * 100
+    atp_values = (atr_values / close) * 100
     
-    atrp_values.name = f'ATRP_{window}'
-    columns_list = [atrp_values.name]
-    return atrp_values, columns_list
+    atp_values.name = f'ATP_{window}'
+    columns_list = [atp_values.name]
+    return atp_values, columns_list
 
 
 def strategy_atp(
@@ -96,14 +96,14 @@ def strategy_atp(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ATP (Average True Range Percent) - Volatility Threshold Strategy
+    atp (Average True Range Percent) - Volatility Threshold Strategy
     
-    LOGIC: Buy when ATRP drops below lower threshold (low volatility squeeze),
+    LOGIC: Buy when atp drops below lower threshold (low volatility squeeze),
            sell when rises above upper threshold (high volatility).
-    WHY: ATRP normalizes ATR as percentage of price. Low ATRP indicates
-         consolidation (potential breakout setup), high ATRP indicates overextension.
+    WHY: atp normalizes ATR as percentage of price. Low atp indicates
+         consolidation (potential breakout setup), high atp indicates overextension.
     BEST MARKETS: All markets. Good for identifying volatility regimes.
-                  Use low ATRP for breakout setups, high ATRP for mean reversion.
+                  Use low ATP for breakout setups, high ATP for mean reversion.
     TIMEFRAME: Daily charts. 14-period is standard.
     
     Args:
@@ -142,7 +142,7 @@ def strategy_atp(
     
     results, portfolio = run_band_trade(
         data=data,
-        indicator_col=f'ATRP_{window}',
+        indicator_col=f'ATP_{window}',
         upper_band_col="upper",
         lower_band_col="lower",
         price_col=price_col,
@@ -154,6 +154,6 @@ def strategy_atp(
         risk_free_rate=risk_free_rate
     )
     
-    indicator_cols_to_plot = [f'ATRP_{window}', 'lower', 'upper']
+    indicator_cols_to_plot = [f'ATP_{window}', 'lower', 'upper']
     
     return results, portfolio, indicator_cols_to_plot, data

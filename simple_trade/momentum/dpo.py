@@ -3,8 +3,8 @@ import pandas as pd
 
 def dpo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Detrended Price Oscillator (DPO), an indicator designed to remove trend 
-    from price and make it easier to identify cycles and overbought/oversold levels.
+    Calculates the Detrended Price Oscillator (dpo), a price-based oscillator that 
+    removes the trend from prices to identify cycles. it easier to identify cycles and overbought/oversold levels.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
@@ -14,7 +14,7 @@ def dpo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the DPO series and a list of column names.
+        tuple: A tuple containing the dpo series and a list of column names.
 
     The Detrended Price Oscillator is calculated as follows:
 
@@ -24,18 +24,18 @@ def dpo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     2. Calculate the Displacement:
        Displacement = (window / 2) + 1
 
-    3. Calculate DPO:
-       DPO = Close - SMA(shifted by Displacement)
+    3. Calculate dpo:
+       dpo = Close - SMA(shifted by Displacement)
        (Note: The formula effectively compares the current price to a past SMA value).
 
     Interpretation:
-    - Positive DPO: Price is above the displaced moving average (Bullish/Overbought).
-    - Negative DPO: Price is below the displaced moving average (Bearish/Oversold).
+    - Positive dpo: Price is above the displaced moving average (Bullish/Overbought).
+    - Negative dpo: Price is below the displaced moving average (Bearish/Oversold).
     - Zero Line Crossings: Can signal a change in the short-term trend or cycle.
 
     Use Cases:
     - Cycle Identification: Isolate short-term cycles by removing long-term trends.
-    - Divergence: Identify potential reversals when price and DPO diverge.
+    - Divergence: Identify potential reversals when price and dpo diverge.
     - Overbought/Oversold: Identify extremes within the cycle.
     """
     if parameters is None:
@@ -70,11 +70,11 @@ def strategy_dpo(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    DPO (Detrended Price Oscillator) - Zero Line Crossover Strategy
+    dpo (Detrended Price Oscillator) - Zero Line Crossover Strategy
     
-    LOGIC: Buy when DPO crosses above zero (price above displaced MA), sell when crosses below.
-    WHY: DPO removes trend to isolate cycles. Positive DPO = price above its historical average,
-         negative = below. Zero crossings signal cycle turning points.
+    LOGIC: Buy when dpo crosses above zero (price above detrended average), sell when below.
+    WHY: dpo removes trend to identify cycles. Crossing zero indicates price is above/below
+         its historical average, useful for cycle-based trading.ve = below. Zero crossings signal cycle turning points.
     BEST MARKETS: Cyclical markets and assets with regular oscillations. Stocks, commodities,
                   and indices with identifiable cycles. Less effective in strong trending markets.
     TIMEFRAME: Daily charts. 20-period is standard. Useful for identifying cycle peaks/troughs.

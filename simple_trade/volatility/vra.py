@@ -3,7 +3,7 @@ import pandas as pd
 
 def vra(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Volatility Ratio (VR), which compares short-term volatility to
+    Calculates the Volatility Ratio (vra), which compares short-term volatility to
     long-term volatility to identify changes in volatility regimes. A ratio above 1
     indicates increasing volatility, while below 1 indicates decreasing volatility.
 
@@ -24,11 +24,11 @@ def vra(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     2. Calculate Long-Term Volatility:
        Long Vol = Standard Deviation(Close, long_period)
     3. Calculate Ratio:
-       VR = Short Vol / Long Vol
+       VRA = Short Vol / Long Vol
 
     Interpretation:
-    - VR > 1: Short-term volatility is expanding relative to long-term.
-    - VR < 1: Short-term volatility is contracting (consolidation).
+    - VRA > 1: Short-term volatility is expanding relative to long-term.
+    - VRA < 1: Short-term volatility is contracting (consolidation).
     - Breakout Signal: A crossing above 1 often signals a price breakout from range.
 
     Use Cases:
@@ -52,13 +52,13 @@ def vra(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     short_std = close.rolling(window=short_period).std()
     long_std = close.rolling(window=long_period).std()
     
-    # Calculate volatility ratio
-    vr_values = short_std / long_std
-    vr_values = vr_values.fillna(1.0)
+    # Calculate volatility ratio, keeping NaNs until both windows are populated
+    vra_values = short_std / long_std
+    vra_values = vra_values.where(long_std != 0)
     
-    vr_values.name = f'VR_{short_period}_{long_period}'
-    columns_list = [vr_values.name]
-    return vr_values, columns_list
+    vra_values.name = f'VRA_{short_period}_{long_period}'
+    columns_list = [vra_values.name]
+    return vra_values, columns_list
 
 
 def strategy_vra(
@@ -72,12 +72,12 @@ def strategy_vra(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VRA (Volatility Ratio) - Volatility Regime Strategy
+    vra (Volatility Ratio) - Volatility Regime Strategy
     
-    LOGIC: Buy when VR rises above upper threshold (volatility expansion),
+    LOGIC: Buy when vra rises above upper threshold (volatility expansion),
            sell when drops below lower threshold (volatility contraction).
-    WHY: VR compares short-term to long-term volatility. VR > 1 indicates
-         expanding volatility, VR < 1 indicates contracting volatility.
+    WHY: vra compares short-term to long-term volatility. vra > 1 indicates
+         expanding volatility, vra < 1 indicates contracting volatility.
     BEST MARKETS: All markets. Good for volatility regime detection.
     TIMEFRAME: Daily charts. 5/20 periods is standard.
     
@@ -106,7 +106,7 @@ def strategy_vra(
     upper = float(parameters.get('upper', 1.5))
     lower = float(parameters.get('lower', 0.7))
     price_col = 'Close'
-    indicator_col = f'VR_{short_period}_{long_period}'
+    indicator_col = f'VRA_{short_period}_{long_period}'
     
     data, _, _ = compute_indicator(
         data=data,

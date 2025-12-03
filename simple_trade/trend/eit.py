@@ -4,8 +4,8 @@ import pandas as pd
 
 def eit(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Ehlers Instantaneous Trendline (EIT).
-    EIT applies John Ehlers' technique of averaging a weighted price input and
+    Calculates the Ehlers Instantaneous Trendline (eit).
+    eit applies John Ehlers' technique of averaging a weighted price input and
     recursively smoothing it with a tunable alpha to obtain a low-lag trend estimate.
 
     Args:
@@ -85,10 +85,10 @@ def strategy_eit(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    EIT (Ehlers Instantaneous Trendline) - Price vs Trend Crossover Strategy
+    eit (Ehlers Instantaneous Trendline) - Price vs Trend Crossover Strategy
     
-    LOGIC: Buy when price crosses above EIT, sell when crosses below.
-    WHY: EIT provides smooth, low-lag trendline using Ehlers' technique.
+    LOGIC: Buy when price crosses above eit, sell when crosses below.
+    WHY: eit provides smooth, low-lag trendline using Ehlers' technique.
          Tracks price closely with minimal lag compared to standard MAs.
     BEST MARKETS: All markets. Stocks, forex, futures. Good for
                   trend definition and crossover strategies.

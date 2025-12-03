@@ -3,7 +3,7 @@ import pandas as pd
 
 def roc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Rate of Change (ROC), a momentum oscillator that measures the percentage 
+    Calculates the Rate of Change (roc), a momentum oscillator that measures the percentage 
     change in price between the current price and the price a specified number of periods ago.
 
     Args:
@@ -69,10 +69,10 @@ def strategy_roc(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ROC (Rate of Change) - Zero Line Crossover Strategy
+    roc (Rate of Change) - Zero Line Crossover Strategy
     
-    LOGIC: Buy when ROC crosses above zero (upward momentum), sell when crosses below.
-    WHY: ROC measures percentage price change over N periods. Positive = price rising,
+    LOGIC: Buy when roc crosses above zero (upward momentum), sell when crosses below.
+    WHY: roc measures percentage price change over N periods. Positive = price rising,
          negative = price falling. Zero crossings indicate momentum direction changes.
     BEST MARKETS: Trending markets across all asset classes. Stocks, forex, crypto.
                   Simple but effective for identifying momentum shifts.

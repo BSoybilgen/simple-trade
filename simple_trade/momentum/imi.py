@@ -3,8 +3,8 @@ import pandas as pd
 
 def imi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Intraday Momentum Index (IMI), a technical indicator developed by Tushar Chande 
-    that combines candlestick analysis with the Relative Strength Index (RSI).
+    Calculates the Intraday Momentum Index (imi), a technical indicator that combines 
+    candlestick analysis with RSI-like calculations.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
@@ -15,7 +15,7 @@ def imi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the IMI series and a list of column names.
+        tuple: A tuple containing the imi series and a list of column names.
 
     The Intraday Momentum Index is calculated as follows:
 
@@ -27,19 +27,19 @@ def imi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        Sum Gains = Sum(Gain, window)
        Sum Losses = Sum(Loss, window)
 
-    3. Calculate IMI:
-       IMI = (Sum Gains / (Sum Gains + Sum Losses)) * 100
+    3. Calculate imi:
+       imi = (Sum Gains / (Sum Gains + Sum Losses)) * 100
 
     Interpretation:
     - Range: 0 to 100.
     - Overbought: Values above 70 indicate potential overbought conditions.
     - Oversold: Values below 30 indicate potential oversold conditions.
-    - Momentum: High IMI suggests strong buying pressure within the day (white/green candles dominate).
-      Low IMI suggests strong selling pressure (black/red candles dominate).
+    - Momentum: High imi suggests strong buying pressure within the day (white/green candles dominate).
+      Low imi suggests strong selling pressure (black/red candles dominate).
 
     Use Cases:
     - Reversal Signals: Identifying overbought/oversold levels for potential reversals.
-    - Confirmation: Using IMI to confirm support/resistance levels.
+    - Confirmation: Using imi to confirm support/resistance levels.
     """
     if parameters is None:
         parameters = {}
@@ -81,11 +81,11 @@ def strategy_imi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    IMI (Intraday Momentum Index) - Mean Reversion Strategy
+    imi (Intraday Momentum Index) - Mean Reversion Strategy
     
-    LOGIC: Buy when IMI drops below lower threshold (oversold), sell when above upper.
-    WHY: IMI combines candlestick analysis with RSI logic. Measures buying vs selling
-         pressure within each bar. High IMI = strong intraday buyers, low = sellers.
+    LOGIC: Buy when imi drops below 30 (oversold), sell when rises above 70 (overbought).
+    WHY: imi combines candlestick analysis with RSI-like calculations. Measures intraday
+         buying/selling pressure. Oversold = more closes below opens, overbought = opposite.
     BEST MARKETS: Stocks and ETFs with significant intraday range. Range-bound markets.
                   Good for identifying exhaustion in short-term moves.
     TIMEFRAME: Daily charts. 14-period is standard. Works well for swing trading reversals.

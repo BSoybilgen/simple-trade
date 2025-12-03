@@ -3,7 +3,7 @@ import pandas as pd
 
 def rvi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Relative Volatility Index (RVI), a volatility-based momentum indicator that
+    Calculates the Relative Volatility Index (rvi), a volatility-based momentum indicator that
     measures the direction of volatility. It applies the RSI formula to standard deviation
     instead of price changes.
 
@@ -97,11 +97,11 @@ def strategy_rvi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    RVI (Relative Volatility Index) - Overbought/Oversold Strategy
+    rvi (Relative Volatility Index) - Overbought/Oversold Strategy
     
-    LOGIC: Buy when RVI drops below lower threshold (oversold),
+    LOGIC: Buy when rvi drops below lower threshold (oversold),
            sell when rises above upper threshold (overbought).
-    WHY: RVI applies RSI formula to standard deviation. RVI > 50 means
+    WHY: rvi applies RSI formula to standard deviation. rvi > 50 means
          volatility is associated with rising prices (bullish).
     BEST MARKETS: All markets. Good for volatility direction analysis.
     TIMEFRAME: Daily charts. 10-period std with 14-period RVI is standard.

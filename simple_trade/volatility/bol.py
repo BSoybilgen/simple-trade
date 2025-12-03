@@ -4,8 +4,8 @@ import numpy as np
 
 def bol(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Bollinger Bands of a series.
-    Bollinger Bands are a type of statistical chart illustrating the relative high and low prices
+    Calculates Bollinger Bands (bol) of a series.
+    bol is a type of statistical chart illustrating the relative high and low prices
     of a security in relation to its average price.
 
     Args:
@@ -58,15 +58,15 @@ def bol(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     upper_band = sma + (std * num_std)
     lower_band = sma - (std * num_std)
     # Return DataFrame for multi-output indicators
-    df_bb = pd.DataFrame({
-        f'BB_Middle_{window}': sma,
-        f'BB_Upper_{window}_{num_std}': upper_band,
-        f'BB_Lower_{window}_{num_std}': lower_band
+    df_bol = pd.DataFrame({
+        f'BOL_Middle_{window}': sma,
+        f'BOL_Upper_{window}_{num_std}': upper_band,
+        f'BOL_Lower_{window}_{num_std}': lower_band
     })
     # Ensure index is passed explicitly, just in case
-    df_bb.index = series.index
-    columns_list = list(df_bb.columns)
-    return df_bb, columns_list
+    df_bol.index = series.index
+    columns_list = list(df_bol.columns)
+    return df_bol, columns_list
 
 
 def strategy_bol(
@@ -80,11 +80,11 @@ def strategy_bol(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    BOL (Bollinger Bands) - Mean Reversion Strategy
+    bol (Bollinger Bands) - Mean Reversion Strategy
     
     LOGIC: Buy when price touches lower band (oversold),
            sell when price touches upper band (overbought).
-    WHY: Bollinger Bands show price relative to volatility. Price at lower band
+    WHY: bol shows price relative to volatility. Price at lower band
          suggests oversold, at upper band suggests overbought.
     BEST MARKETS: Range-bound markets. Stocks, forex. Good for mean reversion.
                   Less effective in strong trends.
@@ -123,8 +123,8 @@ def strategy_bol(
     results, portfolio = run_band_trade(
         data=data,
         indicator_col='Close',
-        upper_band_col=f'BB_Upper_{window}_{num_std}',
-        lower_band_col=f'BB_Lower_{window}_{num_std}',
+        upper_band_col=f'BOL_Upper_{window}_{num_std}',
+        lower_band_col=f'BOL_Lower_{window}_{num_std}',
         price_col=price_col,
         config=config,
         long_entry_pct_cash=long_entry_pct_cash,
@@ -134,7 +134,7 @@ def strategy_bol(
         risk_free_rate=risk_free_rate
     )
     
-    indicator_cols_to_plot = ['Close', f'BB_Upper_{window}_{num_std}', 
-                              f'BB_Middle_{window}', f'BB_Lower_{window}_{num_std}']
+    indicator_cols_to_plot = ['Close', f'BOL_Upper_{window}_{num_std}', 
+                              f'BOL_Middle_{window}', f'BOL_Lower_{window}_{num_std}']
     
     return results, portfolio, indicator_cols_to_plot, data

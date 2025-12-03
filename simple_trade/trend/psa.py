@@ -3,8 +3,8 @@ import numpy as np
 
 def psa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Parabolic SAR (PSAR).
-    Parabolic SAR (Stop And Reverse) is a trend-following indicator developed by J. Welles Wilder
+    Calculates Parabolic SAR (psa).
+    psa (Stop And Reverse) is a trend-following indicator developed by J. Welles Wilder
     that helps identify potential reversals in price direction. It appears as a series of dots
     placed either above or below the price, depending on the trend direction.
 
@@ -20,7 +20,7 @@ def psa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing a DataFrame with PSAR values and a list of column names.
+        tuple: A tuple containing a DataFrame with PSA values and a list of column names.
 
     Calculation Steps:
     1. Initial SAR value:
@@ -76,17 +76,17 @@ def psa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         # Return empty DataFrame with all NaN values
         result = pd.DataFrame(
             {
-                'PSAR': np.nan,
-                'PSAR_Bullish': np.nan,
-                'PSAR_Bearish': np.nan
+                'PSA': np.nan,
+                'PSA_Bullish': np.nan,
+                'PSA_Bearish': np.nan
             }, 
             index=high.index
         )
         return result, list(result.columns)
 
-    psar_values = np.zeros(length)
-    psar_bullish = np.full(length, np.nan)  # Initialize with NaN
-    psar_bearish = np.full(length, np.nan)  # Initialize with NaN
+    psa_values = np.zeros(length)
+    psa_bullish = np.full(length, np.nan)  # Initialize with NaN
+    psa_bearish = np.full(length, np.nan)  # Initialize with NaN
     trend_is_bull = np.zeros(length, dtype=bool)  # Track the trend direction
     
     bull = True # Initial trend assumption
@@ -94,34 +94,34 @@ def psa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     ep = high.iloc[0] # Initial Extreme Point (assuming initial uptrend)
 
     # Initialize first SAR value
-    psar_values[0] = low.iloc[0]
+    psa_values[0] = low.iloc[0]
     trend_is_bull[0] = bull
     
     # Set initial values based on initial trend
     if bull:
-        psar_bullish[0] = psar_values[0]
+        psa_bullish[0] = psa_values[0]
     else:
-        psar_bearish[0] = psar_values[0]
+        psa_bearish[0] = psa_values[0]
 
     # A slightly more robust initial trend check (optional, needs 'Close' if used)
     # if length > 1 and close.iloc[1] < close.iloc[0]:
     #     bull = False
     #     ep = low.iloc[0]
-    #     psar_values[0] = high.iloc[0]
+    #     psa_values[0] = high.iloc[0]
 
     for i in range(1, length):
-        prev_psar = psar_values[i-1]
+        prev_psa = psa_values[i-1]
         prev_ep = ep
         prev_af = af
 
         if bull:
-            current_psar = prev_psar + prev_af * (prev_ep - prev_psar)
+            current_psa = prev_psa + prev_af * (prev_ep - prev_psa)
             # SAR cannot be higher than the low of the previous two periods
-            current_psar = min(current_psar, low.iloc[i-1], low.iloc[i-2] if i > 1 else low.iloc[i-1])
+            current_psa = min(current_psa, low.iloc[i-1], low.iloc[i-2] if i > 1 else low.iloc[i-1])
 
-            if low.iloc[i] < current_psar: # Trend reversal to Bear
+            if low.iloc[i] < current_psa: # Trend reversal to Bear
                 bull = False
-                current_psar = prev_ep # SAR starts at the last extreme high
+                current_psa = prev_ep # SAR starts at the last extreme high
                 ep = low.iloc[i]     # New extreme point is the current low
                 af = af_initial # Reset AF
             else: # Continue Bull trend
@@ -132,13 +132,13 @@ def psa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
                 else:
                     af = prev_af # AF doesn't change if EP not exceeded
         else: # Bear trend
-            current_psar = prev_psar + prev_af * (prev_ep - prev_psar)
+            current_psa = prev_psa + prev_af * (prev_ep - prev_psa)
             # SAR cannot be lower than the high of the previous two periods
-            current_psar = max(current_psar, high.iloc[i-1], high.iloc[i-2] if i > 1 else high.iloc[i-1])
+            current_psa = max(current_psa, high.iloc[i-1], high.iloc[i-2] if i > 1 else high.iloc[i-1])
 
-            if high.iloc[i] > current_psar: # Trend reversal to Bull
+            if high.iloc[i] > current_psa: # Trend reversal to Bull
                 bull = True
-                current_psar = prev_ep # SAR starts at the last extreme low
+                current_psa = prev_ep # SAR starts at the last extreme low
                 ep = high.iloc[i]     # New extreme point is the current high
                 af = af_initial # Reset AF
             else: # Continue Bear trend
@@ -149,28 +149,28 @@ def psa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
                 else:
                     af = prev_af # AF doesn't change if EP not exceeded
 
-        psar_values[i] = current_psar
+        psa_values[i] = current_psa
         trend_is_bull[i] = bull
         
         # Populate the appropriate trend-specific array
         if bull:
-            psar_bullish[i] = current_psar
+            psa_bullish[i] = current_psa
         else:
-            psar_bearish[i] = current_psar
+            psa_bearish[i] = current_psa
 
-    # Create a DataFrame with the base PSAR values
+    # Create a DataFrame with the base PSA values
     result = pd.DataFrame(
         {
-            f'PSAR_{af_initial}_{af_step}_{af_max}': psar_values,
-            f'PSAR_Bullish_{af_initial}_{af_step}_{af_max}': psar_bullish,
-            f'PSAR_Bearish_{af_initial}_{af_step}_{af_max}': psar_bearish
+            f'PSA_{af_initial}_{af_step}_{af_max}': psa_values,
+            f'PSA_Bullish_{af_initial}_{af_step}_{af_max}': psa_bullish,
+            f'PSA_Bearish_{af_initial}_{af_step}_{af_max}': psa_bearish
         }, 
         index=high.index
     )
     
-    # Replace NaN values in PSAR_Bullish with half the price and PSAR_Bearish with 1.5x price
-    result[f'PSAR_Bullish_{af_initial}_{af_step}_{af_max}'] = result[f'PSAR_Bullish_{af_initial}_{af_step}_{af_max}'].fillna(close * 1.5)
-    result[f'PSAR_Bearish_{af_initial}_{af_step}_{af_max}'] = result[f'PSAR_Bearish_{af_initial}_{af_step}_{af_max}'].fillna(close * 0.5)
+    # Replace NaN values in PSA_Bullish with half the price and PSA_Bearish with 1.5x price
+    result[f'PSA_Bullish_{af_initial}_{af_step}_{af_max}'] = result[f'PSA_Bullish_{af_initial}_{af_step}_{af_max}'].fillna(close * 1.5)
+    result[f'PSA_Bearish_{af_initial}_{af_step}_{af_max}'] = result[f'PSA_Bearish_{af_initial}_{af_step}_{af_max}'].fillna(close * 0.5)
     
     columns_list = list(result.columns)
     return result, columns_list
@@ -187,10 +187,10 @@ def strategy_psa(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    PSA (Parabolic SAR) - Price vs SAR Crossover Strategy
+    psa (Parabolic SAR) - Price vs SAR Crossover Strategy
     
-    LOGIC: Buy when price crosses above PSAR, sell when crosses below.
-    WHY: PSAR is a trend-following indicator that provides stop-and-reverse
+    LOGIC: Buy when price crosses above psa, sell when crosses below.
+    WHY: psa is a trend-following indicator that provides stop-and-reverse
          signals. Dots below price = uptrend, above = downtrend.
     BEST MARKETS: Trending markets. Stocks, forex, commodities. Excellent for
                   trailing stop placement and trend identification.
@@ -228,7 +228,7 @@ def strategy_psa(
     )
     
     short_window_indicator = 'Close'
-    long_window_indicator = f'PSAR_{af_initial}_{af_step}_{af_max}'
+    long_window_indicator = f'PSA_{af_initial}_{af_step}_{af_max}'
     
     results, portfolio = run_cross_trade(
         data=data,

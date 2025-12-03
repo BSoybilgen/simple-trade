@@ -2,8 +2,8 @@ import pytest
 import pandas as pd
 import numpy as np
 from simple_trade.volatility import (
-    bol, atr, kel, don, cha, std, rvi, mai, svi, dvi, vqi, hav, cho, uli,
-    hiv, bbw, atp, acb, tsv, nat, pcw, vra, efr, vhf, pro, grv, pav, rsv,
+    bol, atr, kel, don, cha, rvi, mai, svi, dvi, hav, cho, uli,
+    hiv, bbw, atp, acb, tsv, nat, pcw, vra, efr, vhf, grv, pav, rsv,
     fdi, vsi, mad
 )
 
@@ -68,7 +68,7 @@ class TestBollingerBands:
         assert result_data.index.equals(sample_data['close'].index)
         
         # Check columns
-        expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}.0', f'BB_Lower_{window}_{num_std}.0']
+        expected_cols = [f'BOL_Middle_{window}', f'BOL_Upper_{window}_{num_std}.0', f'BOL_Lower_{window}_{num_std}.0']
         assert all(col in result_data.columns for col in expected_cols)
         
         # Check initial NaNs (first window-1)
@@ -89,7 +89,7 @@ class TestBollingerBands:
         result_data, _ = bol(df, parameters={'window': window, 'num_std': num_std}, columns=None)
         
         assert isinstance(result_data, pd.DataFrame)
-        expected_cols = [f'BB_Middle_{window}', f'BB_Upper_{window}_{num_std}.0', f'BB_Lower_{window}_{num_std}.0']
+        expected_cols = [f'BOL_Middle_{window}', f'BOL_Upper_{window}_{num_std}.0', f'BOL_Lower_{window}_{num_std}.0']
         assert all(col in result_data.columns for col in expected_cols)
         assert len(result_data) == len(sample_data['close'])
         assert result_data.iloc[:window-1].isna().all().all()
@@ -184,7 +184,7 @@ class TestKeltnerChannels:
         assert len(result_data) == len(sample_data['close'])
         assert result_data.index.equals(sample_data['close'].index)
         
-        expected_cols = [f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
+        expected_cols = [f'KEL_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KEL_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KEL_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
         assert all(col in result_data.columns for col in expected_cols)
         
         # Check initial NaNs: The first row with no NaNs should be determined by ATR window
@@ -213,7 +213,7 @@ class TestKeltnerChannels:
         result_data, _ = kel(df, parameters={'ema_window': ema_window, 'atr_window': atr_window, 'atr_multiplier': atr_multiplier}, columns=None)
 
         assert isinstance(result_data, pd.DataFrame)
-        expected_cols = [f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
+        expected_cols = [f'KEL_Middle_{ema_window}_{atr_window}_{atr_multiplier}', f'KEL_Upper_{ema_window}_{atr_window}_{atr_multiplier}', f'KEL_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
         assert all(col in result_data.columns for col in expected_cols)
         assert len(result_data) == len(sample_data['close'])
         
@@ -247,7 +247,7 @@ class TestDonchianChannels:
         assert len(result_data) == len(sample_data['close'])
         assert result_data.index.equals(sample_data['close'].index)
         
-        expected_cols = [f'DONCH_Upper_{window}', f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
+        expected_cols = [f'DON_Upper_{window}', f'DON_Middle_{window}', f'DON_Lower_{window}']
         assert all(col in result_data.columns for col in expected_cols)
         
         # Check initial NaNs (first window-1 should be strictly NaN)
@@ -274,7 +274,7 @@ class TestDonchianChannels:
         result_data, _ = don(df, parameters={'window': window}, columns=None)
         
         assert isinstance(result_data, pd.DataFrame)
-        expected_cols = [f'DONCH_Upper_{window}', f'DONCH_Middle_{window}', f'DONCH_Lower_{window}']
+        expected_cols = [f'DON_Upper_{window}', f'DON_Middle_{window}', f'DON_Lower_{window}']
         assert all(col in result_data.columns for col in expected_cols)
         assert len(result_data) == len(sample_data['close'])
         assert result_data.iloc[:window-1].isna().all().all() # Check all columns are NaN initially
@@ -330,31 +330,7 @@ class TestChaikinVolatility:
 
 
 # --- Additional Volatility Indicator Tests ---
-
-class TestSTD:
-    """Tests for Standard Deviation"""
-
-    def test_std_calculation(self, sample_data):
-        """Test basic STD calculation"""
-        df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, columns = std(df)
-        
-        assert isinstance(result_data, pd.Series)
-        assert not result_data.empty
-        assert 'STD_20' in columns
-        
-        # STD should be positive
-        valid_result = result_data.dropna()
-        assert (valid_result >= 0).all()
-
-    def test_std_custom_window(self, sample_data):
-        """Test STD with custom window"""
-        window = 10
-        df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, columns = std(df, parameters={'window': window})
-        
-        assert f'STD_{window}' in columns
-
+# Note: TestSTD moved to test_statistics.py
 
 class TestRVI:
     """Tests for Relative Volatility Index"""
@@ -393,7 +369,7 @@ class TestMassIndex:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'MI_9_25' in columns
+        assert 'MAI_9_25' in columns
         
         # Mass Index should have valid values
         valid_result = result_data.dropna()
@@ -407,7 +383,7 @@ class TestMassIndex:
         })
         result_data, columns = mai(df, parameters={'ema_period': 7, 'sum_period': 20})
         
-        assert 'MI_7_20' in columns
+        assert 'MAI_7_20' in columns
 
 
 class TestSVI:
@@ -463,36 +439,6 @@ class TestDVI:
         assert 'DVI_10_50_5' in columns
 
 
-class TestVQI:
-    """Tests for Volatility Quality Index"""
-
-    def test_vqi_calculation(self, sample_data):
-        """Test basic VQI calculation"""
-        df = pd.DataFrame({
-            'High': sample_data['high'],
-            'Low': sample_data['low'],
-            'Close': sample_data['close'],
-            'Volume': sample_data['volume']
-        })
-        result_data, columns = vqi(df)
-        
-        assert isinstance(result_data, pd.Series)
-        assert not result_data.empty
-        assert 'VQI_9_9' in columns
-
-    def test_vqi_custom_params(self, sample_data):
-        """Test VQI with custom parameters"""
-        df = pd.DataFrame({
-            'High': sample_data['high'],
-            'Low': sample_data['low'],
-            'Close': sample_data['close'],
-            'Volume': sample_data['volume']
-        })
-        result_data, columns = vqi(df, parameters={'period': 14, 'smooth_period': 7})
-        
-        assert 'VQI_14_7' in columns
-
-
 class TestHAV:
     """Tests for Heikin-Ashi Volatility"""
 
@@ -541,7 +487,7 @@ class TestChoppinessIndex:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'CHOP_14' in columns
+        assert 'CHO_14' in columns
         
         # CHOP should be between 0 and 100
         valid_result = result_data.dropna()
@@ -557,7 +503,7 @@ class TestChoppinessIndex:
         })
         result_data, columns = cho(df, parameters={'period': period})
         
-        assert f'CHOP_{period}' in columns
+        assert f'CHO_{period}' in columns
 
 
 class TestUlcerIndex:
@@ -570,7 +516,7 @@ class TestUlcerIndex:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'UI_14' in columns
+        assert 'ULI_14' in columns
         
         # Ulcer Index should be non-negative
         valid_result = result_data.dropna()
@@ -582,7 +528,7 @@ class TestUlcerIndex:
         df = pd.DataFrame({'Close': sample_data['close']})
         result_data, columns = uli(df, parameters={'period': period})
         
-        assert f'UI_{period}' in columns
+        assert f'ULI_{period}' in columns
 
 
 class TestHistoricalVolatility:
@@ -595,7 +541,7 @@ class TestHistoricalVolatility:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'HV_20_Ann' in columns
+        assert 'HIV_20_Ann' in columns
         
         # HV should be non-negative
         valid_result = result_data.dropna()
@@ -606,7 +552,7 @@ class TestHistoricalVolatility:
         df = pd.DataFrame({'Close': sample_data['close']})
         result_data, columns = hiv(df, parameters={'annualized': False})
         
-        assert 'HV_20' in columns
+        assert 'HIV_20' in columns
 
 
 class TestBBW:
@@ -647,7 +593,7 @@ class TestATRP:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'ATRP_14' in columns
+        assert 'ATP_14' in columns
         
         # ATRP should be positive
         valid_result = result_data.dropna()
@@ -663,7 +609,7 @@ class TestATRP:
         })
         result_data, columns = atp(df, parameters={'window': window})
         
-        assert f'ATRP_{window}' in columns
+        assert f'ATP_{window}' in columns
 
 
 class TestAccelerationBands:
@@ -716,7 +662,7 @@ class TestTSV:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'TSI_VOL_14_25_13' in columns
+        assert 'TSV_14_25_13' in columns
 
     def test_tsv_custom_params(self, sample_data):
         """Test TSI Volatility with custom parameters"""
@@ -731,7 +677,7 @@ class TestTSV:
             'short_period': 10
         })
         
-        assert 'TSI_VOL_10_20_10' in columns
+        assert 'TSV_10_20_10' in columns
 
 
 class TestNATR:
@@ -748,7 +694,7 @@ class TestNATR:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'NATR_14' in columns
+        assert 'NAT_14' in columns
         
         # NATR should be positive
         valid_result = result_data.dropna()
@@ -764,7 +710,7 @@ class TestNATR:
         })
         result_data, columns = nat(df, parameters={'window': window})
         
-        assert f'NATR_{window}' in columns
+        assert f'NAT_{window}' in columns
 
 
 class TestPCW:
@@ -810,14 +756,14 @@ class TestVolatilityRatio:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'VR_5_20' in columns
+        assert 'VRA_5_20' in columns
 
     def test_vra_custom_params(self, sample_data):
         """Test Volatility Ratio with custom parameters"""
         df = pd.DataFrame({'Close': sample_data['close']})
         result_data, columns = vra(df, parameters={'short_period': 10, 'long_period': 30})
         
-        assert 'VR_10_30' in columns
+        assert 'VRA_10_30' in columns
 
 
 class TestEfficiencyRatio:
@@ -830,7 +776,7 @@ class TestEfficiencyRatio:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'ER_10' in columns
+        assert 'EFR_10' in columns
         
         # ER should be between 0 and 1
         valid_result = result_data.dropna()
@@ -843,7 +789,7 @@ class TestEfficiencyRatio:
         df = pd.DataFrame({'Close': sample_data['close']})
         result_data, columns = efr(df, parameters={'period': period})
         
-        assert f'ER_{period}' in columns
+        assert f'EFR_{period}' in columns
 
 
 class TestVHF:
@@ -871,26 +817,6 @@ class TestVHF:
         assert f'VHF_{period}' in columns
 
 
-class TestProjectionOscillator:
-    """Tests for Projection Oscillator"""
-
-    def test_pro_calculation(self, sample_data):
-        """Test basic Projection Oscillator calculation"""
-        df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, columns = pro(df)
-        
-        assert isinstance(result_data, pd.Series)
-        assert not result_data.empty
-        assert 'PO_10_3' in columns
-
-    def test_pro_custom_params(self, sample_data):
-        """Test Projection Oscillator with custom parameters"""
-        df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, columns = pro(df, parameters={'period': 14, 'smooth_period': 5})
-        
-        assert 'PO_14_5' in columns
-
-
 class TestGarmanKlassVolatility:
     """Tests for Garman-Klass Volatility"""
 
@@ -906,7 +832,7 @@ class TestGarmanKlassVolatility:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'GK_VOL_20_Ann' in columns
+        assert 'GRV_VOL_20_Ann' in columns
         
         # GK Vol should be non-negative
         valid_result = result_data.dropna()
@@ -922,7 +848,7 @@ class TestGarmanKlassVolatility:
         })
         result_data, columns = grv(df, parameters={'annualized': False})
         
-        assert 'GK_VOL_20' in columns
+        assert 'GRV_VOL_20' in columns
 
 
 class TestParkinsonVolatility:
@@ -938,7 +864,7 @@ class TestParkinsonVolatility:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'PARK_VOL_20_Ann' in columns
+        assert 'PAV_VOL_20_Ann' in columns
         
         # Parkinson Vol should be non-negative
         valid_result = result_data.dropna()
@@ -952,7 +878,7 @@ class TestParkinsonVolatility:
         })
         result_data, columns = pav(df, parameters={'annualized': False})
         
-        assert 'PARK_VOL_20' in columns
+        assert 'PAV_VOL_20' in columns
 
 
 class TestRogersSatchellVolatility:
@@ -970,7 +896,7 @@ class TestRogersSatchellVolatility:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'RS_VOL_20_Ann' in columns
+        assert 'RSV_20_Ann' in columns
         
         # RS Vol should be non-negative
         valid_result = result_data.dropna()
@@ -986,7 +912,7 @@ class TestRogersSatchellVolatility:
         })
         result_data, columns = rsv(df, parameters={'annualized': False})
         
-        assert 'RS_VOL_20' in columns
+        assert 'RSV_20' in columns
 
 
 class TestFDI:

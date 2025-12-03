@@ -3,7 +3,7 @@ import numpy as np
 
 def ado(df, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Accumulation/Distribution Oscillator (ADO), which measures the momentum
+    Calculates the Accumulation/Distribution Oscillator (ado), which measures the momentum
     of the Accumulation/Distribution Line. It helps identify the strength of accumulation
     or distribution by comparing the current A/D value to a past value.
 
@@ -18,7 +18,7 @@ def ado(df, parameters: dict = None, columns: dict = None) -> tuple:
             - volume_col (str): The column name for volume. Default is 'Volume'.
 
     Returns:
-        tuple: A tuple containing the A/D Oscillator series and a list of column names.
+        tuple: A tuple containing the ADO series and a list of column names.
 
     The Accumulation/Distribution Oscillator is calculated as follows:
 
@@ -80,11 +80,11 @@ def strategy_ado(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ADO (Accumulation/Distribution Oscillator) - Zero Line Cross Strategy
+    ado (Accumulation/Distribution Oscillator) - Zero Line Cross Strategy
     
-    LOGIC: Buy when ADO crosses above zero (accumulation momentum),
-           sell when ADO crosses below zero (distribution momentum).
-    WHY: ADO measures the rate of change of the A/D Line. Positive values indicate
+    LOGIC: Buy when ado crosses above zero (accumulation momentum),
+           sell when ado crosses below zero (distribution momentum).
+    WHY: ado measures the rate of change of the A/D Line. Positive values indicate
          increasing accumulation, negative values indicate increasing distribution.
     BEST MARKETS: Stocks, ETFs. Good for momentum-based volume analysis.
     TIMEFRAME: Daily charts. 14-period is standard. Good for swing trading.

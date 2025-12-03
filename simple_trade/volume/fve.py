@@ -4,7 +4,7 @@ import numpy as np
 
 def fve(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Finite Volume Elements (FVE), a money flow indicator that resolves
+    Calculates the Finite Volume Elements (fve), a money flow indicator that resolves
     volatility by separating volume into "bullish" and "bearish" components based on
     intra-period price action and a volatility threshold.
 
@@ -111,11 +111,11 @@ def strategy_fve(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    FVE (Finite Volume Elements) - Zero Line Cross Strategy
+    fve (Finite Volume Elements) - Zero Line Cross Strategy
     
-    LOGIC: Buy when FVE crosses above zero (bullish money flow),
+    LOGIC: Buy when fve crosses above zero (bullish money flow),
            sell when crosses below zero (bearish money flow).
-    WHY: FVE separates volume into bullish/bearish components based on
+    WHY: fve separates volume into bullish/bearish components based on
          intra-period price action and volatility threshold.
     BEST MARKETS: Stocks, ETFs. Good for money flow analysis.
     TIMEFRAME: Daily charts. 22-period is standard.

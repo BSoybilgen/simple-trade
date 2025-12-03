@@ -3,8 +3,8 @@ import pandas as pd
 
 def ich(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Ichimoku Cloud indicators (Ichimoku Kinko Hyo).
-    Ichimoku Kinko Hyo is a versatile indicator that defines support and resistance, 
+    Calculates the ich indicators (ich).
+    ich is a versatile indicator that defines support and resistance, 
     identifies trend direction, gauges momentum, and provides trading signals.
 
     Args:
@@ -20,7 +20,7 @@ def ich(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing a DataFrame with Ichimoku components and a list of column names.
+        tuple: A tuple containing a DataFrame with ich components and a list of column names.
 
     Calculation Steps:
     1. Tenkan-sen (Conversion Line):
@@ -111,7 +111,7 @@ def _donchian_channel_middle(df: pd.DataFrame, period: int, high_col: str = 'Hig
 
 def tenkan_sen(df: pd.DataFrame, period: int = 9, high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
     """
-    Calculates Tenkan-sen (Conversion Line) component of Ichimoku Cloud.
+    Calculates Tenkan-sen (Conversion Line) component of ich.
 
     This is the midpoint of the highest high and lowest low over the specified period.
     It represents a shorter-term trend indicator.
@@ -130,7 +130,7 @@ def tenkan_sen(df: pd.DataFrame, period: int = 9, high_col: str = 'High', low_co
 
 def kijun_sen(df: pd.DataFrame, period: int = 26, high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
     """
-    Calculates Kijun-sen (Base Line) component of Ichimoku Cloud.
+    Calculates Kijun-sen (Base Line) component of ich.
 
     This is the midpoint of the highest high and lowest low over the specified period.
     It represents a longer-term trend indicator and can act as a dynamic support/resistance level.
@@ -152,10 +152,10 @@ def senkou_span_a(df: pd.DataFrame,
                  displacement: int = 26,
                  high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
     """
-    Calculates Senkou Span A (Leading Span A) component of Ichimoku Cloud.
+    Calculates Senkou Span A (Leading Span A) component of ich.
 
     This is the midpoint of Tenkan-sen and Kijun-sen, shifted forward by the displacement period.
-    It forms one of the boundaries of the Ichimoku Cloud.
+    It forms one of the boundaries of the ich Cloud.
 
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have high and low columns.
@@ -177,10 +177,10 @@ def senkou_span_b(df: pd.DataFrame,
                  period: int = 52, displacement: int = 26,
                  high_col: str = 'High', low_col: str = 'Low') -> pd.Series:
     """
-    Calculates Senkou Span B (Leading Span B) component of Ichimoku Cloud.
+    Calculates Senkou Span B (Leading Span B) component of ich.
 
     This is the midpoint of the highest high and lowest low over a longer period,
-    shifted forward by the displacement period. It forms the other boundary of the Ichimoku Cloud.
+    shifted forward by the displacement period. It forms the other boundary of the ich Cloud.
 
     Args:
         df (pd.DataFrame): The dataframe containing price data. Must have high and low columns.
@@ -197,7 +197,7 @@ def senkou_span_b(df: pd.DataFrame,
 
 def chikou_span(df: pd.DataFrame, displacement: int = 26, close_col: str = 'Close') -> pd.Series:
     """
-    Calculates Chikou Span (Lagging Span) component of Ichimoku Cloud.
+    Calculates Chikou Span (Lagging Span) component of ich.
 
     This is the closing price shifted backward by the displacement period.
     It is used to confirm trends and potential reversal points.
@@ -224,10 +224,10 @@ def strategy_ich(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ICH (Ichimoku Cloud) - Tenkan/Kijun Crossover Strategy
+    ich (Ichimoku Cloud) - Tenkan/Kijun Crossover Strategy
     
     LOGIC: Buy when Tenkan-sen crosses above Kijun-sen, sell when crosses below.
-    WHY: Ichimoku is a comprehensive indicator showing support, resistance, trend,
+    WHY: ich is a comprehensive indicator showing support, resistance, trend,
          and momentum. Tenkan/Kijun crossovers are classic entry signals.
     BEST MARKETS: Trending markets. Stocks, forex, crypto. One of the most
                   complete technical analysis systems available.

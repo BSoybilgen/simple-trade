@@ -3,7 +3,7 @@ import pandas as pd
 
 def ppo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Percentage Price Oscillator (PPO), a momentum indicator similar to MACD.
+    Calculates the Percentage Price Oscillator (ppo), a momentum indicator similar to MACD.
     It measures the difference between two moving averages as a percentage of the larger moving average.
 
     Args:
@@ -86,10 +86,10 @@ def strategy_ppo(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    PPO (Percentage Price Oscillator) - Signal Line Crossover Strategy
+    ppo (Percentage Price Oscillator) - Signal Line Crossover Strategy
     
-    LOGIC: Buy when PPO crosses above signal line, sell when crosses below.
-    WHY: PPO is MACD in percentage terms, allowing comparison across different
+    LOGIC: Buy when ppo crosses above signal line, sell when crosses below.
+    WHY: ppo is MACD in percentage terms, allowing comparison across different
          price levels. Signal crossovers indicate momentum shifts.
     BEST MARKETS: All markets. Particularly useful for comparing momentum across
                   assets with different price levels (e.g., $10 stock vs $1000 stock).

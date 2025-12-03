@@ -4,7 +4,7 @@ import pandas as pd
 
 def crs(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Connors RSI (CRSI), a composite indicator designed by Larry Connors 
+    Calculates the Connors RSI (crs), a composite indicator designed by Larry Connors 
     to better identify short-term overbought and oversold conditions.
 
     Args:
@@ -32,17 +32,17 @@ def crs(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        - Calculate one-day price change (Percent Change).
        - Rank = Percent Rank of today's change over rank_window.
 
-    4. Calculate CRSI:
-       CRSI = (RSI_Price + RSI_Streak + Rank) / 3
+    4. Calculate crs:
+       crs = (RSI_Price + RSI_Streak + Rank) / 3
 
     Interpretation:
     - Range: 0 to 100.
-    - Overbought: Values above 90 (or 95) indicate potential short-term exhaustion/overbought.
-    - Oversold: Values below 10 (or 5) indicate potential short-term oversold conditions.
+    - Overbought: crs values above 90 (or 95) indicate potential short-term exhaustion/overbought.
+    - Oversold: crs values below 10 (or 5) indicate potential short-term oversold conditions.
 
     Use Cases:
     - Mean Reversion: Identifying short-term pullback opportunities in a broader trend.
-    - Exit Signals: Exiting positions when CRSI reaches extreme levels.
+    - Exit Signals: Exiting positions when crs reaches extreme levels.
     """
     if parameters is None:
         parameters = {}
@@ -118,7 +118,7 @@ def crs(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     percent_rank = percent_rank.astype(float)
 
     crsi_values = (price_rsi + streak_rsi + percent_rank) / 3
-    crsi_values.name = f'CRSI_{rsi_window}_{streak_window}_{rank_window}'
+    crsi_values.name = f'CRS_{rsi_window}_{streak_window}_{rank_window}'
 
     columns_list = [crsi_values.name]
     return crsi_values, columns_list
@@ -135,10 +135,10 @@ def strategy_crs(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    CRS (Connors RSI) - Mean Reversion Strategy
+    crs (Connors RSI) - Mean Reversion Strategy
     
-    LOGIC: Buy when CRSI drops below 10 (extreme oversold), sell when rises above 90.
-    WHY: CRSI combines 3 components (RSI, streak RSI, percent rank) for short-term
+    LOGIC: Buy when crs drops below 10 (extreme oversold), sell when rises above 90.
+    WHY: crs combines 3 components (RSI, streak RSI, percent rank) for short-term
          mean reversion. Designed by Larry Connors for identifying pullback opportunities.
     BEST MARKETS: Liquid stocks and ETFs in uptrends. Best for buying dips in bull markets.
                   SPY, QQQ, and large-cap stocks. Avoid in bear markets or downtrends.
@@ -175,7 +175,7 @@ def strategy_crs(
         "streak_window": streak_window,
         "rank_window": rank_window
     }
-    indicator_col = f'CRSI_{rsi_window}_{streak_window}_{rank_window}'
+    indicator_col = f'CRS_{rsi_window}_{streak_window}_{rank_window}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(

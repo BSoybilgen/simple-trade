@@ -2,9 +2,10 @@ import pytest
 import pandas as pd
 import numpy as np
 from simple_trade.volume import (
-    obv, vma, adl, cmf, vpt, vwa, mfi, foi, emv, pvo, vro, nvi, pvi,
-    kvo, ado, vfi, bwm, fve, wad, voo
+    obv, adl, cmf, vpt, vwa, mfi, foi, emv, pvo, vro, nvi, pvi,
+    kvo, ado, vfi, bwm, fve, voo
 )
+from simple_trade.moving_average import vma
 
 # Fixture for sample data (consistent with other test modules)
 @pytest.fixture
@@ -281,7 +282,7 @@ class TestVWAP:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'VWAP' in columns
+        assert 'VWA' in columns
         assert len(result_data) == len(sample_data['close'])
         
         # VWAP should be within the price range
@@ -303,7 +304,7 @@ class TestVWAP:
             'volume_col': 'v'
         })
         
-        assert 'VWAP' in columns
+        assert 'VWA' in columns
 
 
 class TestMFI:
@@ -355,7 +356,7 @@ class TestForceIndex:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'FI_13' in columns
+        assert 'FOI_13' in columns
         assert len(result_data) == len(sample_data['close'])
 
     def test_foi_custom_period(self, sample_data):
@@ -367,7 +368,7 @@ class TestForceIndex:
         })
         result_data, columns = foi(df, parameters={'period': period})
         
-        assert f'FI_{period}' in columns
+        assert f'FOI_{period}' in columns
 
 
 class TestEMV:
@@ -437,7 +438,7 @@ class TestVROC:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'VROC_14' in columns
+        assert 'VRO_14' in columns
 
     def test_vro_custom_period(self, sample_data):
         """Test VROC with custom period"""
@@ -445,7 +446,7 @@ class TestVROC:
         df = pd.DataFrame({'Volume': sample_data['volume']})
         result_data, columns = vro(df, parameters={'period': period})
         
-        assert f'VROC_{period}' in columns
+        assert f'VRO_{period}' in columns
 
 
 class TestNVI:
@@ -620,7 +621,7 @@ class TestBWMFI:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'BWMFI' in columns
+        assert 'BWM' in columns
         assert len(result_data) == len(sample_data['close'])
         
         # BW MFI should be non-negative
@@ -640,7 +641,7 @@ class TestBWMFI:
             'volume_col': 'v'
         })
         
-        assert 'BWMFI' in columns
+        assert 'BWM' in columns
 
 
 class TestFVE:
@@ -680,38 +681,6 @@ class TestFVE:
         assert f'FVE_{period}' in columns
 
 
-class TestWAD:
-    """Tests for Williams Accumulation/Distribution"""
-
-    def test_wad_calculation(self, sample_data):
-        """Test basic WAD calculation"""
-        df = pd.DataFrame({
-            'High': sample_data['high'],
-            'Low': sample_data['low'],
-            'Close': sample_data['close']
-        })
-        result_data, columns = wad(df)
-        
-        assert isinstance(result_data, pd.Series)
-        assert not result_data.empty
-        assert 'WAD' in columns
-        assert len(result_data) == len(sample_data['close'])
-
-    def test_wad_custom_columns(self, sample_data):
-        """Test WAD with custom column names"""
-        df = pd.DataFrame({
-            'h': sample_data['high'],
-            'l': sample_data['low'],
-            'c': sample_data['close']
-        })
-        result_data, columns = wad(df, columns={
-            'high_col': 'h',
-            'low_col': 'l',
-            'close_col': 'c'
-        })
-        
-        assert 'WAD' in columns
-
 
 class TestVolumeOscillator:
     """Tests for Volume Oscillator"""
@@ -723,7 +692,7 @@ class TestVolumeOscillator:
         
         assert isinstance(result_data, pd.Series)
         assert not result_data.empty
-        assert 'VO_5_10' in columns
+        assert 'VOO_5_10' in columns
 
     def test_voo_custom_params(self, sample_data):
         """Test Volume Oscillator with custom parameters"""
@@ -733,4 +702,4 @@ class TestVolumeOscillator:
             'slow_period': 7
         })
         
-        assert 'VO_3_7' in columns
+        assert 'VOO_3_7' in columns

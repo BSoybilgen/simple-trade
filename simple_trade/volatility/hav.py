@@ -3,7 +3,7 @@ import pandas as pd
 
 def hav(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Heikin-Ashi Volatility (HAV), a volatility indicator that applies
+    Calculates the Heikin-Ashi Volatility (hav), a volatility indicator that applies
     the Heikin-Ashi smoothing technique to price data and then measures the volatility
     of the smoothed candles to filter out market noise.
 
@@ -129,11 +129,11 @@ def strategy_hav(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    HAV (Heikin-Ashi Volatility) - Volatility Threshold Strategy
+    hav (Heikin-Ashi Volatility) - Volatility Threshold Strategy
     
-    LOGIC: Buy when HAV drops below lower percentile (low volatility squeeze),
+    LOGIC: Buy when hav drops below lower percentile (low volatility squeeze),
            sell when rises above upper percentile (high volatility).
-    WHY: HAV applies Heikin-Ashi smoothing to filter noise before measuring
+    WHY: hav applies Heikin-Ashi smoothing to filter noise before measuring
          volatility. Provides cleaner signals than standard ATR.
     BEST MARKETS: All markets. Good for volatility-based strategies.
     TIMEFRAME: Daily charts. 14-period is standard.

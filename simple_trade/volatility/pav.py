@@ -4,7 +4,7 @@ import numpy as np
 
 def pav(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Parkinson Volatility, an efficient volatility estimator that uses only
+    Calculates Parkinson Volatility (pav), an efficient volatility estimator that uses only
     the high-low range. It's more efficient than close-to-close volatility when there
     are no overnight gaps.
 
@@ -68,7 +68,7 @@ def pav(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     pav_values = pav_volatility * 100
     
-    pav_values.name = f'PARK_VOL_{period}_Ann' if annualized else f'PARK_VOL_{period}'
+    pav_values.name = f'PAV_VOL_{period}_Ann' if annualized else f'PAV_VOL_{period}'
     return pav_values, [pav_values.name]
 
 
@@ -83,11 +83,11 @@ def strategy_pav(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    PAV (Parkinson Volatility) - Volatility Threshold Strategy
+    pav (Parkinson Volatility) - Volatility Threshold Strategy
     
-    LOGIC: Buy when Parkinson Vol drops below lower threshold (low volatility),
+    LOGIC: Buy when pav drops below lower threshold (low volatility),
            sell when rises above upper threshold (high volatility).
-    WHY: Parkinson uses high-low range for efficient volatility estimation.
+    WHY: pav uses high-low range for efficient volatility estimation.
          Better than close-to-close when no overnight gaps.
     BEST MARKETS: All markets. Good for intraday volatility analysis.
     TIMEFRAME: Daily charts. 20-period is standard.
@@ -116,7 +116,7 @@ def strategy_pav(
     upper = float(parameters.get('upper', 30))
     lower = float(parameters.get('lower', 15))
     price_col = 'Close'
-    indicator_col = f'PARK_VOL_{period}_Ann'
+    indicator_col = f'PAV_VOL_{period}_Ann'
     
     data, _, _ = compute_indicator(
         data=data,

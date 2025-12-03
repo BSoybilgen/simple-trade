@@ -3,8 +3,8 @@ import pandas as pd
 
 def tri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the TRIX (Triple Exponential Average) indicator.
-    TRIX is a momentum oscillator that displays the percent rate of change of a triple
+    Calculates the TRIX (tri) indicator.
+    tri is a momentum oscillator that displays the percent rate of change of a triple
     exponentially smoothed moving average. It oscillates around a zero line and can be
     used to identify overbought/oversold conditions, divergences, and trend direction.
 
@@ -16,9 +16,9 @@ def tri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the TRIX DataFrame and a list of column names.
+        tuple: A tuple containing the TRI DataFrame and a list of column names.
 
-    The TRIX is calculated as follows:
+    The TRI is calculated as follows:
 
     1. Calculate Single-Smoothed EMA:
        EMA1 = EMA(Close, window)
@@ -29,21 +29,21 @@ def tri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     3. Calculate Triple-Smoothed EMA:
        EMA3 = EMA(EMA2, window)
 
-    4. Calculate TRIX:
-       TRIX = 100 * (EMA3 - Previous EMA3) / Previous EMA3
+    4. Calculate TRI:
+       TRI = 100 * (EMA3 - Previous EMA3) / Previous EMA3
 
     5. Calculate Signal Line:
-       Signal = EMA(TRIX, 9)
+       Signal = EMA(TRI, 9)
 
     Interpretation:
     - Zero Line Crossover: Crossing above zero is bullish; below zero is bearish.
-    - Signal Line Crossover: TRIX crossing above Signal is bullish; below is bearish.
-    - Divergences: Price making new highs while TRIX fails to do so indicates a potential reversal.
+    - Signal Line Crossover: TRI crossing above Signal is bullish; below is bearish.
+    - Divergences: Price making new highs while TRI fails to do so indicates a potential reversal.
 
     Use Cases:
     - Momentum Measurement: Gauging the rate of change of the triple smoothed average.
     - Trend Reversals: Identifying early signs of trend shifts via divergences.
-    - Filtering: TRIX filters out insignificant price movements better than standard rate-of-change.
+    - Filtering: TRI filters out insignificant price movements better than standard rate-of-change.
     """
     # Set default values
     if parameters is None:
@@ -66,20 +66,20 @@ def tri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     ema3 = ema2.ewm(span=window, adjust=False).mean()
     
     # Step 4: Calculate the 1-period percent rate of change of the triple-smoothed EMA
-    trix_line = 100 * (ema3 - ema3.shift(1)) / ema3.shift(1)
+    tri_line = 100 * (ema3 - ema3.shift(1)) / ema3.shift(1)
     
-    # Calculate signal line (9-period EMA of TRIX)
-    signal_line = trix_line.ewm(span=9, adjust=False).mean()
+    # Calculate signal line (9-period EMA of TRI)
+    signal_line = tri_line.ewm(span=9, adjust=False).mean()
     
     # Create result DataFrame
-    df_trix = pd.DataFrame({
-        f'TRIX_{window}': trix_line,
-        f'TRIX_SIGNAL_{window}': signal_line
+    df_tri = pd.DataFrame({
+        f'TRI_{window}': tri_line,
+        f'TRI_SIGNAL_{window}': signal_line
     })
-    df_trix.index = series.index
+    df_tri.index = series.index
 
-    columns_list = list(df_trix.columns)
-    return df_trix, columns_list
+    columns_list = list(df_tri.columns)
+    return df_tri, columns_list
 
 
 def strategy_tri(
@@ -93,10 +93,10 @@ def strategy_tri(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    TRI (TRIX) - Signal Line Crossover Strategy
+    tri (TRIX) - Signal Line Crossover Strategy
     
-    LOGIC: Buy when TRIX crosses above signal line, sell when crosses below.
-    WHY: TRIX is a momentum oscillator showing rate of change of triple-smoothed EMA.
+    LOGIC: Buy when tri crosses above signal line, sell when crosses below.
+    WHY: tri is a momentum oscillator showing rate of change of triple-smoothed EMA.
          Signal crossovers indicate momentum shifts. Filters out noise well.
     BEST MARKETS: Trending markets. Stocks, forex, commodities. Good for
          identifying momentum shifts and divergences.
@@ -131,8 +131,8 @@ def strategy_tri(
         figure=False
     )
     
-    short_window_indicator = f'TRIX_{window}'
-    long_window_indicator = f'TRIX_SIGNAL_{window}'
+    short_window_indicator = f'TRI_{window}'
+    long_window_indicator = f'TRI_SIGNAL_{window}'
     
     results, portfolio = run_cross_trade(
         data=data,

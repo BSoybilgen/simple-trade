@@ -4,7 +4,7 @@ import numpy as np
 
 def grv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Garman-Klass Volatility, a more efficient volatility estimator that uses
+    Calculates Garman-Klass Volatility (grv), a more efficient volatility estimator that uses
     OHLC data instead of just closing prices. It provides better volatility estimates
     with the same amount of data.
 
@@ -28,14 +28,14 @@ def grv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        log_hl = ln(High / Low)
        log_co = ln(Close / Open)
 
-    2. Calculate GK Component for each period:
-       GK = 0.5 * (log_hl)^2 - (2 * ln(2) - 1) * (log_co)^2
+    2. Calculate GRV Component for each period:
+       GRV = 0.5 * (log_hl)^2 - (2 * ln(2) - 1) * (log_co)^2
 
     3. Average and Square Root:
-       GK_Vol = sqrt(Average(GK, period))
+       GRV_Vol = sqrt(Average(GRV, period))
 
     4. Annualize (optional):
-       Annualized GK = GK_Vol * sqrt(trading_periods)
+       Annualized GRV = GRV_Vol * sqrt(trading_periods)
 
     Interpretation:
     - Lower values: Low volatility.
@@ -70,24 +70,24 @@ def grv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     log_co = np.log(close / open_price)
     
     # Garman-Klass formula
-    # GK = sqrt(0.5 * (ln(H/L))^2 - (2*ln(2)-1) * (ln(C/O))^2)
-    gk_component = 0.5 * (log_hl ** 2) - (2 * np.log(2) - 1) * (log_co ** 2)
+    # GRV = sqrt(0.5 * (ln(H/L))^2 - (2*ln(2)-1) * (ln(C/O))^2)
+    grv_component = 0.5 * (log_hl ** 2) - (2 * np.log(2) - 1) * (log_co ** 2)
     
     # Take rolling mean and square root
-    gk_variance = gk_component.rolling(window=period).mean()
-    gk_volatility = np.sqrt(gk_variance)
+    grv_variance = grv_component.rolling(window=period).mean()
+    grv_volatility = np.sqrt(grv_variance)
     
     # Annualize if requested
     if annualized:
-        gk_volatility = gk_volatility * np.sqrt(trading_periods)
+        grv_volatility = grv_volatility * np.sqrt(trading_periods)
     
     # Convert to percentage
-    grv_values = gk_volatility * 100
+    grv_values = grv_volatility * 100
     
     if annualized:
-        grv_values.name = f'GK_VOL_{period}_Ann'
+        grv_values.name = f'GRV_VOL_{period}_Ann'
     else:
-        grv_values.name = f'GK_VOL_{period}'
+        grv_values.name = f'GRV_VOL_{period}'
     
     columns_list = [grv_values.name]
     return grv_values, columns_list
@@ -104,11 +104,11 @@ def strategy_grv(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    GRV (Garman-Klass Volatility) - Volatility Threshold Strategy
+    grv (Garman-Klass Volatility) - Volatility Threshold Strategy
     
-    LOGIC: Buy when GK volatility drops below lower threshold (low vol squeeze),
+    LOGIC: Buy when grv drops below lower threshold (low vol squeeze),
            sell when rises above upper threshold (high volatility).
-    WHY: GK volatility is more efficient than close-to-close volatility,
+    WHY: grv is more efficient than close-to-close volatility,
          using OHLC data. Low volatility often precedes breakouts.
     BEST MARKETS: All markets. Good for volatility-based strategies.
     TIMEFRAME: Daily charts. 20-period is standard.
@@ -137,7 +137,7 @@ def strategy_grv(
     upper = float(parameters.get('upper', 30))
     lower = float(parameters.get('lower', 15))
     price_col = 'Close'
-    indicator_col = f'GK_VOL_{period}_Ann'
+    indicator_col = f'GRV_VOL_{period}_Ann'
     
     data, _, _ = compute_indicator(
         data=data,

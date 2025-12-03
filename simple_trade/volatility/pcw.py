@@ -3,7 +3,7 @@ import pandas as pd
 
 def pcw(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Price Channel Width (PCW), which measures the width of a price channel
+    Calculates Price Channel Width (pcw), which measures the width of a price channel
     (Donchian-style) as a percentage of the closing price. It provides a simple measure
     of volatility based on the high-low range over a period.
 
@@ -73,11 +73,11 @@ def strategy_pcw(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    PCW (Price Channel Width) - Volatility Threshold Strategy
+    pcw (Price Channel Width) - Volatility Threshold Strategy
     
-    LOGIC: Buy when PCW drops below lower threshold (narrow channel/consolidation),
+    LOGIC: Buy when pcw drops below lower threshold (narrow channel/consolidation),
            sell when rises above upper threshold (wide channel/trending).
-    WHY: PCW measures Donchian-style channel width as percentage of close.
+    WHY: pcw measures Donchian-style channel width as percentage of close.
          Low PCW indicates consolidation, often preceding breakouts.
     BEST MARKETS: All markets. Good for breakout identification.
     TIMEFRAME: Daily charts. 20-period is standard.

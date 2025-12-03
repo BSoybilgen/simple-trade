@@ -4,7 +4,7 @@ import pandas as pd
 
 def lsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Laguerre RSI (LRSI), a technical indicator developed by John Ehlers 
+    Calculates the Laguerre RSI (lsi), a technical indicator developed by John Ehlers 
     that uses a Laguerre filter to create an RSI with less lag and less noise.
 
     Args:
@@ -26,14 +26,14 @@ def lsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        CU = (L0 - L1) + (L1 - L2) + (L2 - L3) (only positive differences)
        CD = (L0 - L1) + (L1 - L2) + (L2 - L3) (only negative differences abs value)
 
-    3. Calculate LRSI:
-       LRSI = 100 * CU / (CU + CD)
+    3. Calculate lsi:
+       lsi = 100 * CU / (CU + CD)
 
     Interpretation:
     - Range: 0 to 100.
     - Overbought: Values above 80 (or 0.8 depending on scale, here 100) typically indicate overbought.
     - Oversold: Values below 20 typically indicate oversold.
-    - Responsiveness: Reacts faster to price changes than standard RSI due to the Laguerre filter.
+    - Responsiveness: lsi reacts faster to price changes than standard RSI due to the Laguerre filter.
 
     Use Cases:
     - Scalping/Short-term Trading: Due to its low lag, it is popular for short-term entries.
@@ -95,7 +95,7 @@ def lsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         prev_l0, prev_l1, prev_l2, prev_l3 = new_l0, new_l1, new_l2, new_l3
 
     gamma_str = f"{gamma:g}"
-    lrsi_series = pd.Series(lrsi, index=series.index, name=f'LRSI_{gamma_str}')
+    lrsi_series = pd.Series(lrsi, index=series.index, name=f'LSI_{gamma_str}')
 
     columns_list = [lrsi_series.name]
     return lrsi_series, columns_list
@@ -112,10 +112,10 @@ def strategy_lsi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    LSI (Laguerre RSI) - Mean Reversion Strategy
+    lsi (Laguerre RSI) - Mean Reversion Strategy
     
-    LOGIC: Buy when LRSI drops below lower threshold (oversold), sell when above upper.
-    WHY: Laguerre filter creates an RSI with less lag and noise. Reacts faster to price
+    LOGIC: Buy when lsi drops below lower threshold (oversold), sell when above upper.
+    WHY: Laguerre filter creates an RSI with less lag and noise. lsi reacts faster to price
          changes than standard RSI. Gamma controls smoothing (higher = smoother).
     BEST MARKETS: Short-term trading and scalping. Forex, futures, and liquid stocks.
                   Popular for quick reversal detection due to low lag.
@@ -146,7 +146,7 @@ def strategy_lsi(
     
     indicator_params = {"gamma": gamma}
     gamma_str = f"{gamma:g}"
-    indicator_col = f'LRSI_{gamma_str}'
+    indicator_col = f'LSI_{gamma_str}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(

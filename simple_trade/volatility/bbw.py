@@ -3,7 +3,7 @@ import pandas as pd
 
 def bbw(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Bollinger Band Width (BBW), a volatility indicator that measures the
+    Calculates Bollinger Band Width (bbw), a volatility indicator that measures the
     width between the upper and lower Bollinger Bands, normalized by the middle band.
     It quantifies the expansion and contraction of volatility.
 
@@ -41,10 +41,10 @@ def bbw(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     comparable across different price levels and assets.
 
     Interpretation:
-    - Low BBW: Low volatility, tight bands, consolidation phase
-    - High BBW: High volatility, wide bands, trending or volatile phase
-    - Decreasing BBW: Volatility contracting, "The Squeeze" forming
-    - Increasing BBW: Volatility expanding, potential breakout occurring
+    - Low bbw: Low volatility, tight bands, consolidation phase
+    - High bbw: High volatility, wide bands, trending or volatile phase
+    - Decreasing bbw: Volatility contracting, "The Squeeze" forming
+    - Increasing bbw: Volatility expanding, potential breakout occurring
 
     The Squeeze:
     - When BBW reaches extremely low levels, it indicates "The Squeeze"
@@ -121,11 +121,11 @@ def strategy_bbw(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    BBW (Bollinger Band Width) - Volatility Squeeze Strategy
+    bbw (Bollinger Band Width) - Volatility Squeeze Strategy
     
-    LOGIC: Buy when BBW drops below lower threshold (squeeze/consolidation),
+    LOGIC: Buy when bbw drops below lower threshold (squeeze/consolidation),
            sell when rises above upper threshold (volatility expansion).
-    WHY: BBW measures width of Bollinger Bands. Low BBW indicates "The Squeeze" -
+    WHY: bbw measures width of Bollinger Bands. Low bbw indicates "The Squeeze" -
          a period of low volatility that often precedes significant breakouts.
     BEST MARKETS: All markets. Excellent for identifying pre-breakout setups.
                   Combine with price action for breakout direction.

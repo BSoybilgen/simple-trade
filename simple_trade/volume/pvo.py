@@ -4,7 +4,7 @@ import numpy as np
 
 def pvo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Percentage Volume Oscillator (PVO), a momentum oscillator for volume
+    Calculates the Percentage Volume Oscillator (pvo), a momentum oscillator for volume
     that shows the relationship between two volume moving averages as a percentage.
     It is similar to MACD but applied to volume.
 
@@ -96,11 +96,11 @@ def strategy_pvo(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    PVO (Percentage Volume Oscillator) - Signal Line Crossover Strategy
+    pvo (Percentage Volume Oscillator) - Signal Line Crossover Strategy
     
-    LOGIC: Buy when PVO crosses above signal line (volume expanding),
-           sell when PVO crosses below signal line (volume contracting).
-    WHY: PVO is like MACD for volume. Shows relationship between two volume MAs.
+    LOGIC: Buy when pvo crosses above signal line (volume expanding),
+           sell when pvo crosses below signal line (volume contracting).
+    WHY: pvo is like MACD for volume. Shows relationship between two volume MAs.
          Positive PVO indicates expanding volume, negative indicates contracting.
     BEST MARKETS: Stocks, ETFs. Good for breakout confirmation.
     TIMEFRAME: Daily charts. 12/26/9 periods is standard (like MACD).

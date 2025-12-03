@@ -3,7 +3,7 @@ import pandas as pd
 
 def nat(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Normalized Average True Range (NATR), which expresses ATR as a
+    Calculates the Normalized Average True Range (nat), which expresses ATR as a
     percentage of the closing price, similar to ATRP but with additional normalization
     commonly used in technical analysis platforms.
 
@@ -17,18 +17,18 @@ def nat(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the NATR series and a list of column names.
+        tuple: A tuple containing the NAT series and a list of column names.
 
     Calculation Steps:
     1. Calculate ATR:
        Using Wilder's smoothing method over the specified window.
     2. Normalize:
-       NATR = (ATR / Close) * 100
+       NAT = (ATR / Close) * 100
 
     Interpretation:
-    - Low NATR (<2%): Low relative volatility.
-    - Medium NATR (2-5%): Normal volatility.
-    - High NATR (>5%): High relative volatility.
+    - Low NAT (<2%): Low relative volatility.
+    - Medium NAT (2-5%): Normal volatility.
+    - High NAT (>5%): High relative volatility.
 
     Use Cases:
     - Cross-asset volatility comparison.
@@ -66,11 +66,11 @@ def nat(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         atr_values.iloc[i] = ((atr_values.iloc[i-1] * (window-1)) + tr.iloc[i]) / window
     
     # Normalize to percentage
-    natr_values = (atr_values / close) * 100
+    nat_values = (atr_values / close) * 100
     
-    natr_values.name = f'NATR_{window}'
-    columns_list = [natr_values.name]
-    return natr_values, columns_list
+    nat_values.name = f'NAT_{window}'
+    columns_list = [nat_values.name]
+    return nat_values, columns_list
 
 
 def strategy_nat(
@@ -84,11 +84,11 @@ def strategy_nat(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    NAT (Normalized ATR) - Volatility Threshold Strategy
+    nat (Normalized ATR) - Volatility Threshold Strategy
     
-    LOGIC: Buy when NATR drops below lower threshold (low volatility squeeze),
+    LOGIC: Buy when nat drops below lower threshold (low volatility squeeze),
            sell when rises above upper threshold (high volatility).
-    WHY: NATR normalizes ATR as percentage of close price. Allows cross-asset
+    WHY: nat normalizes ATR as percentage of close price. Allows cross-asset
          volatility comparison and percentage-based stop-loss placement.
     BEST MARKETS: All markets. Good for normalized volatility analysis.
     TIMEFRAME: Daily charts. 14-period is standard.
@@ -117,7 +117,7 @@ def strategy_nat(
     upper = float(parameters.get('upper', 5.0))
     lower = float(parameters.get('lower', 2.0))
     price_col = 'Close'
-    indicator_col = f'NATR_{window}'
+    indicator_col = f'NAT_{window}'
     
     data, _, _ = compute_indicator(
         data=data,

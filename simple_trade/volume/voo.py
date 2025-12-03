@@ -2,7 +2,7 @@ import pandas as pd
 
 def voo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Volume Oscillator (VO), which displays the difference between
+    Calculates the Volume Oscillator (voo), which displays the difference between
     two moving averages of volume. It measures volume trends using points (absolute difference)
     rather than percentage.
 
@@ -26,17 +26,17 @@ def voo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        Slow SMA = SMA(Volume, slow_period)
 
     3. Calculate VO:
-       VO = Fast SMA - Slow SMA
+       VOO = Fast SMA - Slow SMA
 
     Interpretation:
-    - Positive VO: Volume is increasing (Short-term volume > Long-term volume).
-    - Negative VO: Volume is decreasing (Short-term volume < Long-term volume).
-    - Trend Strength: Rising VO indicates increasing market participation.
+    - Positive VOO: Volume is increasing (Short-term volume > Long-term volume).
+    - Negative VOO: Volume is decreasing (Short-term volume < Long-term volume).
+    - Trend Strength: Rising VOO indicates increasing market participation.
 
     Use Cases:
     - Volume Trend Analysis: Confirming the strength of price moves.
-    - Breakout Confirmation: VO spikes often accompany valid breakouts.
-    - Exhaustion: Extreme VO readings may signal trend exhaustion.
+    - Breakout Confirmation: VOO spikes often accompany valid breakouts.
+    - Exhaustion: Extreme VOO readings may signal trend exhaustion.
     """
     if parameters is None:
         parameters = {}
@@ -56,7 +56,7 @@ def voo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     # Calculate VO
     vo_values = fast_sma - slow_sma
     
-    vo_values.name = f'VO_{fast_period}_{slow_period}'
+    vo_values.name = f'VOO_{fast_period}_{slow_period}'
     columns_list = [vo_values.name]
     return vo_values, columns_list
 
@@ -72,11 +72,11 @@ def strategy_voo(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VOO (Volume Oscillator) - Zero Line Cross Strategy
+    voo (Volume Oscillator) - Zero Line Cross Strategy
     
-    LOGIC: Buy when VO crosses above zero (volume increasing),
-           sell when VO crosses below zero (volume decreasing).
-    WHY: VO shows difference between fast and slow volume MAs.
+    LOGIC: Buy when voo crosses above zero (volume increasing),
+           sell when voo crosses below zero (volume decreasing).
+    WHY: voo shows difference between fast and slow volume MAs.
          Positive VO indicates increasing market participation.
     BEST MARKETS: Stocks, ETFs. Good for breakout confirmation.
     TIMEFRAME: Daily charts. 5/10 periods is standard.
@@ -103,7 +103,7 @@ def strategy_voo(
     fast_period = int(parameters.get('fast_period', 5))
     slow_period = int(parameters.get('slow_period', 10))
     price_col = 'Close'
-    indicator_col = f'VO_{fast_period}_{slow_period}'
+    indicator_col = f'VOO_{fast_period}_{slow_period}'
     
     data, _, _ = compute_indicator(
         data=data,

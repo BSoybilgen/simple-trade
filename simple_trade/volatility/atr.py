@@ -4,7 +4,7 @@ import numpy as np
 
 def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Average True Range (ATR), a volatility indicator that measures market volatility
+    Calculates the Average True Range (atr), a volatility indicator that measures market volatility
     by decomposing the entire range of an asset price for a given period.
 
     Args:
@@ -27,8 +27,8 @@ def atr(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        - Subsequent values: ((Prior ATR * (window-1)) + Current TR) / window (Wilder's Smoothing).
 
     Interpretation:
-    - Higher ATR values indicate higher volatility.
-    - Lower ATR values indicate lower volatility.
+    - Higher atr values indicate higher volatility.
+    - Lower atr values indicate lower volatility.
     - Does not indicate trend direction, only magnitude of price movement.
 
     Use Cases:
@@ -92,12 +92,12 @@ def strategy_atr(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    ATR (Average True Range) - Volatility Threshold Strategy
+    atr (Average True Range) - Volatility Threshold Strategy
     
-    LOGIC: Buy when ATR drops below lower percentile (low volatility squeeze),
+    LOGIC: Buy when atr drops below lower percentile (low volatility squeeze),
            sell when rises above upper percentile (high volatility).
-    WHY: ATR measures market volatility. Low ATR indicates consolidation and
-         potential breakout setup. High ATR indicates strong moves or overextension.
+    WHY: atr measures market volatility. Low atr indicates consolidation and
+         potential breakout setup. High atr indicates strong moves or overextension.
     BEST MARKETS: All markets. Good for volatility-based position sizing.
                   Combine with trend indicators for directional trades.
     TIMEFRAME: Daily charts. 14-period is standard.

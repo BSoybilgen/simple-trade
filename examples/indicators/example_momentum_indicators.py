@@ -5,781 +5,277 @@ import pandas as pd
 
 from simple_trade import compute_indicator, download_data
 
-# Set pandas display options for better output
+# Configure pandas display to make console output easier to scan
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-# ### The Awesome Oscillator (AO)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["fast_window"] = 5
-parameters["slow_window"] = 34
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='awo',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+def _fetch_data(symbol: str, start: str, end: str, interval: str = '1d'):
+    print(f"\nDownloading data for {symbol} ({interval})...")
+    return download_data(symbol, start, end, interval=interval)
 
-# ### The Balance of Power (BOP)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-parameters["smooth"] = True
-columns["open_col"] = 'Open'
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='bop',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+def _maybe_show(fig):
+    if fig is not None:
+        plt.show(block=True)
+        plt.close(fig)
 
-# ### The Commodity Channel Index (CCI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-parameters["constant"] = 0.015
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='cci',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Awesome Oscillator (AWO)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"fast_window": 5, "slow_window": 34}
+cols = {"high_col": 'High', "low_col": 'Low'}
+_, _, fig = compute_indicator(data, 'awo', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Chande Momentum Oscillator (CMO)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='cmo',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Balance of Power (BOP)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 14, "smooth": True}
+cols = {"open_col": 'Open', "high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'bop', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Center of Gravity (COG)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 10
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='cog',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Commodity Channel Index (CCI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 20, "constant": 0.015}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'cci', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Connors RSI (CRS)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["rsi_window"] = 3
-parameters["streak_window"] = 2
-parameters["rank_window"] = 100
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='crs',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Chande Momentum Oscillator (CMO)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'cmo', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Detrended Price Oscillator (DPO)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='dpo',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Center of Gravity (COG)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 10}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'cog', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Elder-Ray Index (ERI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 13
-columns["close_col"] = 'Close'
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='eri',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Connors RSI (CRS)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"rsi_window": 3, "streak_window": 2, "rank_window": 100}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'crs', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Fisher Transform (FIS)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 9
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='fis',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Detrended Price Oscillator (DPO)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 20}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'dpo', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Intraday Momentum Index (IMI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["open_col"] = 'Open'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='imi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Elder-Ray Index (ERI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 13}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'eri', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Know Sure Thing (KST)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["roc_periods"] = (10, 15, 20, 30)
-parameters["ma_periods"] = (10, 10, 10, 15)
-parameters["weights"] = (1, 2, 3, 4)
-parameters["signal"] = 9
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='kst',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Fisher Transform (FIS)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 9}
+cols = {"high_col": 'High', "low_col": 'Low'}
+_, _, fig = compute_indicator(data, 'fis', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Laguerre RSI (LSI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["gamma"] = 0.5
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='lsi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Intraday Momentum Index (IMI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"open_col": 'Open', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'imi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Moving Average Convergence Divergence Index (MACD), Signal Line, and Histogram
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window_fast"] = 12
-parameters["window_slow"] = 26
-parameters["window_signal"] = 9
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='mac',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Know Sure Thing (KST)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {
+    "roc_periods": (10, 15, 20, 30),
+    "ma_periods": (10, 10, 10, 15),
+    "weights": (1, 2, 3, 4),
+    "signal": 9,
+}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'kst', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Momentum Strength Index (MSI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-parameters["power"] = 1.0
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='msi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Laguerre RSI (LSI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"gamma": 0.5}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'lsi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Pretty Good Oscillator (PGO)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='pgo',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Moving Average Convergence Divergence (MACD)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window_fast": 12, "window_slow": 26, "window_signal": 9}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'mac', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Percentage Price Oscillator (PPO)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["fast_window"] = 12
-parameters["slow_window"] = 26
-parameters["signal_window"] = 9
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='ppo',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Momentum Strength Index (MSI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 14, "power": 1.0}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'msi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Psychological Line (PSY)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 12
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='psy',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Pretty Good Oscillator (PGO)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'pgo', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Qstick Indicator (QST)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 10
-columns["close_col"] = 'Close'
-columns["open_col"] = 'Open'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='qst',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Percentage Price Oscillator (PPO)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"fast_window": 12, "slow_window": 26, "signal_window": 9}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'ppo', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Relative Momentum Index (RMI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 20
-parameters["momentum_period"] = 5
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='rmi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Psychological Line (PSY)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 12}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'psy', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Rate of Change (ROC)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 12
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='roc',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Qstick Indicator (QST)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 10}
+cols = {"open_col": 'Open', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'qst', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Relative Strength Index (RSI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='rsi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Relative Momentum Index (RMI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 20, "momentum_period": 5}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'rmi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Relative Vigor Index (RVG)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 10
-columns["open_col"] = 'Open'
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='rvg',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Rate of Change (ROC)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 12}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'roc', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Stochastic RSI (SRI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["rsi_window"] = 14
-parameters["stoch_window"] = 14
-parameters["k_window"] = 3
-parameters["d_window"] = 3
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='sri',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Relative Strength Index (RSI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'rsi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Schaff Trend Cycle (STC)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window_fast"] = 23
-parameters["window_slow"] = 50
-parameters["cycle"] = 10
-parameters["smooth"] = 3
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='stc',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Relative Vigor Index (RVG)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 10}
+cols = {"open_col": 'Open', "high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'rvg', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Stochastic Oscillator Index (STOCH)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["k_period"] = 14
-parameters["d_period"] = 3
-parameters["smooth_k"] = 3
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='sto',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Stochastic RSI (SRI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"rsi_window": 14, "stoch_window": 14, "k_window": 3, "d_window": 3}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'sri', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The True Strength Index (TSI)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["slow"] = 25
-parameters["fast"] = 13
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='tsi',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Schaff Trend Cycle (STC)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window_fast": 23, "window_slow": 50, "cycle": 10, "smooth": 3}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'stc', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The TTM Squeeze Momentum Indicator (TTM)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["length"] = 20
-parameters["std_dev"] = 2.0
-parameters["atr_length"] = 20
-parameters["atr_multiplier"] = 1.5
-parameters["smooth"] = 3
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='ttm',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Stochastic Oscillator (STO)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"k_period": 14, "d_period": 3, "smooth_k": 3}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'sto', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Ultimate Oscillator (ULT)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["short_window"] = 7
-parameters["medium_window"] = 14
-parameters["long_window"] = 28
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='ult',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### True Strength Index (TSI)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"slow": 25, "fast": 13}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'tsi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Vortex Indicator (VOR)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vor',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### TTM Squeeze Momentum Indicator (TTM)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {
+    "length": 20,
+    "std_dev": 2.0,
+    "atr_length": 20,
+    "atr_multiplier": 1.5,
+    "smooth": 3,
+}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'ttm', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Williams %R (WIL)
-# Step 1: Download data
-symbol = 'MSFT'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='wil',
-    parameters=parameters,
-    columns=columns,
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Ultimate Oscillator (ULT)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"short_window": 7, "medium_window": 14, "long_window": 28}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'ult', parameters=params, columns=cols)
+_maybe_show(fig)
+
+
+# ### Vortex Indicator (VOR)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'vor', parameters=params, columns=cols)
+_maybe_show(fig)
+
+
+# ### Williams Accumulation/Distribution (WAD)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"sma_period": 20}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'wad', parameters=params, columns=cols)
+_maybe_show(fig)
+
+
+# ### Williams %R (WIL)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'wil', parameters=params, columns=cols)
+_maybe_show(fig)

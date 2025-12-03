@@ -5,527 +5,162 @@ import pandas as pd
 
 from simple_trade import compute_indicator, download_data
 
-# Set pandas display options for better output
+# Configure pandas display to make console output easier to scan
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-# ### The Accumulation/Distribution Line (ADL)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='adl',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+def _fetch_data(symbol: str, start: str, end: str, interval: str = '1d'):
+    print(f"\nDownloading data for {symbol} ({interval})...")
+    return download_data(symbol, start, end, interval=interval)
 
-# ### The Accumulation/Distribution Oscillator (ADO)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='ado',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+def _maybe_show(fig):
+    if fig is not None:
+        plt.show(block=True)
+        plt.close(fig)
 
-# ### The Bill Williams Market Facilitation Index (BWM)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='bwm',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Accumulation/Distribution Line (ADL)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'adl', parameters={}, columns=cols)
+_maybe_show(fig)
 
-# ### The Chaikin Money Flow (CMF)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 20
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='cmf',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Accumulation/Distribution Oscillator (ADO)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'ado', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Ease of Movement (EMV)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 14
-parameters["divisor"] = 10000
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='emv',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Bill Williams Market Facilitation Index (BWM)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+cols = {"high_col": 'High', "low_col": 'Low', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'bwm', parameters={}, columns=cols)
+_maybe_show(fig)
 
-# ### The Finite Volume Elements (FVE)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 22
-parameters["factor"] = 0.3
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='fve',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Chaikin Money Flow (CMF)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 20}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'cmf', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Force Index (FOI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 13
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='foi',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Ease of Movement (EMV)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 14, "divisor": 10000}
+cols = {"high_col": 'High', "low_col": 'Low', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'emv', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Klinger Volume Oscillator (KVO)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["fast_period"] = 34
-parameters["slow_period"] = 55
-parameters["signal_period"] = 13
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='kvo',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Finite Volume Elements (FVE)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 22, "factor": 0.3}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'fve', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Money Flow Index (MFI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 14
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='mfi',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Force Index (FOI)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 13}
+cols = {"close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'foi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Negative Volume Index (NVI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["initial_value"] = 1000
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='nvi',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Klinger Volume Oscillator (KVO)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"fast_period": 34, "slow_period": 55, "signal_period": 13}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'kvo', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The On-Balance Volume (OBV)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='obv',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Money Flow Index (MFI)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 14}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'mfi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Percentage Volume Oscillator (PVO)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["fast_period"] = 12
-parameters["slow_period"] = 26
-parameters["signal_period"] = 9
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='pvo',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Negative Volume Index (NVI)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"initial_value": 1000}
+cols = {"close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'nvi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Positive Volume Index (PVI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["initial_value"] = 1000
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='pvi',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### On-Balance Volume (OBV)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+cols = {"close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'obv', parameters={}, columns=cols)
+_maybe_show(fig)
 
-# ### The Volume Flow Indicator (VFI)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 130
-parameters["coef"] = 0.2
-parameters["vcoef"] = 2.5
-parameters["smoothing_period"] = 3
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vfi',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Percentage Volume Oscillator (PVO)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"fast_period": 12, "slow_period": 26, "signal_period": 9}
+cols = {"volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'pvo', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Volume Moving Average (VMA)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["window"] = 14
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vma',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Positive Volume Index (PVI)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"initial_value": 1000}
+cols = {"close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'pvi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Volume Oscillator (VOO)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["fast_period"] = 5
-parameters["slow_period"] = 10
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='voo',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Volume Flow Indicator (VFI)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {
+    "period": 130,
+    "coef": 0.2,
+    "vcoef": 2.5,
+    "smoothing_period": 3,
+}
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'vfi', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Volume Price Trend (VPT)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vpt',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Volume Oscillator (VOO)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"fast_period": 5, "slow_period": 10}
+cols = {"volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'voo', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Volume Rate of Change (VRO)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-parameters["period"] = 14
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vro',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Volume Price Trend (VPT)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+cols = {"close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'vpt', parameters={}, columns=cols)
+_maybe_show(fig)
 
-# ### The Volume Weighted Average Price (VWA)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-columns["volume_col"] = 'Volume'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='vwa',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Volume Rate of Change (VRO)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"period": 14}
+cols = {"volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'vro', parameters=params, columns=cols)
+_maybe_show(fig)
 
-# ### The Williams Accumulation/Distribution (WAD)
-# Step 1: Download data
-symbol = 'GOOG'
-start = '2024-01-01'
-end = '2025-01-01'
-interval = '1d'
-print(f"\nDownloading data for {symbol}...")
-data = download_data(symbol, start, end, interval=interval)
 
-# Step 2: Calculate indicator
-parameters = dict()
-columns = dict()
-columns["high_col"] = 'High'
-columns["low_col"] = 'Low'
-columns["close_col"] = 'Close'
-data, columns, fig = compute_indicator(
-    data=data,
-    indicator='wad',
-    parameters=parameters,
-    columns=columns
-)
-if fig is not None:
-    plt.show(block=True)
-    plt.close(fig)
+# ### Volume Weighted Average Price (VWA)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+cols = {"high_col": 'High', "low_col": 'Low', "close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'vwa', parameters={}, columns=cols)
+_maybe_show(fig)

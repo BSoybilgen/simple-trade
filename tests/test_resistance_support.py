@@ -1,6 +1,8 @@
 import pytest
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend before importing pyplot
 import matplotlib.pyplot as plt
 from unittest.mock import patch
 from simple_trade.compute_resistance_support import (

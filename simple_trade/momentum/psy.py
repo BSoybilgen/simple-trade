@@ -3,7 +3,7 @@ import pandas as pd
 
 def psy(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Psychological Line (PSY), a ratio of the number of rising periods 
+    Calculates the Psychological Line (psy), a ratio of the number of rising periods 
     over the last N periods to the total number of periods.
 
     Args:
@@ -67,10 +67,10 @@ def strategy_psy(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    PSY (Psychological Line) - Mean Reversion Strategy
+    psy (Psychological Line) - Mean Reversion Strategy
     
-    LOGIC: Buy when PSY drops below 25 (oversold), sell when rises above 75 (overbought).
-    WHY: PSY measures ratio of up days to total days. Extreme readings suggest
+    LOGIC: Buy when psy drops below 25 (oversold), sell when rises above 75 (overbought).
+    WHY: psy measures ratio of up days to total days. Extreme readings suggest
          sentiment has become one-sided and may revert. Simple but effective.
     BEST MARKETS: Range-bound markets and indices. Good for gauging short-term
                   sentiment extremes. Works well on ETFs and broad market indices.

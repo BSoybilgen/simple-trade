@@ -3,7 +3,7 @@ import pandas as pd
 
 def mad(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Median Absolute Deviation (MAD), a robust volatility measure that
+    Calculates the Median Absolute Deviation (mad), a robust volatility measure that
     is less sensitive to outliers than standard deviation. It measures dispersion
     around the median rather than the mean.
 
@@ -82,11 +82,11 @@ def strategy_mad(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    MAD (Median Absolute Deviation) - Volatility Threshold Strategy
+    mad (Median Absolute Deviation) - Volatility Threshold Strategy
     
-    LOGIC: Buy when MAD drops below lower threshold (low volatility),
+    LOGIC: Buy when mad drops below lower threshold (low volatility),
            sell when rises above upper threshold (high volatility).
-    WHY: MAD is more robust to outliers than standard deviation.
+    WHY: mad is more robust to outliers than standard deviation.
          Better for non-normal distributions and extreme values.
     BEST MARKETS: All markets. Good for robust volatility measurement.
     TIMEFRAME: Daily charts. 20-period is standard.

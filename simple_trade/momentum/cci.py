@@ -4,21 +4,21 @@ import numpy as np
 
 def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Commodity Channel Index (CCI), a momentum oscillator used to identify cyclical trends
-    and extreme market conditions.
+    Calculates the Commodity Channel Index (cci), a versatile indicator that can be used 
+    to identify a new trend or warn of extreme conditions.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
             - window (int): The lookback period for the calculation. Default is 20.
-            - constant (float): The scaling factor used in the CCI formula. Default is 0.015.
+            - constant (float): The scaling factor used in the cci formula. Default is 0.015.
         columns (dict, optional): Dictionary containing column name mappings:
             - high_col (str): The column name for high prices. Default is 'High'.
             - low_col (str): The column name for low prices. Default is 'Low'.
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the CCI series and a list of column names.
+        tuple: A tuple containing the cci series and a list of column names.
 
     Calculation Steps:
     1. Calculate the Typical Price (TP):
@@ -30,11 +30,11 @@ def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     3. Calculate the Mean Deviation (MD):
        MD = Mean(Abs(TP - SMA(TP))) over the window
 
-    4. Calculate the CCI:
-       CCI = (TP - SMA(TP)) / (constant * MD)
+    4. Calculate the cci:
+       cci = (TP - SMA(TP)) / (constant * MD)
 
     Interpretation:
-    - The constant (0.015) ensures that approximately 70-80% of CCI values fall between -100 and +100.
+    - The constant (0.015) ensures that approximately 70-80% of cci values fall between -100 and +100.
     - Overbought: Values above +100.
     - Oversold: Values below -100.
     - Trend: Values consistently above +100 indicate strong uptrend; below -100 indicate strong downtrend.
@@ -42,7 +42,7 @@ def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     Use Cases:
     - Identifying overbought/oversold conditions: Potential reversal zones.
     - Detecting trend strength: Confirming breakout strength.
-    - Identifying potential reversals: Divergence between CCI and price.
+    - Identifying potential reversals: Divergence between cci and price.
     - Generating trading signals: Zero line crossovers or +/-100 crossovers.
     """
     # Set default values
@@ -76,7 +76,7 @@ def cci(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     # Avoid division by zero
     mean_deviation = mean_deviation.replace(0, np.nan)
     
-    # Calculate the CCI
+    # Calculate the cci
     cci = (typical_price - sma_tp) / (constant * mean_deviation)
 
     cci.name = f'CCI_{window}_{constant}'
@@ -95,11 +95,11 @@ def strategy_cci(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    CCI (Commodity Channel Index) - Mean Reversion Strategy
+    cci (Commodity Channel Index) - Mean Reversion Strategy
     
-    LOGIC: Buy when CCI drops below lower threshold (oversold), sell when rises above upper.
-    WHY: CCI measures deviation from statistical mean. Extreme readings suggest price
-         has moved too far and is likely to revert. Originally designed for commodities.
+    LOGIC: Buy when cci drops below -100 (oversold), sell when rises above +100 (overbought).
+    WHY: cci measures price deviation from statistical mean. Values beyond ±100 indicate
+         price is unusually high/low relative to average. Good for identifying extremes.igned for commodities.
     BEST MARKETS: Ranging/sideways markets. Commodities, forex pairs, and stocks in
                   consolidation phases. Avoid strong trending markets.
     TIMEFRAME: Works on all timeframes. Higher thresholds (±150-200) for volatile assets.

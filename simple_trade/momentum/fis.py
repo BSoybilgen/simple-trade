@@ -4,7 +4,7 @@ import pandas as pd
 
 def fis(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Fisher Transform, a technical indicator created by John Ehlers 
+    Calculates the Fisher Transform (fis), a technical indicator created by John Ehlers 
     that converts prices into a Gaussian normal distribution.
 
     Args:
@@ -63,7 +63,7 @@ def fis(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     normalized = normalized.clip(-0.999, 0.999)
 
     fisher_values = pd.Series(index=df.index, dtype=float)
-    fisher_values.name = f'FISH_{window}'
+    fisher_values.name = f'FIS_{window}'
 
     prev_value = 0.0
 
@@ -95,10 +95,10 @@ def strategy_fis(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    FIS (Fisher Transform) - Zero Line Crossover Strategy
+    fis (Fisher Transform) - Zero Line Crossover Strategy
     
-    LOGIC: Buy when Fisher crosses above zero (bullish), sell when crosses below.
-    WHY: Fisher Transform converts prices to Gaussian distribution, creating sharp
+    LOGIC: Buy when fis crosses above zero (bullish), sell when crosses below.
+    WHY: fis converts prices to Gaussian distribution, creating sharp
          turning points. Zero crossings indicate momentum shifts with clear signals.
     BEST MARKETS: Trending markets with clear reversals. Forex, stocks, and futures.
                   Creates sharp peaks/troughs making reversals easier to identify.
@@ -126,7 +126,7 @@ def strategy_fis(
     window = int(parameters.get('window', 9))
     
     indicator_params = {"window": window}
-    short_window_indicator = f'FISH_{window}'
+    short_window_indicator = f'FIS_{window}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(

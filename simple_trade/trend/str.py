@@ -3,8 +3,8 @@ import numpy as np
 
 def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the SuperTrend indicator.
-    SuperTrend is a trend following indicator similar to moving averages.
+    Calculates the SuperTrend indicator (str).
+    str is a trend following indicator similar to moving averages.
     It plots on price charts as a line that follows price but stays a certain
     distance from it, reacting to volatility.
     
@@ -83,7 +83,7 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     result['ATR'] = atr # For reference if needed
     result['Basic_up_band'] = up_band # Basic upper band before adjustment
     result['Basic_low_band'] = low_band # Basic lower band before adjustment
-    result['Supertrend'] = np.nan
+    result['STR'] = np.nan
     result['Direction'] = 0  # 1 for uptrend, -1 for downtrend, 0 for undetermined
 
     # The first 'period-1' ATR values might be less reliable or NaN if min_periods=period.
@@ -92,7 +92,7 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     # Iterative calculation for SuperTrend
     for i in range(len(df)):
         if i < period -1 : # ATR might not be stable enough or is NaN. Or first period elements for rolling
-            result.loc[result.index[i], 'Supertrend'] = np.nan # Or some initial value if preferred
+            result.loc[result.index[i], 'STR'] = np.nan # Or some initial value if preferred
             result.loc[result.index[i], 'Direction'] = 0
             continue
 
@@ -101,15 +101,15 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
                            # or first point to set an initial trend
             if close.iloc[i] > result.loc[result.index[i], 'Basic_low_band']:
                 result.loc[result.index[i], 'Direction'] = 1
-                result.loc[result.index[i], 'Supertrend'] = result.loc[result.index[i], 'Basic_low_band']
+                result.loc[result.index[i], 'STR'] = result.loc[result.index[i], 'Basic_low_band']
             else: # close <= basic_low_band (could also be close < basic_up_band)
                 result.loc[result.index[i], 'Direction'] = -1
-                result.loc[result.index[i], 'Supertrend'] = result.loc[result.index[i], 'Basic_up_band']
+                result.loc[result.index[i], 'STR'] = result.loc[result.index[i], 'Basic_up_band']
             continue
 
         # Previous values
         prev_direction = result.loc[result.index[i-1], 'Direction']
-        prev_supertrend = result.loc[result.index[i-1], 'Supertrend']
+        prev_str = result.loc[result.index[i-1], 'STR']
         
         curr_close = close.iloc[i]
         curr_basic_up_band = result.loc[result.index[i], 'Basic_up_band']
@@ -119,12 +119,12 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         curr_supertrend = np.nan
 
         if prev_direction == 1: # Previous trend was UP
-            curr_supertrend = max(prev_supertrend, curr_basic_low_band) # Ratchet: ST cannot go down in uptrend
+            curr_supertrend = max(prev_str, curr_basic_low_band) # Ratchet: ST cannot go down in uptrend
             if curr_close < curr_supertrend: # Price crossed below ST line
                 curr_direction = -1 # Change trend to DOWN
                 curr_supertrend = curr_basic_up_band # New ST is the upper band
         elif prev_direction == -1: # Previous trend was DOWN
-            curr_supertrend = min(prev_supertrend, curr_basic_up_band) # Ratchet: ST cannot go up in downtrend
+            curr_supertrend = min(prev_str, curr_basic_up_band) # Ratchet: ST cannot go up in downtrend
             if curr_close > curr_supertrend: # Price crossed above ST line
                 curr_direction = 1 # Change trend to UP
                 curr_supertrend = curr_basic_low_band # New ST is the lower band
@@ -139,24 +139,24 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
                 curr_supertrend = curr_basic_up_band
                 
         result.loc[result.index[i], 'Direction'] = curr_direction
-        result.loc[result.index[i], 'Supertrend'] = curr_supertrend
+        result.loc[result.index[i], 'STR'] = curr_supertrend
 
-        df = result[['Supertrend', 'Direction']].copy()
-        df.rename(columns={'Supertrend': f'Supertrend_{period}_{multiplier}', 
+        df = result[['STR', 'Direction']].copy()
+        df.rename(columns={'STR': f'STR_{period}_{multiplier}', 
                            'Direction': f'Direction_{period}_{multiplier}'},
                            inplace=True)
 
         # Initialize Bullish and Bearish SuperTrend values
-        df[f'Supertrend_Bullish_{period}_{multiplier}'] = np.nan
-        df[f'Supertrend_Bearish_{period}_{multiplier}'] = np.nan
+        df[f'STR_Bullish_{period}_{multiplier}'] = np.nan
+        df[f'STR_Bearish_{period}_{multiplier}'] = np.nan
         
         # Set Bullish and Bearish values directly
-        df.loc[df[f'Direction_{period}_{multiplier}'] == 1, f'Supertrend_Bullish_{period}_{multiplier}'] = df.loc[df[f'Direction_{period}_{multiplier}'] == 1, f'Supertrend_{period}_{multiplier}']
-        df.loc[df[f'Direction_{period}_{multiplier}'] == -1, f'Supertrend_Bearish_{period}_{multiplier}'] = df.loc[df[f'Direction_{period}_{multiplier}'] == -1, f'Supertrend_{period}_{multiplier}']
+        df.loc[df[f'Direction_{period}_{multiplier}'] == 1, f'STR_Bullish_{period}_{multiplier}'] = df.loc[df[f'Direction_{period}_{multiplier}'] == 1, f'STR_{period}_{multiplier}']
+        df.loc[df[f'Direction_{period}_{multiplier}'] == -1, f'STR_Bearish_{period}_{multiplier}'] = df.loc[df[f'Direction_{period}_{multiplier}'] == -1, f'STR_{period}_{multiplier}']
         
         # Fill NaN values with scaled close prices
-        df[f'Supertrend_Bullish_{period}_{multiplier}'] = df[f'Supertrend_Bullish_{period}_{multiplier}'].fillna(close * 1.5)
-        df[f'Supertrend_Bearish_{period}_{multiplier}'] = df[f'Supertrend_Bearish_{period}_{multiplier}'].fillna(close * 0.5)
+        df[f'STR_Bullish_{period}_{multiplier}'] = df[f'STR_Bullish_{period}_{multiplier}'].fillna(close * 1.5)
+        df[f'STR_Bearish_{period}_{multiplier}'] = df[f'STR_Bearish_{period}_{multiplier}'].fillna(close * 0.5)
         
     columns_list = list(df.columns)
     return df, columns_list
@@ -173,10 +173,10 @@ def strategy_str(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    STR (SuperTrend) - Price vs SuperTrend Crossover Strategy
+    str (SuperTrend) - Price vs str Crossover Strategy
     
-    LOGIC: Buy when price crosses above SuperTrend line, sell when crosses below.
-    WHY: SuperTrend is a volatility-based trend indicator. Price above = uptrend,
+    LOGIC: Buy when price crosses above str line, sell when crosses below.
+    WHY: str is a volatility-based trend indicator. Price above = uptrend,
          below = downtrend. The line acts as dynamic support/resistance.
     BEST MARKETS: Trending markets. Stocks, forex, crypto. Excellent for
                   trend following and trailing stop placement.
@@ -213,7 +213,7 @@ def strategy_str(
     )
     
     short_window_indicator = 'Close'
-    long_window_indicator = f'Supertrend_{period}_{multiplier}'
+    long_window_indicator = f'STR_{period}_{multiplier}'
     
     results, portfolio = run_cross_trade(
         data=data,

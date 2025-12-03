@@ -3,8 +3,8 @@ import pandas as pd
 
 def vor(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Vortex Indicator (VI), a technical indicator developed by Etienne Botes and Douglas Siepman.
-    It consists of two lines (VI+ and VI-) that capture positive and negative trend movements.
+    Calculates the Vortex Indicator (vor), a technical indicator developed by Etienne Botes and Douglas Siepman.
+    It consists of two lines (VOR+ and VOR-) that capture positive and negative trend movements.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
@@ -16,7 +16,7 @@ def vor(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the Vortex Indicator DataFrame (VI_Plus, VI_Minus) and a list of column names.
+        tuple: A tuple containing the Vortex Indicator DataFrame (VOR_Plus, VOR_Minus) and a list of column names.
 
     The Vortex Indicator is calculated as follows:
 
@@ -32,14 +32,14 @@ def vor(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        SumVM+ = Sum(VM+, window)
        SumVM- = Sum(VM-, window)
 
-    4. Calculate VI lines:
-       VI+ = SumVM+ / SumTR
-       VI- = SumVM- / SumTR
+    4. Calculate VOR lines:
+       VOR+ = SumVM+ / SumTR
+       VOR- = SumVM- / SumTR
 
     Interpretation:
-    - VI+ > VI-: Bulls are in control (Uptrend).
-    - VI- > VI+: Bears are in control (Downtrend).
-    - Crossovers: VI+ crossing above VI- is a buy signal; VI- crossing above VI+ is a sell signal.
+    - VOR+ > VOR-: Bulls are in control (Uptrend).
+    - VOR- > VOR+: Bears are in control (Downtrend).
+    - Crossovers: VOR+ crossing above VOR- is a buy signal; VOR- crossing above VOR+ is a sell signal.
 
     Use Cases:
     - Trend Identification: Determining the current trend direction.
@@ -80,13 +80,13 @@ def vor(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     vm_plus_sum = vm_plus.rolling(window=window, min_periods=window).sum()
     vm_minus_sum = vm_minus.rolling(window=window, min_periods=window).sum()
 
-    vi_plus = vm_plus_sum / tr_sum
-    vi_minus = vm_minus_sum / tr_sum
+    vor_plus = vm_plus_sum / tr_sum
+    vor_minus = vm_minus_sum / tr_sum
 
-    columns_list = [f'VI_Plus_{window}', f'VI_Minus_{window}']
+    columns_list = [f'VOR_Plus_{window}', f'VOR_Minus_{window}']
     result = pd.DataFrame({
-        columns_list[0]: vi_plus,
-        columns_list[1]: vi_minus,
+        columns_list[0]: vor_plus,
+        columns_list[1]: vor_minus,
     }, index=df.index)
 
     return result, columns_list
@@ -103,11 +103,11 @@ def strategy_vor(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VOR (Vortex Indicator) - VI+/VI- Crossover Strategy
+    vor (Vortex Indicator) - VOR+/VOR- Crossover Strategy
     
-    LOGIC: Buy when VI+ crosses above VI- (bulls in control), sell when VI- crosses above VI+.
-    WHY: Vortex captures positive and negative trend movements. VI+ > VI- = uptrend,
-         VI- > VI+ = downtrend. Crossovers signal trend reversals.
+    LOGIC: Buy when VOR+ crosses above VOR- (bulls in control), sell when VOR- crosses above VOR+.
+    WHY: vor captures positive and negative trend movements. VOR+ > VOR- = uptrend,
+         VOR- > VOR+ = downtrend. Crossovers signal trend reversals.
     BEST MARKETS: Trending markets. Stocks, forex, futures. Good for identifying
                   trend direction and potential reversals.
     TIMEFRAME: Daily charts. 14-period is standard.
@@ -134,8 +134,8 @@ def strategy_vor(
     window = int(parameters.get('window', 14))
     
     indicator_params = {"window": window}
-    short_window_indicator = f'VI_Plus_{window}'
-    long_window_indicator = f'VI_Minus_{window}'
+    short_window_indicator = f'VOR_Plus_{window}'
+    long_window_indicator = f'VOR_Minus_{window}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(

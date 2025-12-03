@@ -1,0 +1,175 @@
+import numpy as np
+import pandas as pd
+
+
+def kma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
+    """
+    Calculates the Kaufman Adaptive Moving Average (kma).
+    kma dynamically adjusts its smoothing factor based on the Efficiency Ratio (ER).
+    When price action is smooth, KAMA reacts faster; when price action is noisy, 
+    it smooths more aggressively to filter out whipsaws.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        parameters (dict, optional): Dictionary containing calculation parameters:
+            - window (int): The lookback period for Efficiency Ratio. Default is 10.
+            - fast_period (int): The fast EMA period limit. Default is 2.
+            - slow_period (int): The slow EMA period limit. Default is 30.
+        columns (dict, optional): Dictionary containing column name mappings:
+            - close_col (str): The column name for closing prices. Default is 'Close'.
+
+    Returns:
+        tuple: A tuple containing the KMA series and a list of column names.
+
+    The kma is calculated as follows:
+
+    1. Calculate Efficiency Ratio (ER):
+       Change = Abs(Price - Price(n periods ago))
+       Volatility = Sum(Abs(Price - Prev Price), n)
+       ER = Change / Volatility
+
+    2. Calculate Smoothing Constant (SC):
+       Fast SC = 2 / (fast_period + 1)
+       Slow SC = 2 / (slow_period + 1)
+       Scaled SC = (ER * (Fast SC - Slow SC) + Slow SC)^2
+
+    3. Calculate kma:
+       kma = Previous kma + Scaled SC * (Price - Previous kma)
+
+    Interpretation:
+    - ER near 1: Market is trending efficiently (Directional). kma tracks price closely.
+    - ER near 0: Market is sideways or noisy (Inefficient). kma remains flat.
+
+    Use Cases:
+    - Trend Filtering: Helps stay in trends while ignoring sideways noise.
+    - Trailing Stop: The flatness of kma in congestion makes it a good stop level.
+    """
+    if parameters is None:
+        parameters = {}
+    if columns is None:
+        columns = {}
+
+    close_col = columns.get('close_col', 'Close')
+    er_window = int(parameters.get('window', 10))
+    fast_period = int(parameters.get('fast_period', 2))
+    slow_period = int(parameters.get('slow_period', 30))
+
+    close = df[close_col]
+
+    direction = close.diff(er_window).abs()
+    volatility = close.diff().abs().rolling(er_window).sum()
+    er = direction / volatility
+    er = er.replace([np.inf, -np.inf], 0).fillna(0)
+
+    fast_sc = 2 / (fast_period + 1)
+    slow_sc = 2 / (slow_period + 1)
+    smoothing_constant = (er * (fast_sc - slow_sc) + slow_sc) ** 2
+
+    values = close.to_numpy(dtype=float)
+    sc_values = smoothing_constant.to_numpy(dtype=float)
+    kama_values = np.full_like(values, np.nan)
+
+    valid_idx = np.where(~np.isnan(values))[0]
+    if valid_idx.size:
+        start = valid_idx[0]
+        kama_values[start] = values[start]
+        for i in range(start + 1, len(values)):
+            price = values[i]
+            prev = kama_values[i - 1]
+            sc = sc_values[i]
+            if np.isnan(price):
+                kama_values[i] = prev
+                continue
+            if np.isnan(sc):
+                sc = 0.0
+            kama_values[i] = prev + sc * (price - prev)
+
+    kama_series = pd.Series(
+        kama_values,
+        index=close.index,
+        name=f'KMA_{er_window}_{fast_period}_{slow_period}'
+    )
+
+    return kama_series, [kama_series.name]
+
+
+def strategy_kma(
+    data: pd.DataFrame,
+    parameters: dict = None,
+    config = None,
+    trading_type: str = 'long',
+    day1_position: str = 'none',
+    risk_free_rate: float = 0.0,
+    long_entry_pct_cash: float = 1.0,
+    short_entry_pct_cash: float = 1.0
+) -> tuple:
+    """
+    kma (Kaufman Adaptive MA) - Dual MA Crossover Strategy
+    
+    LOGIC: Buy when fast kma crosses above slow kma, sell when crosses below.
+    WHY: kma adapts based on Efficiency Ratio. Fast in trends, flat in noise.
+         Excellent for staying in trends while ignoring sideways chop.
+    BEST MARKETS: All market conditions. Stocks, forex, futures.
+                  Particularly good for filtering noise.
+    TIMEFRAME: Daily charts. 10-period with 2/30 fast/slow is standard.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        parameters: Dict with 'short_window' (default 5), 'long_window' (default 10)
+        config: BacktestConfig object for backtest settings
+        trading_type: 'long', 'short', or 'both'
+        day1_position: Initial position ('none', 'long', 'short')
+        risk_free_rate: Risk-free rate for Sharpe ratio calculation
+        long_entry_pct_cash: Percentage of cash to use for long entries
+        short_entry_pct_cash: Percentage of cash to use for short entries
+        
+    Returns:
+        tuple: (results_dict, portfolio_df, indicator_cols_to_plot, data_with_indicators)
+    """
+    from ..run_cross_trade_strategies import run_cross_trade
+    from ..compute_indicators import compute_indicator
+    
+    if parameters is None:
+        parameters = {}
+    
+    short_window = int(parameters.get('short_window', 5))
+    long_window = int(parameters.get('long_window', 10))
+    fast_period = int(parameters.get('fast_period', 2))
+    slow_period = int(parameters.get('slow_period', 30))
+    price_col = 'Close'
+    
+    if short_window == 0:
+        short_window_indicator = 'Close'
+    else:
+        short_window_indicator = f'KMA_{short_window}_{fast_period}_{slow_period}'
+        data, _, _ = compute_indicator(
+            data=data,
+            indicator='kma',
+            parameters={"window": short_window, "fast_period": fast_period, "slow_period": slow_period},
+            figure=False
+        )
+    
+    long_window_indicator = f'KMA_{long_window}_{fast_period}_{slow_period}'
+    data, _, _ = compute_indicator(
+        data=data,
+        indicator='kma',
+        parameters={"window": long_window, "fast_period": fast_period, "slow_period": slow_period},
+        figure=False
+    )
+    
+    results, portfolio = run_cross_trade(
+        data=data,
+        short_window_indicator=short_window_indicator,
+        long_window_indicator=long_window_indicator,
+        price_col=price_col,
+        config=config,
+        long_entry_pct_cash=long_entry_pct_cash,
+        short_entry_pct_cash=short_entry_pct_cash,
+        trading_type=trading_type,
+        day1_position=day1_position,
+        risk_free_rate=risk_free_rate
+    )
+    
+    indicator_cols_to_plot = [short_window_indicator, long_window_indicator]
+    
+    return results, portfolio, indicator_cols_to_plot, data

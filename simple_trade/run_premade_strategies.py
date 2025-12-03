@@ -33,37 +33,44 @@ from .momentum.tsi import strategy_tsi
 from .momentum.ttm import strategy_ttm
 from .momentum.ult import strategy_ult
 from .momentum.vor import strategy_vor
+from .momentum.wad import strategy_wad
 from .momentum.wil import strategy_wil
 
-from .trend.ads import strategy_ads
+# Import moving average strategies
+from .moving_average.ads import strategy_ads
+from .moving_average.alm import strategy_alm
+from .moving_average.ama import strategy_ama
+from .moving_average.dem import strategy_dem
+from .moving_average.ema import strategy_ema
+from .moving_average.fma import strategy_fma
+from .moving_average.gma import strategy_gma
+from .moving_average.hma import strategy_hma
+from .moving_average.jma import strategy_jma
+from .moving_average.kma import strategy_kma
+from .moving_average.lsm import strategy_lsm
+from .moving_average.sma import strategy_sma
+from .moving_average.soa import strategy_soa
+from .moving_average.swm import strategy_swm
+from .moving_average.tem import strategy_tem
+from .moving_average.tma import strategy_tma
+from .moving_average.vid import strategy_vid
+from .moving_average.vma import strategy_vma
+from .moving_average.wma import strategy_wma
+from .moving_average.zma import strategy_zma
+
+# Import trend strategies
 from .trend.adx import strategy_adx
-from .trend.alm import strategy_alm
-from .trend.ama import strategy_ama
 from .trend.aro import strategy_aro
-from .trend.dem import strategy_dem
 from .trend.eac import strategy_eac
 from .trend.eit import strategy_eit
-from .trend.ema import strategy_ema
-from .trend.fma import strategy_fma
-from .trend.gma import strategy_gma
-from .trend.hma import strategy_hma
 from .trend.htt import strategy_htt
 from .trend.ich import strategy_ich
-from .trend.jma import strategy_jma
-from .trend.kma import strategy_kma
-from .trend.lsm import strategy_lsm
 from .trend.mgd import strategy_mgd
+from .trend.pro import strategy_pro
 from .trend.psa import strategy_psa
-from .trend.sma import strategy_sma
-from .trend.soa import strategy_soa
 from .trend.str import strategy_str
-from .trend.swm import strategy_swm
-from .trend.tem import strategy_tem
-from .trend.tma import strategy_tma
 from .trend.tri import strategy_tri
-from .trend.vid import strategy_vid
-from .trend.wma import strategy_wma
-from .trend.zma import strategy_zma
+from .trend.vqi import strategy_vqi
 
 from .volatility.acb import strategy_acb
 from .volatility.atp import strategy_atp
@@ -85,20 +92,17 @@ from .volatility.mai import strategy_mai
 from .volatility.nat import strategy_nat
 from .volatility.pav import strategy_pav
 from .volatility.pcw import strategy_pcw
-from .volatility.pro import strategy_pro
 from .volatility.rsv import strategy_rsv
 from .volatility.rvi import strategy_rvi
-from .volatility.std import strategy_std
 from .volatility.svi import strategy_svi
 from .volatility.tsv import strategy_tsv
 from .volatility.uli import strategy_uli
 from .volatility.vhf import strategy_vhf
-from .volatility.vqi import strategy_vqi
 from .volatility.vra import strategy_vra
 from .volatility.vsi import strategy_vsi
 
-from .volume.adl import strategy_adl
 from .volume.ado import strategy_ado
+from .volume.adl import strategy_adl
 from .volume.bwm import strategy_bwm
 from .volume.cmf import strategy_cmf
 from .volume.emv import strategy_emv
@@ -111,12 +115,20 @@ from .volume.obv import strategy_obv
 from .volume.pvi import strategy_pvi
 from .volume.pvo import strategy_pvo
 from .volume.vfi import strategy_vfi
-from .volume.vma import strategy_vma
 from .volume.voo import strategy_voo
 from .volume.vpt import strategy_vpt
 from .volume.vro import strategy_vro
 from .volume.vwa import strategy_vwa
-from .volume.wad import strategy_wad
+
+# Import statistics strategies
+from .statistics.kur import strategy_kur
+from .statistics.mab import strategy_mab
+from .statistics.med import strategy_med
+from .statistics.qua import strategy_qua
+from .statistics.skw import strategy_skw
+from .statistics.std import strategy_std
+from .statistics.var import strategy_var
+from .statistics.zsc import strategy_zsc
 
 
 # Strategy registry mapping strategy names to their backtest functions
@@ -151,6 +163,7 @@ _STRATEGY_REGISTRY = {
     'ttm': strategy_ttm,
     'ult': strategy_ult,
     'vor': strategy_vor,
+    'wad': strategy_wad,
     'wil': strategy_wil,
     # Trend strategies
     'ads': strategy_ads,
@@ -171,6 +184,7 @@ _STRATEGY_REGISTRY = {
     'kma': strategy_kma,
     'lsm': strategy_lsm,
     'mgd': strategy_mgd,
+    'pro': strategy_pro,
     'psa': strategy_psa,
     'sma': strategy_sma,
     'soa': strategy_soa,
@@ -180,6 +194,7 @@ _STRATEGY_REGISTRY = {
     'tma': strategy_tma,
     'tri': strategy_tri,
     'vid': strategy_vid,
+    'vqi': strategy_vqi,
     'wma': strategy_wma,
     'zma': strategy_zma,
     # Volatility strategies
@@ -203,20 +218,17 @@ _STRATEGY_REGISTRY = {
     'nat': strategy_nat,
     'pav': strategy_pav,
     'pcw': strategy_pcw,
-    'pro': strategy_pro,
     'rsv': strategy_rsv,
     'rvi': strategy_rvi,
-    'std': strategy_std,
     'svi': strategy_svi,
     'tsv': strategy_tsv,
     'uli': strategy_uli,
     'vhf': strategy_vhf,
-    'vqi': strategy_vqi,
     'vra': strategy_vra,
     'vsi': strategy_vsi,
     # Volume strategies
-    'adl': strategy_adl,
     'ado': strategy_ado,
+    'adl': strategy_adl,
     'bwm': strategy_bwm,
     'cmf': strategy_cmf,
     'emv': strategy_emv,
@@ -234,7 +246,15 @@ _STRATEGY_REGISTRY = {
     'vpt': strategy_vpt,
     'vro': strategy_vro,
     'vwa': strategy_vwa,
-    'wad': strategy_wad,
+    # Statistics strategies
+    'kur': strategy_kur,
+    'mab': strategy_mab,
+    'med': strategy_med,
+    'qua': strategy_qua,
+    'skw': strategy_skw,
+    'std': strategy_std,
+    'var': strategy_var,
+    'zsc': strategy_zsc,
 }
 
 
@@ -242,7 +262,7 @@ _STRATEGY_REGISTRY = {
 _STRATEGY_CATALOG = {
     'momentum': {
         'awo': 'AWO (Awesome Oscillator) - Zero Line Crossover Strategy',
-        'bop': 'BOP (Balance of Power) - Zero Line Crossover Strategy',
+        'bop': 'BOP (Balance of Power) - Smoothing/Signal Line Strategy',
         'cci': 'CCI (Commodity Channel Index) - Mean Reversion Strategy',
         'cmo': 'CMO (Chande Momentum Oscillator) - Mean Reversion Strategy',
         'cog': 'COG (Center of Gravity) - Signal Line Crossover Strategy',
@@ -269,8 +289,9 @@ _STRATEGY_CATALOG = {
         'tsi': 'TSI (True Strength Index) - Signal Line Crossover Strategy',
         'ttm': 'TTM (TTM Squeeze) - Momentum Histogram Strategy',
         'ult': 'ULT (Ultimate Oscillator) - Mean Reversion Strategy',
-        'vor': 'VOR (Vortex Indicator) - VI+/VI- Crossover Strategy',
-        'wil': 'WIL (Williams %R) - Mean Reversion Strategy',
+        'vor': 'VOR (Vortex Indicator) - Vortex Line Crossover Strategy',
+        'wad': 'WAD (Williams Accumulation/Distribution) - SMA Crossover Strategy',
+        'wil': 'WIL (Williams %R) - Overbought/Oversold Strategy',
     },
     'trend': {
         'ads': 'ADS (Adaptive Deviation-Scaled MA) - Dual MA Crossover Strategy',
@@ -291,6 +312,7 @@ _STRATEGY_CATALOG = {
         'kma': 'KMA (Kaufman Adaptive MA) - Dual MA Crossover Strategy',
         'lsm': 'LSM (Least Squares MA) - Dual MA Crossover Strategy',
         'mgd': 'MGD (McGinley Dynamic) - Dual MA Crossover Strategy',
+        'pro': 'PRO (Projection Oscillator) - Mean Reversion Strategy',
         'psa': 'PSA (Parabolic SAR) - Price Cross Strategy',
         'sma': 'SMA (Simple Moving Average) - Dual MA Crossover Strategy',
         'soa': 'SOA (Smoothed Moving Average) - Dual MA Crossover Strategy',
@@ -300,6 +322,7 @@ _STRATEGY_CATALOG = {
         'tma': 'TMA (Triangular MA) - Dual MA Crossover Strategy',
         'tri': 'TRI (TRIX) - Zero Line Crossover Strategy',
         'vid': 'VID (Variable Index Dynamic Average) - Dual MA Crossover Strategy',
+        'vqi': 'VQI (Volatility Quality Index) - Trend Quality Strategy',
         'wma': 'WMA (Weighted Moving Average) - Dual MA Crossover Strategy',
         'zma': 'ZMA (Zero-Lag MA) - Dual MA Crossover Strategy',
     },
@@ -324,21 +347,18 @@ _STRATEGY_CATALOG = {
         'nat': 'NAT (Normalized ATR) - Percentile Band Strategy',
         'pav': 'PAV (Parkinson Volatility) - Percentile Band Strategy',
         'pcw': 'PCW (Price Channel Width) - Volatility Squeeze Strategy',
-        'pro': 'PRO (Projection Oscillator) - Mean Reversion Strategy',
         'rsv': 'RSV (Rogers-Satchell Volatility) - Percentile Band Strategy',
         'rvi': 'RVI (Relative Volatility Index) - Mean Reversion Strategy',
-        'std': 'STD (Standard Deviation) - Percentile Band Strategy',
         'svi': 'SVI (Stochastic Volatility Index) - Mean Reversion Strategy',
         'tsv': 'TSV (True Strength Volatility) - Mean Reversion Strategy',
         'uli': 'ULI (Ulcer Index) - Risk-Based Strategy',
         'vhf': 'VHF (Vertical Horizontal Filter) - Trend/Range Filter Strategy',
         'vra': 'VRA (Volatility Ratio) - Breakout Strategy',
-        'vqi': 'VQI (Volatility Quality Index) - Trend Quality Strategy',
         'vsi': 'VSI (Volatility Switch Index) - Regime Detection Strategy',
     },
     'volume': {
-        'adl': 'ADL (Accumulation/Distribution Line) - SMA Crossover Strategy',
         'ado': 'ADO (Accumulation/Distribution Oscillator) - Zero Line Crossover Strategy',
+        'adl': 'ADL (Accumulation/Distribution Line) - SMA Crossover Strategy',
         'bwm': 'BWM (Buff Weighted Moving Average) - SMA Crossover Strategy',
         'cmf': 'CMF (Chaikin Money Flow) - Zero Line Crossover Strategy',
         'emv': 'EMV (Ease of Movement) - Zero Line Crossover Strategy',
@@ -356,8 +376,17 @@ _STRATEGY_CATALOG = {
         'vpt': 'VPT (Volume Price Trend) - SMA Crossover Strategy',
         'vro': 'VRO (Volume Rate of Change) - Zero Line Crossover Strategy',
         'vwa': 'VWA (Volume Weighted Average Price) - Rolling VWAP Cross Strategy',
-        'wad': 'WAD (Williams Accumulation/Distribution) - SMA Crossover Strategy',
     },
+    'statistics': {
+        'kur': 'KUR (Kurtosis) - Extreme Value Filter Strategy',
+        'mab': 'MAB (Mean Absolute Deviation) - Percentile Band Strategy',
+        'med': 'MED (Rolling Median) - Median Cross Strategy',
+        'qua': 'QUA (Rolling Quantile) - Quantile Threshold Strategy',
+        'skw': 'SKW (Skewness) - Distribution Bias Strategy',
+        'std': 'STD (Standard Deviation) - Bollinger Band Width Strategy',
+        'var': 'VAR (Variance) - Volatility Regime Strategy',
+        'zsc': 'ZSC (Z-Score) - Mean Reversion Strategy',
+    }
 }
 
 
@@ -368,7 +397,7 @@ def list_premade_strategies(category: str = None, return_dict: bool = False) -> 
     in the premade_backtest function, organized by category (momentum, trend, volatility, volume).
     
     Args:
-        category: Optional filter by category. Options: 'momentum', 'trend', 'volatility', 'volume'.
+        category: Optional filter by category. Options: 'momentum', 'trend', 'volatility', 'volume', 'statistics'.
                  If None, returns all strategies.
         return_dict: If True, returns a dictionary instead of printing. Default is False.
     

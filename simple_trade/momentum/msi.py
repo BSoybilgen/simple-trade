@@ -4,7 +4,7 @@ import pandas as pd
 
 def msi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Momentum Strength Index (MSI), a custom momentum indicator.
+    Calculates the Momentum Strength Index (msi), a custom momentum indicator.
     MSI aims to quantify the strength of price momentum by comparing recent gains 
     and losses, with an optional power parameter to emphasize stronger moves.
 
@@ -84,10 +84,10 @@ def strategy_msi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    MSI (Momentum Strength Index) - Mean Reversion Strategy
+    msi (Momentum Strength Index) - Mean Reversion Strategy
     
-    LOGIC: Buy when MSI drops below lower threshold (oversold), sell when above upper.
-    WHY: MSI quantifies momentum strength with optional power scaling. Similar to RSI
+    LOGIC: Buy when msi drops below lower threshold (oversold), sell when above upper.
+    WHY: msi quantifies momentum strength with optional power scaling. Similar to RSI
          but with adjustable sensitivity to large moves via power parameter.
     BEST MARKETS: Range-bound markets. Stocks and ETFs in consolidation.
                   Power > 1 emphasizes volatile moves, useful for breakout detection.

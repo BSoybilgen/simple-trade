@@ -3,7 +3,7 @@ import pandas as pd
 
 def nvi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Negative Volume Index (NVI), an indicator that tracks price changes
+    Calculates the Negative Volume Index (nvi), an indicator that tracks price changes
     on days when volume decreases from the previous day. It is based on the premise
     that "smart money" trades on low volume days.
 
@@ -85,11 +85,11 @@ def strategy_nvi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    NVI (Negative Volume Index) - EMA Crossover Strategy
+    nvi (Negative Volume Index) - EMA Crossover Strategy
     
-    LOGIC: Buy when NVI crosses above its EMA (smart money accumulating),
-           sell when NVI crosses below its EMA (smart money distributing).
-    WHY: NVI tracks price changes on low volume days. Based on premise that
+    LOGIC: Buy when nvi crosses above its EMA (smart money accumulating),
+           sell when nvi crosses below its EMA (smart money distributing).
+    WHY: nvi tracks price changes on low volume days. Based on premise that
          "smart money" trades on low volume days.
     BEST MARKETS: Stocks, ETFs. Good for long-term trend identification.
     TIMEFRAME: Daily charts. Often used with 255-day EMA.

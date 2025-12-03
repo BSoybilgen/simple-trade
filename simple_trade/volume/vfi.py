@@ -4,7 +4,7 @@ import numpy as np
 
 def vfi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Volume Flow Indicator (VFI), a long-term trend-following indicator
+    Calculates the Volume Flow Indicator (vfi), a long-term trend-following indicator
     that uses the rate of change of price to calculate the direction of volume flow.
     It is based on On-Balance Volume (OBV) but attempts to reduce noise.
 
@@ -129,11 +129,11 @@ def strategy_vfi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VFI (Volume Flow Indicator) - Zero Line Cross Strategy
+    vfi (Volume Flow Indicator) - Zero Line Cross Strategy
     
-    LOGIC: Buy when VFI crosses above zero (bullish money flow),
-           sell when VFI crosses below zero (bearish money flow).
-    WHY: VFI is a long-term trend-following indicator based on OBV but with
+    LOGIC: Buy when vfi crosses above zero (bullish money flow),
+           sell when vfi crosses below zero (bearish money flow).
+    WHY: vfi is a long-term trend-following indicator based on OBV but with
          noise reduction. Uses rate of change of price to calculate volume flow.
     BEST MARKETS: Stocks, ETFs. Good for long-term trend identification.
     TIMEFRAME: Daily charts. 130-period is standard.

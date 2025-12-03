@@ -4,7 +4,7 @@ import pandas as pd
 
 def ttm(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the TTM Squeeze (Trade The Markets Squeeze), a volatility and momentum indicator developed by John Carter.
+    Calculates the TTM Squeeze (ttm), a volatility and momentum indicator developed by John Carter.
     It identifies periods of consolidation (squeeze) followed by breakouts.
 
     Args:
@@ -147,10 +147,10 @@ def strategy_ttm(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    TTM (TTM Squeeze) - Momentum Zero Line Crossover Strategy
+    ttm (TTM Squeeze) - Momentum Zero Line Crossover Strategy
     
-    LOGIC: Buy when TTM momentum crosses above zero, sell when crosses below.
-    WHY: TTM Squeeze identifies consolidation (squeeze) followed by breakouts.
+    LOGIC: Buy when ttm momentum crosses above zero, sell when crosses below.
+    WHY: ttm identifies consolidation (squeeze) followed by breakouts.
          Momentum histogram direction after squeeze indicates breakout direction.
     BEST MARKETS: All markets. Excellent for breakout trading after consolidation.
                   Stocks, forex, futures. Best when combined with squeeze signals.

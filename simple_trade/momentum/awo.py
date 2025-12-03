@@ -3,7 +3,7 @@ import pandas as pd
 
 def awo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Awesome Oscillator (AO), a momentum indicator used to measure market momentum.
+    Calculates the Awesome Oscillator (awo), a momentum indicator used to measure market momentum.
     It calculates the difference between a 34-period and 5-period Simple Moving Average 
     applied to the median price (High+Low)/2.
 
@@ -31,18 +31,18 @@ def awo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
        SMA Slow = SMA(Median Price, slow_window)
 
     4. Calculate the Awesome Oscillator:
-       AO = SMA Fast - SMA Slow
+       awo = SMA Fast - SMA Slow
 
     Interpretation:
-    - Positive AO: Fast momentum is greater than slow momentum (Bullish).
-    - Negative AO: Fast momentum is less than slow momentum (Bearish).
+    - Positive awo: Fast momentum is greater than slow momentum (Bullish).
+    - Negative awo: Fast momentum is less than slow momentum (Bearish).
     - Zero Line Crossover: Crossing above 0 is a buy signal, crossing below 0 is a sell signal.
-    - Color coding (often used): Green if AO > Previous AO, Red if AO < Previous AO.
+    - Color coding (often used): Green if awo > Previous awo, Red if awo < Previous awo.
 
     Use Cases:
     - Momentum Confirmation: Used to confirm the strength of a trend.
     - Signal Generation: Zero line crossovers, "Saucer" signals (three histograms), and "Twin Peaks" (divergence).
-    - Divergence: Divergence between price and AO can signal potential reversals.
+    - Divergence: Divergence between price and awo can signal potential reversals.
     """
     if parameters is None:
         parameters = {}
@@ -60,7 +60,7 @@ def awo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     sma_slow = mid_price.rolling(window=slow_window).mean()
 
     ao_series = sma_fast - sma_slow
-    ao_series.name = f'AO_{fast_window}_{slow_window}'
+    ao_series.name = f'AWO_{fast_window}_{slow_window}'
 
     return ao_series, [ao_series.name]
 
@@ -76,11 +76,11 @@ def strategy_awo(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    AWO (Awesome Oscillator) - Zero Line Crossover Strategy
+    awo (Awesome Oscillator) - Zero Line Crossover Strategy
     
-    LOGIC: Buy when AO crosses above zero (bullish momentum), sell when crosses below zero.
-    WHY: AO measures market momentum by comparing recent price action to historical.
-         Positive AO = fast momentum > slow momentum (bullish), negative = bearish.
+    LOGIC: Buy when awo crosses above zero (bullish momentum), sell when crosses below zero.
+    WHY: awo measures market momentum by comparing recent price action to historical.
+         Positive awo = fast momentum > slow momentum (bullish), negative = bearish.
     BEST MARKETS: Trending markets with clear directional moves. Works well on stocks,
                   forex, and commodities. Less effective in choppy/ranging markets.
     TIMEFRAME: Daily or weekly charts preferred. Intraday can generate false signals.
@@ -108,7 +108,7 @@ def strategy_awo(
     slow_window = int(parameters.get('slow_window', 34))
     
     indicator_params = {"fast_window": fast_window, "slow_window": slow_window}
-    short_window_indicator = f'AO_{fast_window}_{slow_window}'
+    short_window_indicator = f'AWO_{fast_window}_{slow_window}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(

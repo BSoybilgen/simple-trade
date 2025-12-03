@@ -1,11 +1,11 @@
 import pandas as pd
-from ..trend.ema import ema
+from ..moving_average.ema import ema
 from .atr import atr
 
 
 def kel(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates Keltner Channels, a volatility-based envelope set above and below an exponential moving average.
+    Calculates Keltner Channels (kel), a volatility-based envelope set above and below an exponential moving average.
     
     Args:
         df (pd.DataFrame): The input DataFrame.
@@ -74,9 +74,9 @@ def kel(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     # Prepare the result DataFrame
     result = pd.DataFrame({
-        f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}': middle_line_series,
-        f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}': upper_band,
-        f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}': lower_band
+        f'KEL_Middle_{ema_window}_{atr_window}_{atr_multiplier}': middle_line_series,
+        f'KEL_Upper_{ema_window}_{atr_window}_{atr_multiplier}': upper_band,
+        f'KEL_Lower_{ema_window}_{atr_window}_{atr_multiplier}': lower_band
     }, index=close.index)
     
     columns_list = list(result.columns)
@@ -94,11 +94,11 @@ def strategy_kel(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    KEL (Keltner Channels) - Mean Reversion Strategy
+    kel (Keltner Channels) - Mean Reversion Strategy
     
     LOGIC: Buy when price touches lower band (oversold),
            sell when price touches upper band (overbought).
-    WHY: Keltner Channels use EMA with ATR-based bands. Price at lower band
+    WHY: kel uses EMA with ATR-based bands. Price at lower band
          suggests oversold, at upper band suggests overbought.
     BEST MARKETS: Range-bound markets. Stocks, forex. Good for mean reversion.
                   Can also be used for breakout trading.
@@ -139,8 +139,8 @@ def strategy_kel(
     results, portfolio = run_band_trade(
         data=data,
         indicator_col='Close',
-        upper_band_col=f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}',
-        lower_band_col=f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}',
+        upper_band_col=f'KEL_Upper_{ema_window}_{atr_window}_{atr_multiplier}',
+        lower_band_col=f'KEL_Lower_{ema_window}_{atr_window}_{atr_multiplier}',
         price_col=price_col,
         config=config,
         long_entry_pct_cash=long_entry_pct_cash,
@@ -150,8 +150,8 @@ def strategy_kel(
         risk_free_rate=risk_free_rate
     )
     
-    indicator_cols_to_plot = ['Close', f'KELT_Upper_{ema_window}_{atr_window}_{atr_multiplier}',
-                              f'KELT_Middle_{ema_window}_{atr_window}_{atr_multiplier}',
-                              f'KELT_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
+    indicator_cols_to_plot = ['Close', f'KEL_Upper_{ema_window}_{atr_window}_{atr_multiplier}',
+                              f'KEL_Middle_{ema_window}_{atr_window}_{atr_multiplier}',
+                              f'KEL_Lower_{ema_window}_{atr_window}_{atr_multiplier}']
     
     return results, portfolio, indicator_cols_to_plot, data

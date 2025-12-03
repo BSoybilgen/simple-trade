@@ -4,7 +4,7 @@ import numpy as np
 
 def vwa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Volume Weighted Average Price (VWAP), a trading benchmark
+    Calculates the Volume Weighted Average Price (vwa), a trading benchmark
     that gives the average price a security has traded at throughout the day (or dataset),
     based on both volume and price.
 
@@ -19,7 +19,7 @@ def vwa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - volume_col (str): The column name for volume. Default is 'Volume'.
 
     Returns:
-        tuple: A tuple containing the VWAP series and a list of column names.
+        tuple: A tuple containing the VWA series and a list of column names.
 
     The Volume Weighted Average Price is calculated as follows:
 
@@ -35,18 +35,18 @@ def vwa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     4. Calculate Cumulative Volume:
        CumVol = CumulativeSum(Volume)
 
-    5. Calculate VWAP:
-       VWAP = CumTPV / CumVol
+    5. Calculate VWA:
+       VWA = CumTPV / CumVol
 
     Interpretation:
-    - Price > VWAP: Bullish sentiment (Buyers in control).
-    - Price < VWAP: Bearish sentiment (Sellers in control).
+    - Price > VWA: Bullish sentiment (Buyers in control).
+    - Price < VWA: Bearish sentiment (Sellers in control).
     - Benchmark: Acts as a measure of "fair value" for the period.
 
     Use Cases:
     - Intraday Trading: Assessing if price is expensive or cheap relative to the day's average.
     - Trade Execution: Benchmarking trade fills.
-    - Support/Resistance: VWAP often acts as a magnet or dynamic level.
+    - Support/Resistance: VWA often acts as a magnet or dynamic level.
     """
     # Set default values
     if parameters is None:
@@ -74,13 +74,13 @@ def vwa(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     # Calculate cumulative volume
     cumulative_volume = volume.cumsum()
     
-    # Calculate VWAP (handle division by zero)
-    vwap_values = cumulative_tpv / cumulative_volume.replace(0, np.nan)
-    vwap_values = vwap_values.fillna(method='ffill').fillna(0)
+    # Calculate VWA (handle division by zero)
+    vwa_values = cumulative_tpv / cumulative_volume.replace(0, np.nan)
+    vwa_values = vwa_values.fillna(method='ffill').fillna(0)
     
-    vwap_values.name = 'VWAP'
-    columns_list = [vwap_values.name]
-    return vwap_values, columns_list
+    vwa_values.name = 'VWA'
+    columns_list = [vwa_values.name]
+    return vwa_values, columns_list
 
 
 def strategy_vwa(
@@ -94,11 +94,11 @@ def strategy_vwa(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VWA (Volume Weighted Average Price) - Price vs VWAP Crossover Strategy
+    vwa (Volume Weighted Average Price) - Price vs VWA Crossover Strategy
     
-    LOGIC: Buy when price crosses above VWAP (bullish sentiment),
-           sell when price crosses below VWAP (bearish sentiment).
-    WHY: VWAP is a benchmark for "fair value". Price above VWAP indicates
+    LOGIC: Buy when price crosses above vwa (bullish sentiment),
+           sell when price crosses below vwa (bearish sentiment).
+    WHY: vwa is a benchmark for "fair value". Price above vwa indicates
          buyers in control, below indicates sellers in control.
     BEST MARKETS: Stocks, ETFs. Good for intraday and swing trading.
     TIMEFRAME: Intraday or daily charts. Acts as dynamic support/resistance.
@@ -134,7 +134,7 @@ def strategy_vwa(
     results, portfolio = run_cross_trade(
         data=data,
         short_window_indicator='Close',
-        long_window_indicator='VWAP',
+        long_window_indicator='VWA',
         price_col=price_col,
         config=config,
         long_entry_pct_cash=long_entry_pct_cash,
@@ -144,6 +144,6 @@ def strategy_vwa(
         risk_free_rate=risk_free_rate
     )
     
-    indicator_cols_to_plot = ['Close', 'VWAP']
+    indicator_cols_to_plot = ['Close', 'VWA']
     
     return results, portfolio, indicator_cols_to_plot, data

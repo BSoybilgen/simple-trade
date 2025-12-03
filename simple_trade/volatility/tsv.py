@@ -3,7 +3,7 @@ import pandas as pd
 
 def tsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the True Strength Index (TSI) Volatility, which applies the TSI momentum
+    Calculates the True Strength Index (tsv) Volatility, which applies the TSI momentum
     indicator formula to volatility measures (ATR or standard deviation) to create a
     double-smoothed volatility momentum indicator.
 
@@ -19,7 +19,7 @@ def tsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             - close_col (str): The column name for closing prices. Default is 'Close'.
 
     Returns:
-        tuple: A tuple containing the TSI Volatility series and a list of column names.
+        tuple: A tuple containing the TSV series and a list of column names.
 
     Calculation Steps:
     1. Calculate ATR (Average True Range).
@@ -31,12 +31,12 @@ def tsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     4. Double Smooth Absolute Momentum:
        AbsSmooth1 = EMA(|Momentum|, long_period)
        AbsSmooth2 = EMA(AbsSmooth1, short_period)
-    5. Calculate TSI:
-       TSI = 100 * (Smooth2 / AbsSmooth2)
+    5. Calculate TSV:
+       TSV = 100 * (Smooth2 / AbsSmooth2)
 
     Interpretation:
-    - Positive TSI: Rising volatility (Momentum Up).
-    - Negative TSI: Falling volatility (Momentum Down).
+    - Positive TSV: Rising volatility (Momentum Up).
+    - Negative TSV: Falling volatility (Momentum Down).
     - Zero Line Crossovers: Trend changes in volatility.
 
     Use Cases:
@@ -82,13 +82,13 @@ def tsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     abs_smooth1 = abs_momentum.ewm(span=long_period, adjust=False).mean()
     abs_smooth2 = abs_smooth1.ewm(span=short_period, adjust=False).mean()
     
-    # Calculate TSI
-    tsi_values = 100 * (smooth2 / abs_smooth2)
-    tsi_values = tsi_values.fillna(0)
+    # Calculate TSV
+    tsv_values = 100 * (smooth2 / abs_smooth2)
+    tsv_values = tsv_values.fillna(0)
     
-    tsi_values.name = f'TSI_VOL_{atr_period}_{long_period}_{short_period}'
-    columns_list = [tsi_values.name]
-    return tsi_values, columns_list
+    tsv_values.name = f'TSV_{atr_period}_{long_period}_{short_period}'
+    columns_list = [tsv_values.name]
+    return tsv_values, columns_list
 
 
 def strategy_tsv(
@@ -102,11 +102,11 @@ def strategy_tsv(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    TSV (TSI Volatility) - Volatility Momentum Strategy
+    tsv (TSV) - Volatility Momentum Strategy
     
-    LOGIC: Buy when TSI crosses above zero (rising volatility momentum),
+    LOGIC: Buy when tsv crosses above zero (rising volatility momentum),
            sell when crosses below zero (falling volatility momentum).
-    WHY: TSV applies TSI formula to ATR for double-smoothed volatility momentum.
+    WHY: tsv applies TSI formula to ATR for double-smoothed volatility momentum.
          Positive = rising volatility, negative = falling volatility.
     BEST MARKETS: All markets. Good for volatility trend identification.
     TIMEFRAME: Daily charts. 14 ATR with 25/13 smoothing is standard.
@@ -137,7 +137,7 @@ def strategy_tsv(
     upper = float(parameters.get('upper', 25))
     lower = float(parameters.get('lower', -25))
     price_col = 'Close'
-    indicator_col = f'TSI_VOL_{atr_period}_{long_period}_{short_period}'
+    indicator_col = f'TSV_{atr_period}_{long_period}_{short_period}'
     
     data, _, _ = compute_indicator(
         data=data,

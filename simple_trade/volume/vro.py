@@ -4,38 +4,38 @@ import numpy as np
 
 def vro(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Volume Rate of Change (VROC), a momentum indicator that measures
+    Calculates the Volume Rate of Change (vro), a momentum indicator that measures
     the rate of change in volume over a specified period. It highlights significant
     volume increases or decreases.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
-            - period (int): The lookback period for VROC calculation. Default is 14.
+            - period (int): The lookback period for VRO calculation. Default is 14.
         columns (dict, optional): Dictionary containing column name mappings:
             - volume_col (str): The column name for volume. Default is 'Volume'.
 
     Returns:
-        tuple: A tuple containing the VROC series and a list of column names.
+        tuple: A tuple containing the VRO series and a list of column names.
 
     The Volume Rate of Change is calculated as follows:
 
     1. Identify Past Volume:
        Past Volume = Volume(n periods ago)
 
-    2. Calculate VROC:
-       VROC = ((Current Volume - Past Volume) / Past Volume) * 100
+    2. Calculate VRO:
+       VRO = ((Current Volume - Past Volume) / Past Volume) * 100
 
     Interpretation:
-    - Positive VROC: Volume is increasing.
-    - Negative VROC: Volume is decreasing.
-    - High VROC: High trading activity/volatility.
-    - Low VROC: Low trading activity/consolidation.
+    - Positive VRO: Volume is increasing.
+    - Negative VRO: Volume is decreasing.
+    - High VRO: High trading activity/volatility.
+    - Low VRO: Low trading activity/consolidation.
 
     Use Cases:
-    - Breakout Validation: Breakouts should be accompanied by a surge in VROC.
-    - Trend Strength: Rising VROC confirms trend participation.
-    - Reversal Warning: Divergence between Price and VROC.
+    - Breakout Validation: Breakouts should be accompanied by a surge in VRO.
+    - Trend Strength: Rising VRO confirms trend participation.
+    - Reversal Warning: Divergence between Price and VRO.
     """
     # Set default values
     if parameters is None:
@@ -52,12 +52,12 @@ def vro(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     # Calculate Volume n periods ago
     volume_n_periods_ago = volume.shift(period)
     
-    # Calculate VROC (handle division by zero)
-    vroc_values = ((volume - volume_n_periods_ago) / volume_n_periods_ago.replace(0, np.nan)) * 100
+    # Calculate VRO (handle division by zero)
+    vro_values = ((volume - volume_n_periods_ago) / volume_n_periods_ago.replace(0, np.nan)) * 100
     
-    vroc_values.name = f'VROC_{period}'
-    columns_list = [vroc_values.name]
-    return vroc_values, columns_list
+    vro_values.name = f'VRO_{period}'
+    columns_list = [vro_values.name]
+    return vro_values, columns_list
 
 
 def strategy_vro(
@@ -71,11 +71,11 @@ def strategy_vro(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    VRO (Volume Rate of Change) - Zero Line Cross Strategy
+    vro (Volume Rate of Change) - Zero Line Cross Strategy
     
-    LOGIC: Buy when VROC crosses above zero (volume increasing),
-           sell when VROC crosses below zero (volume decreasing).
-    WHY: VROC measures rate of change in volume. Positive VROC indicates
+    LOGIC: Buy when vro crosses above zero (volume increasing),
+           sell when vro crosses below zero (volume decreasing).
+    WHY: vro measures rate of change in volume. Positive vro indicates
          increasing volume, negative indicates decreasing volume.
     BEST MARKETS: Stocks, ETFs. Good for breakout validation.
     TIMEFRAME: Daily charts. 14-period is standard.
@@ -101,7 +101,7 @@ def strategy_vro(
     
     period = int(parameters.get('period', 14))
     price_col = 'Close'
-    indicator_col = f'VROC_{period}'
+    indicator_col = f'VRO_{period}'
     
     data, _, _ = compute_indicator(
         data=data,

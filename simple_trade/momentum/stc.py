@@ -3,7 +3,7 @@ import pandas as pd
 
 def stc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Schaff Trend Cycle (STC), an indicator developed by Doug Schaff.
+    Calculates the Schaff Trend Cycle (stc), an indicator developed by Doug Schaff.
     It is a product of combining the MACD with the Stochastic Oscillator to identify faster, 
     more accurate trends with less lag.
 
@@ -42,12 +42,12 @@ def stc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     - Range: 0 to 100.
     - Overbought: Values above 75 indicate overbought conditions.
     - Oversold: Values below 25 indicate oversold conditions.
-    - Trend: Rising STC suggests an uptrend; falling STC suggests a downtrend.
+    - Trend: Rising stc suggests an uptrend; falling stc suggests a downtrend.
 
     Use Cases:
-    - Early Trend Detection: STC is designed to identify trends earlier than MACD.
+    - Early Trend Detection: stc is designed to identify trends earlier than MACD.
     - Cycle Tops and Bottoms: Identifying cyclical turning points.
-    - Filters: Using STC direction to filter trades from other strategies.
+    - Filters: Using stc direction to filter trades from other strategies.
     """
     if parameters is None:
         parameters = {}
@@ -99,10 +99,10 @@ def strategy_stc(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    STC (Schaff Trend Cycle) - Mean Reversion Strategy
+    stc (Schaff Trend Cycle) - Mean Reversion Strategy
     
-    LOGIC: Buy when STC drops below 25 (oversold), sell when above 75 (overbought).
-    WHY: STC combines MACD with stochastic, identifying trends faster with less lag.
+    LOGIC: Buy when stc drops below 25 (oversold), sell when above 75 (overbought).
+    WHY: stc combines MACD with stochastic, identifying trends faster with less lag.
          Designed for early trend detection and cycle identification.
     BEST MARKETS: Trending and cyclical markets. Forex, stocks, futures.
                   Good for identifying cycle tops and bottoms.

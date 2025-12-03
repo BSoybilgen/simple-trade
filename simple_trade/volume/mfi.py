@@ -4,7 +4,7 @@ import numpy as np
 
 def mfi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Money Flow Index (MFI), a momentum indicator that uses price
+    Calculates the Money Flow Index (mfi), a momentum indicator that uses price
     and volume to identify overbought or oversold conditions. It is often referred
     to as volume-weighted RSI.
 
@@ -110,11 +110,11 @@ def strategy_mfi(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    MFI (Money Flow Index) - Overbought/Oversold Strategy
+    mfi (Money Flow Index) - Overbought/Oversold Strategy
     
-    LOGIC: Buy when MFI drops below lower threshold (oversold),
+    LOGIC: Buy when mfi drops below lower threshold (oversold),
            sell when rises above upper threshold (overbought).
-    WHY: MFI is volume-weighted RSI. Combines price and volume to identify
+    WHY: mfi is volume-weighted RSI. Combines price and volume to identify
          overbought/oversold conditions. Good for divergence detection.
     BEST MARKETS: Stocks, ETFs. Good for mean reversion and divergence.
     TIMEFRAME: Daily charts. 14-period is standard.

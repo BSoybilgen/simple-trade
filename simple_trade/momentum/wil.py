@@ -2,7 +2,7 @@ import pandas as pd
 
 def wil(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
-    Calculates the Williams %R (Williams Percent Range), a momentum oscillator that measures
+    Calculates the Williams %R (wil), a momentum oscillator that measures
     overbought and oversold levels based on recent closing prices relative to the high-low range.
 
     Args:
@@ -53,7 +53,7 @@ def wil(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     range_values = (highest_high - lowest_low).where(lambda x: x != 0)
 
     williams_r = ((highest_high - close) / range_values) * -100
-    williams_r.name = f'WILLR_{window}'
+    williams_r.name = f'WIL_{window}'
 
     columns_list = [williams_r.name]
     return williams_r, columns_list
@@ -70,10 +70,10 @@ def strategy_wil(
     short_entry_pct_cash: float = 1.0
 ) -> tuple:
     """
-    WIL (Williams %R) - Mean Reversion Strategy
+    wil (Williams %R) - Mean Reversion Strategy
     
     LOGIC: Buy when %R drops below -80 (oversold), sell when above -20 (overbought).
-    WHY: Williams %R measures close relative to high-low range. Near 0 = overbought
+    WHY: wil measures close relative to high-low range. Near 0 = overbought
          (close near highs), near -100 = oversold (close near lows).
     BEST MARKETS: Range-bound markets. Stocks, forex, commodities. Similar to
                   Stochastic but inverted scale. Good for mean reversion.
@@ -103,7 +103,7 @@ def strategy_wil(
     lower = float(parameters.get('lower', -80))
     
     indicator_params = {"window": window}
-    indicator_col = f'WILLR_{window}'
+    indicator_col = f'WIL_{window}'
     price_col = 'Close'
     
     data, columns, _ = compute_indicator(
