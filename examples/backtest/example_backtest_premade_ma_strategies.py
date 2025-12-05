@@ -72,6 +72,11 @@ params = {"short_window": 25, "long_window": 75}
 _run_backtest(data_day, 'ema', params)
 
 
+# ### Elastic Volume Weighted Moving Average (EVW)
+params = {"short_window": 10, "long_window": 20}
+_run_backtest(data_day, 'evw', params)
+
+
 # ### Fractal Adaptive Moving Average (FMA)
 params = {
     "short_window": 0,
@@ -98,14 +103,14 @@ params = {"short_length": 6, "long_length": 12}
 _run_backtest(data_day, 'jma', params)
 
 
-# ### Kaufman Adaptive Moving Average (KMA)
-params = {"short_window": 10, "long_window": 30}
-_run_backtest(data_day, 'kma', params)
-
-
 # ### Least Squares Moving Average (LSM)
 params = {"short_window": 25, "long_window": 75}
 _run_backtest(data_day, 'lsm', params)
+
+
+# ### MESA Adaptive Moving Average (MAM)
+params = {"fast_limit": 0.5, "slow_limit": 0.05}
+_run_backtest(data_day, 'mam', params)
 
 
 # ### Simple Moving Average (SMA)
@@ -131,6 +136,16 @@ _run_backtest(data_day, 'tem', params)
 # ### Triangular Moving Average (TMA)
 params = {"short_window": 10, "long_window": 30}
 _run_backtest(data_day, 'tma', params)
+
+
+# ### Time Series Forecast (TSF)
+params = {"window": 14}
+_run_backtest(data_day, 'tsf', params)
+
+
+# ### T3 Moving Average (TT3)
+params = {"short_window": 5, "long_window": 10, "v_factor": 0.7}
+_run_backtest(data_day, 'tt3', params)
 
 
 # ### Variable Index Dynamic Average (VID)

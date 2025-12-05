@@ -177,3 +177,5 @@ cython_debug/
 *cachedir
 /trade_ai
 /stock_analysis
+/.agent
+/.docs

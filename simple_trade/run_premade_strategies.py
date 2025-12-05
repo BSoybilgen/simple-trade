@@ -46,7 +46,6 @@ from .moving_average.fma import strategy_fma
 from .moving_average.gma import strategy_gma
 from .moving_average.hma import strategy_hma
 from .moving_average.jma import strategy_jma
-from .moving_average.kma import strategy_kma
 from .moving_average.lsm import strategy_lsm
 from .moving_average.sma import strategy_sma
 from .moving_average.soa import strategy_soa
@@ -57,6 +56,10 @@ from .moving_average.vid import strategy_vid
 from .moving_average.vma import strategy_vma
 from .moving_average.wma import strategy_wma
 from .moving_average.zma import strategy_zma
+from .moving_average.tt3 import strategy_tt3
+from .moving_average.mam import strategy_mam
+from .moving_average.evw import strategy_evw
+from .moving_average.tsf import strategy_tsf
 
 # Import trend strategies
 from .trend.adx import strategy_adx
@@ -181,7 +184,6 @@ _STRATEGY_REGISTRY = {
     'htt': strategy_htt,
     'ich': strategy_ich,
     'jma': strategy_jma,
-    'kma': strategy_kma,
     'lsm': strategy_lsm,
     'mgd': strategy_mgd,
     'pro': strategy_pro,
@@ -197,6 +199,10 @@ _STRATEGY_REGISTRY = {
     'vqi': strategy_vqi,
     'wma': strategy_wma,
     'zma': strategy_zma,
+    'tt3': strategy_tt3,
+    'mam': strategy_mam,
+    'evw': strategy_evw,
+    'tsf': strategy_tsf,
     # Volatility strategies
     'acb': strategy_acb,
     'atp': strategy_atp,
@@ -309,7 +315,6 @@ _STRATEGY_CATALOG = {
         'htt': 'HTT (Hilbert Transform Trendline) - Dual Trendline Crossover Strategy',
         'ich': 'ICH (Ichimoku Cloud) - Tenkan/Kijun Crossover Strategy',
         'jma': 'JMA (Jurik Moving Average) - Dual MA Crossover Strategy',
-        'kma': 'KMA (Kaufman Adaptive MA) - Dual MA Crossover Strategy',
         'lsm': 'LSM (Least Squares MA) - Dual MA Crossover Strategy',
         'mgd': 'MGD (McGinley Dynamic) - Dual MA Crossover Strategy',
         'pro': 'PRO (Projection Oscillator) - Mean Reversion Strategy',
@@ -325,6 +330,10 @@ _STRATEGY_CATALOG = {
         'vqi': 'VQI (Volatility Quality Index) - Trend Quality Strategy',
         'wma': 'WMA (Weighted Moving Average) - Dual MA Crossover Strategy',
         'zma': 'ZMA (Zero-Lag MA) - Dual MA Crossover Strategy',
+        'tt3': 'TT3 (T3 Moving Average) - Dual MA Crossover Strategy',
+        'mam': 'MAM (MESA Adaptive MA) - MAMA/FAMA Crossover Strategy',
+        'evw': 'EVW (Elastic Volume Weighted MA) - Dual MA Crossover Strategy',
+        'tsf': 'TSF (Time Series Forecast) - Price vs TSF Crossover Strategy',
     },
     'volatility': {
         'acb': 'ACB (Acceleration Bands) - Band Breakout Strategy',

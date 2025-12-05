@@ -12,7 +12,6 @@ from simple_trade.moving_average.fma import fma
 from simple_trade.moving_average.gma import gma
 from simple_trade.moving_average.hma import hma
 from simple_trade.moving_average.jma import jma
-from simple_trade.moving_average.kma import kma
 from simple_trade.moving_average.lsm import lsm
 from simple_trade.moving_average.sma import sma
 from simple_trade.moving_average.soa import soa
@@ -23,6 +22,10 @@ from simple_trade.moving_average.vid import vid
 from simple_trade.moving_average.vma import vma
 from simple_trade.moving_average.wma import wma
 from simple_trade.moving_average.zma import zma
+from simple_trade.moving_average.tt3 import tt3
+from simple_trade.moving_average.mam import mam
+from simple_trade.moving_average.evw import evw
+from simple_trade.moving_average.tsf import tsf
 
 # Import trend indicators
 from simple_trade.trend.adx import adx
@@ -180,7 +183,6 @@ INDICATORS = {
     'imi': imi,
     'jma': jma,
     'kel': kel,
-    'kma': kma,
     'kst': kst,
     'kur': kur,
     'kvo': kvo,
@@ -230,6 +232,7 @@ INDICATORS = {
     'tsi': tsi,
     'ttm': ttm,
     'tsv': tsv,
+    'tt3': tt3,
     'ult': ult,
     'uli': uli,
     'var': var,
@@ -250,11 +253,14 @@ INDICATORS = {
     'wma': wma,
     'zma': zma,
     'zsc': zsc,
+    'mam': mam,
+    'evw': evw,
+    'tsf': tsf,
 }
 
 # Export all indicators
 __all__ = [
-    'ads', 'alm', 'ama', 'dem', 'ema', 'fma', 'gma', 'hma', 'jma', 'kma', 'lsm', 'sma', 'soa', 'swm', 'tem', 'tma', 'vid', 'vma', 'wma', 'zma',  # Moving average indicators
+    'ads', 'alm', 'ama', 'dem', 'ema', 'fma', 'gma', 'hma', 'jma', 'lsm', 'sma', 'soa', 'swm', 'tem', 'tma', 'vid', 'vma', 'wma', 'zma', 'tt3', 'mam', 'evw', 'tsf',  # Moving average indicators
     'adx', 'aro', 'eac', 'eit', 'htt', 'ich', 'mgd', 'pro', 'psa', 'str', 'tri', 'vqi',  # Trend indicators
     'awo', 'bop', 'cci', 'cmo', 'cog', 'crs', 'dpo', 'eri', 'fis', 'imi', 'kst', 'lsi', 'mac', 'msi', 'pgo', 'ppo', 'psy', 'qst', 'roc', 'rmi', 'rsi', 'rvg', 'sri', 'stc', 'sto', 'tsi', 'ttm', 'ult', 'vor', 'wad', 'wil',  # Momentum indicators
     'acb', 'atr', 'atp', 'bbw', 'bol', 'cha', 'cho', 'don', 'dvi', 'efr', 'fdi', 'grv', 'hav', 'hiv', 'kel', 'mad', 'mai', 'nat', 'pav', 'pcw', 'rsv', 'rvi', 'svi', 'tsv', 'uli', 'vhf', 'vra', 'vsi',  # Volatility indicators

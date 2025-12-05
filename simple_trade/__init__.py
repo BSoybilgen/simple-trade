@@ -5,8 +5,8 @@ from .core import INDICATORS
 # Import all indicators from core
 from .core import (
     # Moving Average indicators
-    ads, alm, ama, dem, ema, fma, gma, hma, jma, kma, lsm, sma,
-    soa, swm, tem, tma, vid, vma, wma, zma,
+    ads, alm, ama, dem, ema, fma, gma, hma, jma, lsm, sma,
+    soa, swm, tem, tma, vid, vma, wma, zma, tt3, mam, evw, tsf,
 
     # Trend indicators
     adx, aro, eac, eit, htt, ich, mgd, pro, psa, str, tri, vqi,
@@ -99,8 +99,8 @@ __all__ = [
     "INDICATORS",
 
     # Moving Average indicators
-    "ads", "alm", "ama", "dem", "ema", "fma", "gma", "hma", "jma", "kma", "lsm", "sma",
-    "soa", "swm", "tem", "tma", "vid", "vma", "wma", "zma",
+    "ads", "alm", "ama", "dem", "ema", "fma", "gma", "hma", "jma", "lsm", "sma",
+    "soa", "swm", "tem", "tma", "vid", "vma", "wma", "zma", "tt3", "mam", "evw", "tsf",
 
     # Trend indicators
     "adx", "aro", "eac", "eit", "htt", "ich", "mgd", "pro", "psa", "str", "tri", "vqi",

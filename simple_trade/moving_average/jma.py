@@ -13,7 +13,7 @@ def jma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         df (pd.DataFrame): The input DataFrame.
         parameters (dict, optional): Dictionary containing calculation parameters:
             - length (int): The lookback period. Default is 21.
-            - phase (float): Phase parameter (-100 to 100) affecting overshoot. Default is 0.
+            - phase (float): Phase parameter (0 to 100) affecting overshoot. Default is 0.
             - power (float): Power parameter for smoothing curve. Default is 2.0.
         columns (dict, optional): Dictionary containing column name mappings:
             - close_col (str): The column name for closing prices. Default is 'Close'.
@@ -29,13 +29,17 @@ def jma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     2. Calculate Phase Ratio:
        Ratio = phase / 100
 
-    3. Calculate jma (Iterative):
-       Base = Prev jma + SC * (Price - Prev jma)
-       jma = Base + Ratio * (Price - Base)
+    3. Calculate jma (Vectorized):
+       This approximation mathematically simplifies to a single Exponential Moving Average (EMA)
+       with an effective alpha derived from the length, power, and phase.
+       
+       Effective Alpha = 1 - (1 - Ratio) * (1 - SC)
+       JMA = EMA(Price, alpha=Effective Alpha)
 
     Interpretation:
     - jma is famous for its low lag and smooth curve.
     - Positive phase allows the MA to overshoot price changes slightly, reducing lag further.
+    - This implementation is fully vectorized for performance.
 
     Use Cases:
     - Trend Following: Excellent for systems requiring fast reaction times.
@@ -51,37 +55,33 @@ def jma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     phase = float(parameters.get('phase', 0.0))
     power = float(parameters.get('power', 2.0))
 
-    phase = max(-100.0, min(100.0, phase))
+    phase = max(0.0, min(100.0, phase))
     phase_ratio = phase / 100.0
 
-    close = df[close_col].astype(float)
-    values = close.to_numpy(dtype=float)
-    jma_values = np.full_like(values, np.nan)
-
-    smoothing_constant = (2.0 / (length + 1.0)) ** power
-    smoothing_constant = np.clip(smoothing_constant, 0.0, 1.0)
-
-    non_nan_idx = np.where(~np.isnan(values))[0]
-    if non_nan_idx.size == 0:
-        series = pd.Series(jma_values, index=close.index, name=f'JMA_{length}')
-        return series, [series.name]
-
-    start = non_nan_idx[0]
-    jma_values[start] = values[start]
-
-    for i in range(start + 1, len(values)):
-        price = values[i]
-        prev = jma_values[i - 1]
-        if np.isnan(price):
-            jma_values[i] = prev
-            continue
-        if np.isnan(prev):
-            prev = price
-
-        base = prev + smoothing_constant * (price - prev)
-        jma_values[i] = base + phase_ratio * (price - base)
-
-    jma_series = pd.Series(jma_values, index=close.index, name=f'JMA_{length}')
+    close = df[close_col]
+    
+    # Calculate smoothing constant (alpha)
+    # SC = (2 / (length + 1))^power
+    alpha = (2.0 / (length + 1.0)) ** power
+    alpha = np.clip(alpha, 0.0, 1.0)
+    
+    # Calculate Effective Alpha for the equivalent EMA
+    # The iterative formula:
+    # Base = Prev + alpha * (Price - Prev)
+    # JMA = Base + beta * (Price - Base)
+    #
+    # Reduces to a single EMA with effective alpha:
+    # alpha_eff = 1 - (1 - beta) * (1 - alpha)
+    
+    beta = phase_ratio
+    effective_alpha = 1.0 - (1.0 - beta) * (1.0 - alpha)
+    effective_alpha = np.clip(effective_alpha, 0.0, 1.0)
+    
+    # Calculate JMA using vectorized EMA
+    # adjust=False matches the iterative recurrence relation
+    jma_series = close.ewm(alpha=effective_alpha, adjust=False).mean()
+    jma_series.name = f'JMA_{length}'
+    
     return jma_series, [jma_series.name]
 
 
