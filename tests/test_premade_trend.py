@@ -171,19 +171,6 @@ class TestTrendStrategies:
         assert isinstance(results, dict)
         assert isinstance(portfolio, pd.DataFrame)
 
-    def test_kma_strategy(self, sample_ohlcv_data, default_parameters):
-        """Test KMA (Kaufman Moving Average) strategy"""
-        params = default_parameters.copy()
-        params.update({
-            'short_window': 10, 'long_window': 30,
-            'fast_period': 2, 'slow_period': 30
-        })
-        
-        results, portfolio, fig = run_premade_trade(sample_ohlcv_data, 'kma', params)
-        
-        assert isinstance(results, dict)
-        assert isinstance(portfolio, pd.DataFrame)
-
     def test_lsm_strategy(self, sample_ohlcv_data, default_parameters):
         """Test LSM (Least Squares Moving Average) strategy"""
         params = default_parameters.copy()

@@ -2,8 +2,8 @@ import pytest
 import pandas as pd
 import numpy as np
 from simple_trade.moving_average import (
-    ema, sma, wma, hma, soa, ama, kma, tma, fma, gma, jma, zma,
-    dem, tem, alm, lsm, swm, ads, vid
+    ema, sma, wma, hma, soa, ama, tma, fma, gma, jma, zma,
+    dem, tem, alm, lsm, swm, ads, vid, tt3, mam, evw, tsf
 )
 
 # Fixture for sample data
@@ -336,31 +336,6 @@ class TestAMA:
         assert 'AMA_14_3_20' in columns
 
 
-class TestKMA:
-    """Tests for the Kaufman Adaptive Moving Average"""
-
-    def test_kma_calculation(self, sample_data):
-        """Test basic KAMA calculation"""
-        df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, columns = kma(df)
-        
-        assert isinstance(result_data, pd.Series)
-        assert not result_data.empty
-        assert 'KMA_10_2_30' in columns
-        assert len(result_data) == len(sample_data['close'])
-
-    def test_kma_custom_params(self, sample_data):
-        """Test KAMA with custom parameters"""
-        df = pd.DataFrame({'Close': sample_data['close']})
-        result_data, columns = kma(df, parameters={
-            'window': 20,
-            'fast_period': 2,
-            'slow_period': 40
-        })
-        
-        assert 'KMA_20_2_40' in columns
-
-
 class TestFMA:
     """Tests for the Fractal Adaptive Moving Average"""
 
@@ -589,3 +564,108 @@ class TestVID:
         })
         
         assert 'VID_14_7' in columns
+
+
+class TestTT3:
+    """Tests for the T3 Moving Average"""
+
+    def test_tt3_calculation(self, sample_data):
+        """Test basic TT3 calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tt3(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'TT3_5' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_tt3_custom_params(self, sample_data):
+        """Test TT3 with custom parameters"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tt3(df, parameters={
+            'window': window,
+            'v_factor': 0.8
+        })
+        
+        assert f'TT3_{window}' in columns
+
+
+class TestMAM:
+    """Tests for the MESA Adaptive Moving Average"""
+
+    def test_mam_calculation(self, sample_data):
+        """Test basic MAM calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = mam(df)
+        
+        assert isinstance(result_data, pd.DataFrame)
+        assert not result_data.empty
+        assert 'MAM' in columns
+        assert 'MAM_FAMA' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_mam_custom_params(self, sample_data):
+        """Test MAM with custom parameters"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = mam(df, parameters={
+            'fast_limit': 0.6,
+            'slow_limit': 0.1
+        })
+        
+        assert 'MAM' in columns
+        assert 'MAM_FAMA' in columns
+
+
+class TestEVW:
+    """Tests for the Elastic Volume Weighted Moving Average"""
+
+    def test_evw_calculation(self, sample_data):
+        """Test basic EVW calculation"""
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': np.random.randint(1000, 10000, len(sample_data['close']))
+        })
+        result_data, columns = evw(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'EVW_20' in columns
+        assert len(result_data) == len(sample_data['close'])
+
+    def test_evw_custom_window(self, sample_data):
+        """Test EVW with custom window"""
+        window = 10
+        df = pd.DataFrame({
+            'Close': sample_data['close'],
+            'Volume': np.random.randint(1000, 10000, len(sample_data['close']))
+        })
+        result_data, columns = evw(df, parameters={'window': window})
+        
+        assert f'EVW_{window}' in columns
+
+
+class TestTSF:
+    """Tests for the Time Series Forecast"""
+
+    def test_tsf_calculation(self, sample_data):
+        """Test basic TSF calculation"""
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tsf(df)
+        
+        assert isinstance(result_data, pd.Series)
+        assert not result_data.empty
+        assert 'TSF_14' in columns
+        
+        # TSF should have NaN values at the start
+        valid_result = result_data.dropna()
+        assert len(valid_result) > 0
+
+    def test_tsf_custom_window(self, sample_data):
+        """Test TSF with custom window"""
+        window = 10
+        df = pd.DataFrame({'Close': sample_data['close']})
+        result_data, columns = tsf(df, parameters={'window': window})
+        
+        assert f'TSF_{window}' in columns
+

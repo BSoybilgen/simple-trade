@@ -61,6 +61,14 @@ _, _, fig = compute_indicator(data, 'ema', parameters=params, columns=cols)
 _maybe_show(fig)
 
 
+# ### Elastic Volume Weighted Moving Average (EVW)
+data = _fetch_data('AAPL', '2024-01-01', '2025-01-01')
+params = {"window": 20}
+cols = {"close_col": 'Close', "volume_col": 'Volume'}
+_, _, fig = compute_indicator(data, 'evw', parameters=params, columns=cols)
+_maybe_show(fig)
+
+
 # ### Fractal Adaptive Moving Average (FMA)
 data = _fetch_data('AAPL', '2024-01-01', '2025-01-01')
 params = {"window": 16, "alpha_floor": 0.01}
@@ -93,19 +101,19 @@ _, _, fig = compute_indicator(data, 'jma', parameters=params, columns=cols)
 _maybe_show(fig)
 
 
-# ### Kaufman Adaptive Moving Average (KMA)
-data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
-params = {"window": 10, "fast_sc": 2, "slow_sc": 30}
-cols = {"close_col": 'Close'}
-_, _, fig = compute_indicator(data, 'kma', parameters=params, columns=cols)
-_maybe_show(fig)
-
-
 # ### Least Squares Moving Average (LSM)
 data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
 params = {"window": 25}
 cols = {"close_col": 'Close'}
 _, _, fig = compute_indicator(data, 'lsm', parameters=params, columns=cols)
+_maybe_show(fig)
+
+
+# ### MESA Adaptive Moving Average (MAM)
+data = _fetch_data('GOOG', '2024-01-01', '2025-01-01')
+params = {"fast_limit": 0.5, "slow_limit": 0.05}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'mam', parameters=params, columns=cols)
 _maybe_show(fig)
 
 
@@ -146,6 +154,22 @@ data = _fetch_data('AAPL', '2024-01-01', '2025-01-01')
 params = {"window": 20}
 cols = {"close_col": 'Close'}
 _, _, fig = compute_indicator(data, 'tma', parameters=params, columns=cols)
+_maybe_show(fig)
+
+
+# ### Time Series Forecast (TSF)
+data = _fetch_data('TSLA', '2024-01-01', '2025-01-01')
+params = {"window": 14}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'tsf', parameters=params, columns=cols)
+_maybe_show(fig)
+
+
+# ### T3 Moving Average (TT3)
+data = _fetch_data('MSFT', '2024-01-01', '2025-01-01')
+params = {"window": 5, "v_factor": 0.7}
+cols = {"close_col": 'Close'}
+_, _, fig = compute_indicator(data, 'tt3', parameters=params, columns=cols)
 _maybe_show(fig)
 
 
