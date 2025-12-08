@@ -85,8 +85,8 @@ def run_combined_trade(
             commission_short=commission_short if commission_short is not None else 0.001,
             short_borrow_fee_inc_rate=short_borrow_fee_inc_rate if short_borrow_fee_inc_rate is not None else 0.0,
             long_borrow_fee_inc_rate=long_borrow_fee_inc_rate if long_borrow_fee_inc_rate is not None else 0.0,
-            long_entry_pct_cash=long_entry_pct_cash if long_entry_pct_cash is not None else 0.9,
-            short_entry_pct_cash=short_entry_pct_cash if short_entry_pct_cash is not None else 0.9,
+            long_entry_pct_cash=long_entry_pct_cash if long_entry_pct_cash is not None else 1.0,
+            short_entry_pct_cash=short_entry_pct_cash if short_entry_pct_cash is not None else 1.0,
             risk_free_rate=risk_free_rate if risk_free_rate is not None else 0.0,
         )
     

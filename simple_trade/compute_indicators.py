@@ -5,7 +5,7 @@ import yfinance as yf
 import pandas as pd
 from .core import INDICATORS
 from simple_trade.plot_ind import plot_indicator
-from typing import Literal, Optional
+from typing import Literal, Optional, Tuple
 
 
 def compute_indicator(
@@ -14,6 +14,7 @@ def compute_indicator(
     figure: bool=True,
     plot_type: Literal['line', 'candlestick'] = 'line',
     title: Optional[str] = None,
+    figsize: Optional[Tuple[float, float]] = None,
     **indicator_kwargs
 ) -> tuple:
     """Computes a specified technical indicator on the provided financial data.
@@ -23,6 +24,7 @@ def compute_indicator(
               and possibly 'High', 'Low' depending on the indicator).
         indicator: Technical indicator to compute (e.g., 'rsi', 'sma', 'mac', 'adx').
         title: Optional title for the figure. Defaults to '{INDICATOR} Indicator'.
+        figsize: Optional tuple (width, height) in inches for the figure size passed to plot_indicator.
         **indicator_kwargs: Keyword arguments specific to the chosen indicator.
 
     Returns:
@@ -73,7 +75,8 @@ def compute_indicator(
                 column_names=columns,
                 plot_on_subplot=plot_on_subplot,
                 plot_type=plot_type,
-                title=title if title else f"{indicator.upper()} Indicator"
+                title=title if title else f"{indicator.upper()} Indicator",
+                figsize=figsize
             )
         
             return df, columns, fig

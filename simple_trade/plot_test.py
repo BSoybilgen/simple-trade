@@ -6,7 +6,7 @@ replacing the class-based BacktestPlotter approach.
 """
 import matplotlib.pyplot as plt
 import pandas as pd
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 
 def plot_backtest_results(
@@ -18,7 +18,8 @@ def plot_backtest_results(
     show_indicator_panel: bool = True,
     show_extra_panel: bool = False,
     extra_panel_cols: Optional[List[str]] = None,
-    extra_panel_title: Optional[str] = "Price vs Indicator"
+    extra_panel_title: Optional[str] = "Price vs Indicator",
+    figsize: Optional[Tuple[float, float]] = None
 ) -> Optional[plt.Figure]:
     """
     Generates and displays the backtest results plot.
@@ -33,6 +34,8 @@ def plot_backtest_results(
         show_extra_panel: Whether to show a 4th panel at the bottom.
         extra_panel_cols: List of columns to plot in the 4th panel.
         extra_panel_title: Title for the 4th panel.
+        figsize: Optional tuple (width, height) in inches for the figure size.
+                 If None, defaults to (12, 12) for 4 panels, (12, 10) for 3 panels, or (12, 8) for 2 panels.
 
     Returns:
         plt.Figure: The generated matplotlib Figure object, or None if plotting fails.
@@ -72,14 +75,17 @@ def plot_backtest_results(
 
     # Determine layout
     if show_extra_panel:
-        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(12, 12), sharex=True,
+        size = figsize if figsize else (12, 12)
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=size, sharex=True,
                                             gridspec_kw={'height_ratios': [3, 1, 1.5, 1.5]})
     elif show_indicator_panel:
-        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 10), sharex=True,
+        size = figsize if figsize else (12, 10)
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=size, sharex=True,
                                             gridspec_kw={'height_ratios': [3, 1, 2]})
         ax4 = None
     else:
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True,
+        size = figsize if figsize else (12, 8)
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=size, sharex=True,
                                         gridspec_kw={'height_ratios': [3, 1]})
         ax3 = None
         ax4 = None
