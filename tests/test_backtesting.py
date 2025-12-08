@@ -40,12 +40,13 @@ def sample_portfolio_data():
     dip = np.linspace(12000, 11000, 10)
     recovery = np.linspace(11000, 13000, 10)
     portfolio_value = pd.Series(np.concatenate([base_growth, dip, recovery]), index=index)
-    # Add some commissions
-    commissions = pd.Series(np.random.choice([0, 5, 10], size=len(index), p=[0.9, 0.05, 0.05]), index=index)
+    # Add some commissions (cumulative, as stored by the backtester)
+    commission_per_trade = pd.Series(np.random.choice([0, 5, 10], size=len(index), p=[0.9, 0.05, 0.05]), index=index)
+    commissions_cumulative = commission_per_trade.cumsum()
     
     df = pd.DataFrame({
         'PortfolioValue': portfolio_value,
-        'CommissionPaid': commissions
+        'CommissionPaid': commissions_cumulative
     })
     return df
 
@@ -125,7 +126,7 @@ class TestMetrics:
         assert metrics['max_drawdown_pct'] < 0 # Drawdown should be negative
         assert metrics['sharpe_ratio'] != np.inf and not np.isnan(metrics['sharpe_ratio']) 
         assert metrics['sortino_ratio'] != np.inf and not np.isnan(metrics['sortino_ratio']) 
-        assert metrics['total_commissions'] == sample_portfolio_data['CommissionPaid'].sum()
+        assert metrics['total_commissions'] == sample_portfolio_data['CommissionPaid'].iloc[-1]
 
     def test_performance_metrics_input_validation(self, default_config, sample_portfolio_data):
         """Test input validation for calculate_performance_metrics"""

@@ -178,4 +178,4 @@ cython_debug/
 /trade_ai
 /stock_analysis
 /.agent
-/.docs
+/.lectures

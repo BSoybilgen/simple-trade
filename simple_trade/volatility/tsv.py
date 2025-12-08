@@ -84,7 +84,12 @@ def tsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     
     # Calculate TSV
     tsv_values = 100 * (smooth2 / abs_smooth2)
-    tsv_values = tsv_values.fillna(0)
+    
+    # Set warmup period to NaN to avoid extreme values during initialization
+    # Warmup needs: 1 for prev_close, atr_period for ATR EMA, 1 for diff, 
+    # long_period for first EMA, short_period for second EMA
+    warmup_period = 1 + atr_period + 1 + long_period + short_period
+    tsv_values.iloc[:warmup_period] = float('nan')
     
     tsv_values.name = f'TSV_{atr_period}_{long_period}_{short_period}'
     columns_list = [tsv_values.name]

@@ -264,139 +264,67 @@ _STRATEGY_REGISTRY = {
 }
 
 
-# Strategy catalog with descriptions organized by category
-_STRATEGY_CATALOG = {
-    'momentum': {
-        'awo': 'AWO (Awesome Oscillator) - Zero Line Crossover Strategy',
-        'bop': 'BOP (Balance of Power) - Smoothing/Signal Line Strategy',
-        'cci': 'CCI (Commodity Channel Index) - Mean Reversion Strategy',
-        'cmo': 'CMO (Chande Momentum Oscillator) - Mean Reversion Strategy',
-        'cog': 'COG (Center of Gravity) - Signal Line Crossover Strategy',
-        'crs': 'CRS (Connors RSI) - Mean Reversion Strategy',
-        'dpo': 'DPO (Detrended Price Oscillator) - Zero Line Crossover Strategy',
-        'eri': 'ERI (Elder-Ray Index) - Bear Power Zero Line Crossover Strategy',
-        'fis': 'FIS (Fisher Transform) - Zero Line Crossover Strategy',
-        'imi': 'IMI (Intraday Momentum Index) - Mean Reversion Strategy',
-        'kst': 'KST (Know Sure Thing) - Signal Line Crossover Strategy',
-        'lsi': 'LSI (Laguerre RSI) - Mean Reversion Strategy',
-        'mac': 'MAC (MACD) - Signal Line Crossover Strategy',
-        'msi': 'MSI (Momentum Strength Index) - Mean Reversion Strategy',
-        'pgo': 'PGO (Pretty Good Oscillator) - Mean Reversion Strategy',
-        'ppo': 'PPO (Percentage Price Oscillator) - Signal Line Crossover Strategy',
-        'psy': 'PSY (Psychological Line) - Mean Reversion Strategy',
-        'qst': 'QST (Qstick) - Zero Line Crossover Strategy',
-        'rmi': 'RMI (Relative Momentum Index) - Mean Reversion Strategy',
-        'roc': 'ROC (Rate of Change) - Zero Line Crossover Strategy',
-        'rsi': 'RSI (Relative Strength Index) - Mean Reversion Strategy',
-        'rvg': 'RVG (Relative Vigor Index) - Signal Line Crossover Strategy',
-        'sri': 'SRI (Stochastic RSI) - Mean Reversion Strategy',
-        'stc': 'STC (Schaff Trend Cycle) - Mean Reversion Strategy',
-        'sto': 'STO (Stochastic Oscillator) - Mean Reversion Strategy',
-        'tsi': 'TSI (True Strength Index) - Signal Line Crossover Strategy',
-        'ttm': 'TTM (TTM Squeeze) - Momentum Histogram Strategy',
-        'ult': 'ULT (Ultimate Oscillator) - Mean Reversion Strategy',
-        'vor': 'VOR (Vortex Indicator) - Vortex Line Crossover Strategy',
-        'wad': 'WAD (Williams Accumulation/Distribution) - SMA Crossover Strategy',
-        'wil': 'WIL (Williams %R) - Overbought/Oversold Strategy',
-    },
-    'trend': {
-        'ads': 'ADS (Adaptive Deviation-Scaled MA) - Dual MA Crossover Strategy',
-        'adx': 'ADX (Average Directional Index) - Trend Strength + MA Strategy',
-        'alm': 'ALM (Arnaud Legoux MA) - Dual MA Crossover Strategy',
-        'ama': 'AMA (Adaptive Moving Average) - Dual MA Crossover Strategy',
-        'aro': 'ARO (Aroon) - Aroon Up/Down Crossover Strategy',
-        'dem': 'DEM (Double EMA) - Dual MA Crossover Strategy',
-        'eac': 'EAC (Ehlers Adaptive CyberCycle) - Dual Cycle Crossover Strategy',
-        'eit': 'EIT (Ehlers Instantaneous Trendline) - Dual Trendline Crossover Strategy',
-        'ema': 'EMA (Exponential Moving Average) - Dual MA Crossover Strategy',
-        'fma': 'FMA (Fractal Adaptive MA) - Price Cross Strategy',
-        'gma': 'GMA (Guppy Multiple MA) - Short/Long Group Crossover Strategy',
-        'hma': 'HMA (Hull Moving Average) - Dual MA Crossover Strategy',
-        'htt': 'HTT (Hilbert Transform Trendline) - Dual Trendline Crossover Strategy',
-        'ich': 'ICH (Ichimoku Cloud) - Tenkan/Kijun Crossover Strategy',
-        'jma': 'JMA (Jurik Moving Average) - Dual MA Crossover Strategy',
-        'lsm': 'LSM (Least Squares MA) - Dual MA Crossover Strategy',
-        'mgd': 'MGD (McGinley Dynamic) - Dual MA Crossover Strategy',
-        'pro': 'PRO (Projection Oscillator) - Mean Reversion Strategy',
-        'psa': 'PSA (Parabolic SAR) - Price Cross Strategy',
-        'sma': 'SMA (Simple Moving Average) - Dual MA Crossover Strategy',
-        'soa': 'SOA (Smoothed Moving Average) - Dual MA Crossover Strategy',
-        'str': 'STR (SuperTrend) - Price Cross Strategy',
-        'swm': 'SWM (Sine Weighted MA) - Dual MA Crossover Strategy',
-        'tem': 'TEM (Triple EMA) - Dual MA Crossover Strategy',
-        'tma': 'TMA (Triangular MA) - Dual MA Crossover Strategy',
-        'tri': 'TRI (TRIX) - Zero Line Crossover Strategy',
-        'vid': 'VID (Variable Index Dynamic Average) - Dual MA Crossover Strategy',
-        'vqi': 'VQI (Volatility Quality Index) - Trend Quality Strategy',
-        'wma': 'WMA (Weighted Moving Average) - Dual MA Crossover Strategy',
-        'zma': 'ZMA (Zero-Lag MA) - Dual MA Crossover Strategy',
-        'tt3': 'TT3 (T3 Moving Average) - Dual MA Crossover Strategy',
-        'mam': 'MAM (MESA Adaptive MA) - MAMA/FAMA Crossover Strategy',
-        'evw': 'EVW (Elastic Volume Weighted MA) - Dual MA Crossover Strategy',
-        'tsf': 'TSF (Time Series Forecast) - Price vs TSF Crossover Strategy',
-    },
-    'volatility': {
-        'acb': 'ACB (Acceleration Bands) - Band Breakout Strategy',
-        'atp': 'ATP (Average True Price) - Band Mean Reversion Strategy',
-        'atr': 'ATR (Average True Range) - Percentile Band Strategy',
-        'bbw': 'BBW (Bollinger Band Width) - Volatility Squeeze Strategy',
-        'bol': 'BOL (Bollinger Bands) - Band Mean Reversion Strategy',
-        'cha': 'CHA (Chaikin Volatility) - Volatility Expansion Strategy',
-        'cho': 'CHO (Choppiness Index) - Trend/Range Filter Strategy',
-        'don': 'DON (Donchian Channels) - Band Breakout Strategy',
-        'dvi': 'DVI (DV Intermediate Oscillator) - Mean Reversion Strategy',
-        'efr': 'EFR (Elder Force Index) - Zero Line Crossover Strategy',
-        'fdi': 'FDI (Fractal Dimension Index) - Trend/Range Filter Strategy',
-        'grv': 'GRV (Garman-Klass Volatility) - Percentile Band Strategy',
-        'hav': 'HAV (Historical Average Volatility) - Percentile Band Strategy',
-        'hiv': 'HIV (Historical Intraday Volatility) - Percentile Band Strategy',
-        'kel': 'KEL (Keltner Channels) - Band Mean Reversion Strategy',
-        'mad': 'MAD (Median Absolute Deviation) - Percentile Band Strategy',
-        'mai': 'MAI (Mass Index) - Reversal Bulge Strategy',
-        'nat': 'NAT (Normalized ATR) - Percentile Band Strategy',
-        'pav': 'PAV (Parkinson Volatility) - Percentile Band Strategy',
-        'pcw': 'PCW (Price Channel Width) - Volatility Squeeze Strategy',
-        'rsv': 'RSV (Rogers-Satchell Volatility) - Percentile Band Strategy',
-        'rvi': 'RVI (Relative Volatility Index) - Mean Reversion Strategy',
-        'svi': 'SVI (Stochastic Volatility Index) - Mean Reversion Strategy',
-        'tsv': 'TSV (True Strength Volatility) - Mean Reversion Strategy',
-        'uli': 'ULI (Ulcer Index) - Risk-Based Strategy',
-        'vhf': 'VHF (Vertical Horizontal Filter) - Trend/Range Filter Strategy',
-        'vra': 'VRA (Volatility Ratio) - Breakout Strategy',
-        'vsi': 'VSI (Volatility Switch Index) - Regime Detection Strategy',
-    },
-    'volume': {
-        'ado': 'ADO (Accumulation/Distribution Oscillator) - Zero Line Crossover Strategy',
-        'adl': 'ADL (Accumulation/Distribution Line) - SMA Crossover Strategy',
-        'bwm': 'BWM (Buff Weighted Moving Average) - SMA Crossover Strategy',
-        'cmf': 'CMF (Chaikin Money Flow) - Zero Line Crossover Strategy',
-        'emv': 'EMV (Ease of Movement) - Zero Line Crossover Strategy',
-        'foi': 'FOI (Force Index) - Zero Line Crossover Strategy',
-        'fve': 'FVE (Finite Volume Elements) - Zero Line Crossover Strategy',
-        'kvo': 'KVO (Klinger Volume Oscillator) - Signal Line Crossover Strategy',
-        'mfi': 'MFI (Money Flow Index) - Mean Reversion Strategy',
-        'nvi': 'NVI (Negative Volume Index) - SMA Crossover Strategy',
-        'obv': 'OBV (On-Balance Volume) - SMA Crossover Strategy',
-        'pvi': 'PVI (Positive Volume Index) - SMA Crossover Strategy',
-        'pvo': 'PVO (Percentage Volume Oscillator) - Signal Line Crossover Strategy',
-        'vfi': 'VFI (Volume Flow Indicator) - Zero Line Crossover Strategy',
-        'vma': 'VMA (Volume Moving Average) - Volume Cross Strategy',
-        'voo': 'VOO (Volume Oscillator) - Zero Line Crossover Strategy',
-        'vpt': 'VPT (Volume Price Trend) - SMA Crossover Strategy',
-        'vro': 'VRO (Volume Rate of Change) - Zero Line Crossover Strategy',
-        'vwa': 'VWA (Volume Weighted Average Price) - Rolling VWAP Cross Strategy',
-    },
-    'statistics': {
-        'kur': 'KUR (Kurtosis) - Extreme Value Filter Strategy',
-        'mab': 'MAB (Mean Absolute Deviation) - Percentile Band Strategy',
-        'med': 'MED (Rolling Median) - Median Cross Strategy',
-        'qua': 'QUA (Rolling Quantile) - Quantile Threshold Strategy',
-        'skw': 'SKW (Skewness) - Distribution Bias Strategy',
-        'std': 'STD (Standard Deviation) - Bollinger Band Width Strategy',
-        'var': 'VAR (Variance) - Volatility Regime Strategy',
-        'zsc': 'ZSC (Z-Score) - Mean Reversion Strategy',
-    }
+# Strategy categories mapping - groups strategies by their category
+_STRATEGY_CATEGORIES = {
+    'momentum': [
+        'awo', 'bop', 'cci', 'cmo', 'cog', 'crs', 'dpo', 'eri', 'fis', 'imi',
+        'kst', 'lsi', 'mac', 'msi', 'pgo', 'ppo', 'psy', 'qst', 'rmi', 'roc',
+        'rsi', 'rvg', 'sri', 'stc', 'sto', 'tsi', 'ttm', 'ult', 'vor', 'wad', 'wil',
+    ],
+    'trend': [
+        'ads', 'adx', 'alm', 'ama', 'aro', 'dem', 'eac', 'eit', 'ema', 'fma',
+        'gma', 'hma', 'htt', 'ich', 'jma', 'lsm', 'mgd', 'pro', 'psa', 'sma',
+        'soa', 'str', 'swm', 'tem', 'tma', 'tri', 'vid', 'vqi', 'wma', 'zma',
+        'tt3', 'mam', 'evw', 'tsf',
+    ],
+    'volatility': [
+        'acb', 'atp', 'atr', 'bbw', 'bol', 'cha', 'cho', 'don', 'dvi', 'efr',
+        'fdi', 'grv', 'hav', 'hiv', 'kel', 'mad', 'mai', 'nat', 'pav', 'pcw',
+        'rsv', 'rvi', 'svi', 'tsv', 'uli', 'vhf', 'vra', 'vsi',
+    ],
+    'volume': [
+        'ado', 'adl', 'bwm', 'cmf', 'emv', 'foi', 'fve', 'kvo', 'mfi', 'nvi',
+        'obv', 'pvi', 'pvo', 'vfi', 'vma', 'voo', 'vpt', 'vro', 'vwa',
+    ],
+    'statistics': [
+        'kur', 'mab', 'med', 'qua', 'skw', 'std', 'var', 'zsc',
+    ],
 }
+
+
+def _get_strategy_description(strategy_func) -> str:
+    """Extract the first line of a strategy function's docstring as description."""
+    import inspect
+    doc = inspect.getdoc(strategy_func)
+    if doc:
+        # Get the first meaningful line (skip empty lines)
+        lines = [line.strip() for line in doc.split('\n') if line.strip()]
+        return lines[0] if lines else "No description available"
+    return "No description available"
+
+
+def _wrap_text(text: str, width: int = 70, indent: int = 0) -> list:
+    """Wrap text to a specified width with optional indentation."""
+    words = text.split()
+    lines = []
+    current_line = []
+    current_length = 0
+    
+    for word in words:
+        word_length = len(word)
+        if current_length + word_length + len(current_line) > width:
+            if current_line:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+                current_length = word_length
+        else:
+            current_line.append(word)
+            current_length += word_length
+    
+    if current_line:
+        lines.append(' '.join(current_line))
+    
+    return lines
 
 
 def list_premade_strategies(category: str = None, return_dict: bool = False) -> dict | None:
@@ -422,34 +350,47 @@ def list_premade_strategies(category: str = None, return_dict: bool = False) -> 
     """
     # Filter by category if specified
     if category:
-        if category.lower() not in _STRATEGY_CATALOG:
-            valid_categories = ', '.join(_STRATEGY_CATALOG.keys())
+        if category.lower() not in _STRATEGY_CATEGORIES:
+            valid_categories = ', '.join(_STRATEGY_CATEGORIES.keys())
             raise ValueError(f"Invalid category '{category}'. Valid options: {valid_categories}")
-        filtered_catalog = {category.lower(): _STRATEGY_CATALOG[category.lower()]}
+        categories_to_process = {category.lower(): _STRATEGY_CATEGORIES[category.lower()]}
     else:
-        filtered_catalog = _STRATEGY_CATALOG
+        categories_to_process = _STRATEGY_CATEGORIES
+    
+    # Build the catalog dynamically from strategy function docstrings
+    all_strategies = {}
+    for cat_name, strategy_names in categories_to_process.items():
+        all_strategies[cat_name] = {}
+        for strategy_name in strategy_names:
+            strategy_func = _STRATEGY_REGISTRY.get(strategy_name)
+            if strategy_func and callable(strategy_func):
+                description = _get_strategy_description(strategy_func)
+                all_strategies[cat_name][strategy_name] = description
     
     # Return dictionary if requested
     if return_dict:
-        return filtered_catalog
+        return all_strategies
     
     # Otherwise, print formatted output
     print("\n" + "="*80)
     print("AVAILABLE PREMADE BACKTEST STRATEGIES")
     print("="*80 + "\n")
     
-    for cat_name, strategies in filtered_catalog.items():
+    for cat_name, strategies in all_strategies.items():
         print(f"\n{'─'*80}")
         print(f"{cat_name.upper()} STRATEGIES ({len(strategies)} total)")
         print(f"{'─'*80}\n")
         
         for strategy_name, description in sorted(strategies.items()):
             print(f"  • {strategy_name.upper()}")
-            print(f"    {description}")
+            # Wrap long descriptions
+            desc_lines = _wrap_text(description, width=72, indent=4)
+            for line in desc_lines:
+                print(f"    {line}")
             print()
     
     print("="*80)
-    print(f"Total: {sum(len(strategies) for strategies in filtered_catalog.values())} strategies")
+    print(f"Total: {sum(len(strategies) for strategies in all_strategies.values())} strategies")
     print("="*80 + "\n")
     
     return None

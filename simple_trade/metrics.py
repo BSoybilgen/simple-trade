@@ -148,8 +148,8 @@ def calculate_performance_metrics(
     downside_deviation = negative_returns.std() * np.sqrt(periods_per_year) if len(negative_returns) > 0 else 0
     sortino_ratio = (annualized_return - risk_free_rate) / downside_deviation if downside_deviation > 0 else np.inf
         
-    # Total Commissions
-    total_commissions = portfolio_df['CommissionPaid'].sum() if 'CommissionPaid' in portfolio_df.columns else None
+    # Total Commissions (CommissionPaid is cumulative, so take the last value)
+    total_commissions = portfolio_df['CommissionPaid'].iloc[-1] if 'CommissionPaid' in portfolio_df.columns else None
     
     # Drawdown analysis
     portfolio_df['cum_max'] = portfolio_df['PortfolioValue'].cummax()

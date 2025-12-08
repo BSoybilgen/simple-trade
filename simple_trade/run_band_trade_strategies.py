@@ -88,8 +88,8 @@ def run_band_trade(
             commission_short=commission_short if commission_short is not None else 0.001,
             short_borrow_fee_inc_rate=short_borrow_fee_inc_rate if short_borrow_fee_inc_rate is not None else 0.0,
             long_borrow_fee_inc_rate=long_borrow_fee_inc_rate if long_borrow_fee_inc_rate is not None else 0.0,
-            long_entry_pct_cash=long_entry_pct_cash if long_entry_pct_cash is not None else 0.9,
-            short_entry_pct_cash=short_entry_pct_cash if short_entry_pct_cash is not None else 0.9,
+            long_entry_pct_cash=long_entry_pct_cash if long_entry_pct_cash is not None else 1.0,
+            short_entry_pct_cash=short_entry_pct_cash if short_entry_pct_cash is not None else 1.0,
             risk_free_rate=risk_free_rate if risk_free_rate is not None else 0.0,
         )
     
@@ -364,7 +364,8 @@ def _execute_long_only(
     action = 'HOLD'
     
     if buy_signal and position_type != 'long':
-        shares_to_buy = int((cash * config.long_entry_pct_cash) / current_price)
+        # Account for commission in share calculation to prevent negative cash
+        shares_to_buy = int((cash * config.long_entry_pct_cash) / (current_price * (1 + config.commission_long)))
         if shares_to_buy > 0:
             commission = shares_to_buy * current_price * config.commission_long
             cash -= (shares_to_buy * current_price + commission)
@@ -404,7 +405,8 @@ def _execute_short_only(
     action = 'HOLD'
     
     if sell_signal and position_type != 'short':
-        shares_to_short = int((cash * config.short_entry_pct_cash) / current_price)
+        # Account for commission in share calculation
+        shares_to_short = int((cash * config.short_entry_pct_cash) / (current_price * (1 + config.commission_short)))
         if shares_to_short > 0:
             commission = shares_to_short * current_price * config.commission_short
             cash += (shares_to_short * current_price - commission)
@@ -455,7 +457,8 @@ def _execute_mixed(
             position_type = 'none'
         
         if position_type != 'long':
-            shares_to_buy = int((cash * config.long_entry_pct_cash) / current_price)
+            # Account for commission in share calculation to prevent negative cash
+            shares_to_buy = int((cash * config.long_entry_pct_cash) / (current_price * (1 + config.commission_long)))
             if shares_to_buy > 0:
                 commission = shares_to_buy * current_price * config.commission_long
                 cash -= (shares_to_buy * current_price + commission)
@@ -484,7 +487,8 @@ def _execute_mixed(
             position_type = 'none'
         
         if position_type != 'short':
-            shares_to_short = int((cash * config.short_entry_pct_cash) / current_price)
+            # Account for commission in share calculation
+            shares_to_short = int((cash * config.short_entry_pct_cash) / (current_price * (1 + config.commission_short)))
             if shares_to_short > 0:
                 commission = shares_to_short * current_price * config.commission_short
                 cash += (shares_to_short * current_price - commission)

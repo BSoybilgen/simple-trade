@@ -77,8 +77,8 @@ def run_cross_trade(
             commission_short=commission_short if commission_short is not None else 0.001,
             short_borrow_fee_inc_rate=short_borrow_fee_inc_rate if short_borrow_fee_inc_rate is not None else 0.0,
             long_borrow_fee_inc_rate=long_borrow_fee_inc_rate if long_borrow_fee_inc_rate is not None else 0.0,
-            long_entry_pct_cash=long_entry_pct_cash if long_entry_pct_cash is not None else 0.9,
-            short_entry_pct_cash=short_entry_pct_cash if short_entry_pct_cash is not None else 0.9,
+            long_entry_pct_cash=long_entry_pct_cash if long_entry_pct_cash is not None else 1.0,
+            short_entry_pct_cash=short_entry_pct_cash if short_entry_pct_cash is not None else 1.0,
             risk_free_rate=risk_free_rate if risk_free_rate is not None else 0.0,
         )
     
@@ -212,6 +212,7 @@ def _run_cross_backtest(
     num_trades = 0
     portfolio_log = []
     first_day = True
+    total_commission_paid = 0.0
 
     for idx, row in signal_df.iterrows():
         trade_price = row[price_col]
@@ -291,6 +292,9 @@ def _run_cross_backtest(
         log_buy_signal = action_taken in ['BUY', 'COVER AND BUY', 'COVER']
         log_sell_signal = action_taken in ['SELL', 'SELL AND SHORT', 'SHORT']
         
+        # Accumulate commission for cumulative tracking
+        total_commission_paid += commission_paid
+        
         log_entry = {
             'Date': idx,
             'Price': trade_price,
@@ -300,7 +304,7 @@ def _run_cross_backtest(
             'PositionValue': position_value,
             'PositionType': position_type,
             'PortfolioValue': portfolio_value,
-            'CommissionPaid': commission_paid,
+            'CommissionPaid': total_commission_paid,
             'ShortFee': short_fee,
             'LongFee': long_fee,
             'BuySignal': log_buy_signal,
