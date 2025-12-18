@@ -48,9 +48,33 @@ def ppo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
 
-    fast_window = int(parameters.get('fast_window', 12))
-    slow_window = int(parameters.get('slow_window', 26))
-    signal_window = int(parameters.get('signal_window', 9))
+    fast_window_param = parameters.get('fast_window')
+    fast_period_param = parameters.get('fast_period')
+    if fast_window_param is None and fast_period_param is not None:
+        fast_window_param = fast_period_param
+    elif fast_window_param is not None and fast_period_param is not None:
+        if int(fast_window_param) != int(fast_period_param):
+            raise ValueError("Provide either 'fast_window' or 'fast_period' (aliases) with the same value if both are set.")
+
+    slow_window_param = parameters.get('slow_window')
+    slow_period_param = parameters.get('slow_period')
+    if slow_window_param is None and slow_period_param is not None:
+        slow_window_param = slow_period_param
+    elif slow_window_param is not None and slow_period_param is not None:
+        if int(slow_window_param) != int(slow_period_param):
+            raise ValueError("Provide either 'slow_window' or 'slow_period' (aliases) with the same value if both are set.")
+
+    signal_window_param = parameters.get('signal_window')
+    signal_period_param = parameters.get('signal_period')
+    if signal_window_param is None and signal_period_param is not None:
+        signal_window_param = signal_period_param
+    elif signal_window_param is not None and signal_period_param is not None:
+        if int(signal_window_param) != int(signal_period_param):
+            raise ValueError("Provide either 'signal_window' or 'signal_period' (aliases) with the same value if both are set.")
+
+    fast_window = int(fast_window_param if fast_window_param is not None else 12)
+    slow_window = int(slow_window_param if slow_window_param is not None else 26)
+    signal_window = int(signal_window_param if signal_window_param is not None else 9)
     close_col = columns.get('close_col', 'Close')
 
     close = df[close_col]
@@ -114,11 +138,35 @@ def strategy_ppo(
     
     if parameters is None:
         parameters = {}
-    
-    fast_window = int(parameters.get('fast_window', 12))
-    slow_window = int(parameters.get('slow_window', 26))
-    signal_window = int(parameters.get('signal_window', 9))
-    
+
+    fast_window_param = parameters.get('fast_window')
+    fast_period_param = parameters.get('fast_period')
+    if fast_window_param is None and fast_period_param is not None:
+        fast_window_param = fast_period_param
+    elif fast_window_param is not None and fast_period_param is not None:
+        if int(fast_window_param) != int(fast_period_param):
+            raise ValueError("Provide either 'fast_window' or 'fast_period' (aliases) with the same value if both are set.")
+
+    slow_window_param = parameters.get('slow_window')
+    slow_period_param = parameters.get('slow_period')
+    if slow_window_param is None and slow_period_param is not None:
+        slow_window_param = slow_period_param
+    elif slow_window_param is not None and slow_period_param is not None:
+        if int(slow_window_param) != int(slow_period_param):
+            raise ValueError("Provide either 'slow_window' or 'slow_period' (aliases) with the same value if both are set.")
+
+    signal_window_param = parameters.get('signal_window')
+    signal_period_param = parameters.get('signal_period')
+    if signal_window_param is None and signal_period_param is not None:
+        signal_window_param = signal_period_param
+    elif signal_window_param is not None and signal_period_param is not None:
+        if int(signal_window_param) != int(signal_period_param):
+            raise ValueError("Provide either 'signal_window' or 'signal_period' (aliases) with the same value if both are set.")
+
+    fast_window = int(fast_window_param if fast_window_param is not None else 12)
+    slow_window = int(slow_window_param if slow_window_param is not None else 26)
+    signal_window = int(signal_window_param if signal_window_param is not None else 9)
+
     indicator_params = {
         "fast_window": fast_window,
         "slow_window": slow_window,

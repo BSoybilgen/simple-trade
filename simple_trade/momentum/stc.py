@@ -54,8 +54,24 @@ def stc(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
 
-    window_fast = int(parameters.get('window_fast', 23))
-    window_slow = int(parameters.get('window_slow', 50))
+    window_fast_param = parameters.get('window_fast')
+    period_fast_param = parameters.get('period_fast')
+    if window_fast_param is None and period_fast_param is not None:
+        window_fast_param = period_fast_param
+    elif window_fast_param is not None and period_fast_param is not None:
+        if int(window_fast_param) != int(period_fast_param):
+            raise ValueError("Provide either 'window_fast' or 'period_fast' (aliases) with the same value if both are set.")
+
+    window_slow_param = parameters.get('window_slow')
+    period_slow_param = parameters.get('period_slow')
+    if window_slow_param is None and period_slow_param is not None:
+        window_slow_param = period_slow_param
+    elif window_slow_param is not None and period_slow_param is not None:
+        if int(window_slow_param) != int(period_slow_param):
+            raise ValueError("Provide either 'window_slow' or 'period_slow' (aliases) with the same value if both are set.")
+
+    window_fast = int(window_fast_param if window_fast_param is not None else 23)
+    window_slow = int(window_slow_param if window_slow_param is not None else 50)
     cycle = int(parameters.get('cycle', 10))
     smooth = int(parameters.get('smooth', 3))
     close_col = columns.get('close_col', 'Close')
@@ -129,8 +145,24 @@ def strategy_stc(
     if parameters is None:
         parameters = {}
     
-    window_fast = int(parameters.get('window_fast', 23))
-    window_slow = int(parameters.get('window_slow', 50))
+    window_fast_param = parameters.get('window_fast')
+    period_fast_param = parameters.get('period_fast')
+    if window_fast_param is None and period_fast_param is not None:
+        window_fast_param = period_fast_param
+    elif window_fast_param is not None and period_fast_param is not None:
+        if int(window_fast_param) != int(period_fast_param):
+            raise ValueError("Provide either 'window_fast' or 'period_fast' (aliases) with the same value if both are set.")
+
+    window_slow_param = parameters.get('window_slow')
+    period_slow_param = parameters.get('period_slow')
+    if window_slow_param is None and period_slow_param is not None:
+        window_slow_param = period_slow_param
+    elif window_slow_param is not None and period_slow_param is not None:
+        if int(window_slow_param) != int(period_slow_param):
+            raise ValueError("Provide either 'window_slow' or 'period_slow' (aliases) with the same value if both are set.")
+
+    window_fast = int(window_fast_param if window_fast_param is not None else 23)
+    window_slow = int(window_slow_param if window_slow_param is not None else 50)
     cycle = int(parameters.get('cycle', 10))
     smooth = int(parameters.get('smooth', 3))
     upper = int(parameters.get('upper', 75))

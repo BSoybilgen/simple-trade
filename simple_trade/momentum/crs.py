@@ -49,9 +49,33 @@ def crs(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
 
-    rsi_window = int(parameters.get('rsi_window', 3))
-    streak_window = int(parameters.get('streak_window', 2))
-    rank_window = int(parameters.get('rank_window', 100))
+    rsi_window_param = parameters.get('rsi_window')
+    rsi_period_param = parameters.get('rsi_period')
+    if rsi_window_param is None and rsi_period_param is not None:
+        rsi_window_param = rsi_period_param
+    elif rsi_window_param is not None and rsi_period_param is not None:
+        if int(rsi_window_param) != int(rsi_period_param):
+            raise ValueError("Provide either 'rsi_window' or 'rsi_period' (aliases) with the same value if both are set.")
+
+    streak_window_param = parameters.get('streak_window')
+    streak_period_param = parameters.get('streak_period')
+    if streak_window_param is None and streak_period_param is not None:
+        streak_window_param = streak_period_param
+    elif streak_window_param is not None and streak_period_param is not None:
+        if int(streak_window_param) != int(streak_period_param):
+            raise ValueError("Provide either 'streak_window' or 'streak_period' (aliases) with the same value if both are set.")
+
+    rank_window_param = parameters.get('rank_window')
+    rank_period_param = parameters.get('rank_period')
+    if rank_window_param is None and rank_period_param is not None:
+        rank_window_param = rank_period_param
+    elif rank_window_param is not None and rank_period_param is not None:
+        if int(rank_window_param) != int(rank_period_param):
+            raise ValueError("Provide either 'rank_window' or 'rank_period' (aliases) with the same value if both are set.")
+
+    rsi_window = int(rsi_window_param if rsi_window_param is not None else 3)
+    streak_window = int(streak_window_param if streak_window_param is not None else 2)
+    rank_window = int(rank_window_param if rank_window_param is not None else 100)
     close_col = columns.get('close_col', 'Close')
 
     close = df[close_col]
@@ -163,10 +187,34 @@ def strategy_crs(
     
     if parameters is None:
         parameters = {}
-    
-    rsi_window = int(parameters.get('rsi_window', 3))
-    streak_window = int(parameters.get('streak_window', 2))
-    rank_window = int(parameters.get('rank_window', 100))
+
+    rsi_window_param = parameters.get('rsi_window')
+    rsi_period_param = parameters.get('rsi_period')
+    if rsi_window_param is None and rsi_period_param is not None:
+        rsi_window_param = rsi_period_param
+    elif rsi_window_param is not None and rsi_period_param is not None:
+        if int(rsi_window_param) != int(rsi_period_param):
+            raise ValueError("Provide either 'rsi_window' or 'rsi_period' (aliases) with the same value if both are set.")
+
+    streak_window_param = parameters.get('streak_window')
+    streak_period_param = parameters.get('streak_period')
+    if streak_window_param is None and streak_period_param is not None:
+        streak_window_param = streak_period_param
+    elif streak_window_param is not None and streak_period_param is not None:
+        if int(streak_window_param) != int(streak_period_param):
+            raise ValueError("Provide either 'streak_window' or 'streak_period' (aliases) with the same value if both are set.")
+
+    rank_window_param = parameters.get('rank_window')
+    rank_period_param = parameters.get('rank_period')
+    if rank_window_param is None and rank_period_param is not None:
+        rank_window_param = rank_period_param
+    elif rank_window_param is not None and rank_period_param is not None:
+        if int(rank_window_param) != int(rank_period_param):
+            raise ValueError("Provide either 'rank_window' or 'rank_period' (aliases) with the same value if both are set.")
+
+    rsi_window = int(rsi_window_param if rsi_window_param is not None else 3)
+    streak_window = int(streak_window_param if streak_window_param is not None else 2)
+    rank_window = int(rank_window_param if rank_window_param is not None else 100)
     upper = int(parameters.get('upper', 90))
     lower = int(parameters.get('lower', 10))
     

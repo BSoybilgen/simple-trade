@@ -56,7 +56,15 @@ def fve(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
         
-    period = parameters.get('period', 22)
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else 22)
     factor = parameters.get('factor', 0.3)
     
     high_col = columns.get('high_col', 'High')
@@ -139,7 +147,15 @@ def strategy_fve(
     if parameters is None:
         parameters = {}
     
-    period = int(parameters.get('period', 22))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else 22)
     price_col = 'Close'
     indicator_col = f'FVE_{period}'
     

@@ -51,8 +51,24 @@ def svi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    atr_period = int(parameters.get('atr_period', 14))
-    stoch_period = int(parameters.get('stoch_period', 14))
+    atr_window_param = parameters.get('atr_window')
+    atr_period_param = parameters.get('atr_period')
+    if atr_window_param is None and atr_period_param is not None:
+        atr_window_param = atr_period_param
+    elif atr_window_param is not None and atr_period_param is not None:
+        if int(atr_window_param) != int(atr_period_param):
+            raise ValueError("Provide either 'atr_window' or 'atr_period' (aliases) with the same value if both are set.")
+
+    stoch_window_param = parameters.get('stoch_window')
+    stoch_period_param = parameters.get('stoch_period')
+    if stoch_window_param is None and stoch_period_param is not None:
+        stoch_window_param = stoch_period_param
+    elif stoch_window_param is not None and stoch_period_param is not None:
+        if int(stoch_window_param) != int(stoch_period_param):
+            raise ValueError("Provide either 'stoch_window' or 'stoch_period' (aliases) with the same value if both are set.")
+
+    atr_period = int(atr_window_param if atr_window_param is not None else 14)
+    stoch_period = int(stoch_window_param if stoch_window_param is not None else 14)
     smooth_k = int(parameters.get('smooth_k', 3))
     smooth_d = int(parameters.get('smooth_d', 3))
     high_col = columns.get('high_col', 'High')
@@ -143,8 +159,24 @@ def strategy_svi(
     if parameters is None:
         parameters = {}
     
-    atr_period = int(parameters.get('atr_period', 14))
-    stoch_period = int(parameters.get('stoch_period', 14))
+    atr_window_param = parameters.get('atr_window')
+    atr_period_param = parameters.get('atr_period')
+    if atr_window_param is None and atr_period_param is not None:
+        atr_window_param = atr_period_param
+    elif atr_window_param is not None and atr_period_param is not None:
+        if int(atr_window_param) != int(atr_period_param):
+            raise ValueError("Provide either 'atr_window' or 'atr_period' (aliases) with the same value if both are set.")
+
+    stoch_window_param = parameters.get('stoch_window')
+    stoch_period_param = parameters.get('stoch_period')
+    if stoch_window_param is None and stoch_period_param is not None:
+        stoch_window_param = stoch_period_param
+    elif stoch_window_param is not None and stoch_period_param is not None:
+        if int(stoch_window_param) != int(stoch_period_param):
+            raise ValueError("Provide either 'stoch_window' or 'stoch_period' (aliases) with the same value if both are set.")
+
+    atr_period = int(atr_window_param if atr_window_param is not None else 14)
+    stoch_period = int(stoch_window_param if stoch_window_param is not None else 14)
     smooth_k = int(parameters.get('smooth_k', 3))
     smooth_d = int(parameters.get('smooth_d', 3))
     upper = float(parameters.get('upper', 80))

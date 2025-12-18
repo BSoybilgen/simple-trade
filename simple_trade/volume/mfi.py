@@ -57,7 +57,15 @@ def mfi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    period = parameters.get('period', 14)
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else 14)
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')
@@ -139,7 +147,15 @@ def strategy_mfi(
     if parameters is None:
         parameters = {}
     
-    period = int(parameters.get('period', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else 14)
     upper = float(parameters.get('upper', 80))
     lower = float(parameters.get('lower', 20))
     price_col = 'Close'

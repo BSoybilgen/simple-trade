@@ -48,8 +48,24 @@ def cha(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    ema_window = int(parameters.get('ema_window', 10))
-    roc_window = int(parameters.get('roc_window', 10))
+    ema_window_param = parameters.get('ema_window')
+    ema_period_param = parameters.get('ema_period')
+    if ema_window_param is None and ema_period_param is not None:
+        ema_window_param = ema_period_param
+    elif ema_window_param is not None and ema_period_param is not None:
+        if int(ema_window_param) != int(ema_period_param):
+            raise ValueError("Provide either 'ema_window' or 'ema_period' (aliases) with the same value if both are set.")
+
+    roc_window_param = parameters.get('roc_window')
+    roc_period_param = parameters.get('roc_period')
+    if roc_window_param is None and roc_period_param is not None:
+        roc_window_param = roc_period_param
+    elif roc_window_param is not None and roc_period_param is not None:
+        if int(roc_window_param) != int(roc_period_param):
+            raise ValueError("Provide either 'roc_window' or 'roc_period' (aliases) with the same value if both are set.")
+
+    ema_window = int(ema_window_param if ema_window_param is not None else 10)
+    roc_window = int(roc_window_param if roc_window_param is not None else 10)
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     
@@ -115,8 +131,24 @@ def strategy_cha(
     if parameters is None:
         parameters = {}
     
-    ema_window = int(parameters.get('ema_window', 10))
-    roc_window = int(parameters.get('roc_window', 10))
+    ema_window_param = parameters.get('ema_window')
+    ema_period_param = parameters.get('ema_period')
+    if ema_window_param is None and ema_period_param is not None:
+        ema_window_param = ema_period_param
+    elif ema_window_param is not None and ema_period_param is not None:
+        if int(ema_window_param) != int(ema_period_param):
+            raise ValueError("Provide either 'ema_window' or 'ema_period' (aliases) with the same value if both are set.")
+
+    roc_window_param = parameters.get('roc_window')
+    roc_period_param = parameters.get('roc_period')
+    if roc_window_param is None and roc_period_param is not None:
+        roc_window_param = roc_period_param
+    elif roc_window_param is not None and roc_period_param is not None:
+        if int(roc_window_param) != int(roc_period_param):
+            raise ValueError("Provide either 'roc_window' or 'roc_period' (aliases) with the same value if both are set.")
+
+    ema_window = int(ema_window_param if ema_window_param is not None else 10)
+    roc_window = int(roc_window_param if roc_window_param is not None else 10)
     upper = float(parameters.get('upper', 50))
     lower = float(parameters.get('lower', -50))
     price_col = 'Close'

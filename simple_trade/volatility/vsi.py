@@ -44,8 +44,24 @@ def vsi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
         
-    short_period = int(parameters.get('short_period', 10))
-    long_period = int(parameters.get('long_period', 50))
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_period = int(short_window_param if short_window_param is not None else 10)
+    long_period = int(long_window_param if long_window_param is not None else 50)
     threshold = float(parameters.get('threshold', 1.2))
     close_col = columns.get('close_col', 'Close')
     
@@ -105,8 +121,24 @@ def strategy_vsi(
     if parameters is None:
         parameters = {}
     
-    short_period = int(parameters.get('short_period', 10))
-    long_period = int(parameters.get('long_period', 50))
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_period = int(short_window_param if short_window_param is not None else 10)
+    long_period = int(long_window_param if long_window_param is not None else 50)
     threshold = float(parameters.get('threshold', 1.2))
     upper = float(parameters.get('upper', 1))
     lower = float(parameters.get('lower', 0))

@@ -55,7 +55,13 @@ def acb(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    period = int(parameters.get('period', 20))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else (period_param if period_param is not None else 20))
     factor = float(parameters.get('factor', 0.001))  # 0.1% default
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
@@ -132,7 +138,13 @@ def strategy_acb(
     if parameters is None:
         parameters = {}
     
-    period = int(parameters.get('period', 20))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else (period_param if period_param is not None else 20))
     factor = float(parameters.get('factor', 0.001))
     factor_pct = factor * 100
     price_col = 'Close'

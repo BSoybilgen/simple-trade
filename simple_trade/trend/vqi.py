@@ -54,7 +54,13 @@ def vqi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    period = int(parameters.get('period', 9))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else (period_param if period_param is not None else 9))
     smooth_period = int(parameters.get('smooth_period', 9))
     volatility_cutoff = float(parameters.get('volatility_cutoff', 0.1))
     high_col = columns.get('high_col', 'High')
@@ -144,7 +150,13 @@ def strategy_vqi(
     if parameters is None:
         parameters = {}
     
-    period = int(parameters.get('period', 9))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else (period_param if period_param is not None else 9))
     smooth_period = int(parameters.get('smooth_period', 9))
     upper = float(parameters.get('upper', 0))
     lower = float(parameters.get('lower', 0))

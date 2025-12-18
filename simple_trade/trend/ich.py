@@ -55,9 +55,34 @@ def ich(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')
-    tenkan_period = int(parameters.get('tenkan_period', 9))
-    kijun_period = int(parameters.get('kijun_period', 26))
-    senkou_b_period = int(parameters.get('senkou_b_period', 52))
+
+    tenkan_window_param = parameters.get('tenkan_window')
+    tenkan_period_param = parameters.get('tenkan_period')
+    if tenkan_window_param is None and tenkan_period_param is not None:
+        tenkan_window_param = tenkan_period_param
+    elif tenkan_window_param is not None and tenkan_period_param is not None:
+        if int(tenkan_window_param) != int(tenkan_period_param):
+            raise ValueError("Provide either 'tenkan_window' or 'tenkan_period' (aliases) with the same value if both are set.")
+
+    kijun_window_param = parameters.get('kijun_window')
+    kijun_period_param = parameters.get('kijun_period')
+    if kijun_window_param is None and kijun_period_param is not None:
+        kijun_window_param = kijun_period_param
+    elif kijun_window_param is not None and kijun_period_param is not None:
+        if int(kijun_window_param) != int(kijun_period_param):
+            raise ValueError("Provide either 'kijun_window' or 'kijun_period' (aliases) with the same value if both are set.")
+
+    senkou_b_window_param = parameters.get('senkou_b_window')
+    senkou_b_period_param = parameters.get('senkou_b_period')
+    if senkou_b_window_param is None and senkou_b_period_param is not None:
+        senkou_b_window_param = senkou_b_period_param
+    elif senkou_b_window_param is not None and senkou_b_period_param is not None:
+        if int(senkou_b_window_param) != int(senkou_b_period_param):
+            raise ValueError("Provide either 'senkou_b_window' or 'senkou_b_period' (aliases) with the same value if both are set.")
+
+    tenkan_period = int(tenkan_window_param if tenkan_window_param is not None else 9)
+    kijun_period = int(kijun_window_param if kijun_window_param is not None else 26)
+    senkou_b_period = int(senkou_b_window_param if senkou_b_window_param is not None else 52)
     displacement = int(parameters.get('displacement', 26))
     
     close = df[close_col]
@@ -240,6 +265,7 @@ def strategy_ich(
         trading_type: 'long', 'short', or 'both'
         day1_position: Initial position ('none', 'long', 'short')
         risk_free_rate: Risk-free rate for Sharpe ratio calculation
+
         long_entry_pct_cash: Percentage of cash to use for long entries
         short_entry_pct_cash: Percentage of cash to use for short entries
         
@@ -252,8 +278,24 @@ def strategy_ich(
     if parameters is None:
         parameters = {}
     
-    tenkan_period = int(parameters.get('tenkan_period', 9))
-    kijun_period = int(parameters.get('kijun_period', 26))
+    tenkan_window_param = parameters.get('tenkan_window')
+    tenkan_period_param = parameters.get('tenkan_period')
+    if tenkan_window_param is None and tenkan_period_param is not None:
+        tenkan_window_param = tenkan_period_param
+    elif tenkan_window_param is not None and tenkan_period_param is not None:
+        if int(tenkan_window_param) != int(tenkan_period_param):
+            raise ValueError("Provide either 'tenkan_window' or 'tenkan_period' (aliases) with the same value if both are set.")
+
+    kijun_window_param = parameters.get('kijun_window')
+    kijun_period_param = parameters.get('kijun_period')
+    if kijun_window_param is None and kijun_period_param is not None:
+        kijun_window_param = kijun_period_param
+    elif kijun_window_param is not None and kijun_period_param is not None:
+        if int(kijun_window_param) != int(kijun_period_param):
+            raise ValueError("Provide either 'kijun_window' or 'kijun_period' (aliases) with the same value if both are set.")
+
+    tenkan_period = int(tenkan_window_param if tenkan_window_param is not None else 9)
+    kijun_period = int(kijun_window_param if kijun_window_param is not None else 26)
     price_col = 'Close'
     
     data, _, _ = compute_indicator(

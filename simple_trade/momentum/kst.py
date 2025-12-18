@@ -51,10 +51,43 @@ def kst(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
 
-    roc_periods = parameters.get('roc_periods', (10, 15, 20, 30))
-    ma_periods = parameters.get('ma_periods', (10, 10, 10, 15))
+    roc_windows_param = parameters.get('roc_windows')
+    roc_periods_param = parameters.get('roc_periods')
+    if roc_windows_param is None and roc_periods_param is not None:
+        roc_windows_param = roc_periods_param
+    elif roc_windows_param is not None and roc_periods_param is not None:
+        if [int(p) for p in roc_windows_param] != [int(p) for p in roc_periods_param]:
+            raise ValueError("Provide either 'roc_windows' or 'roc_periods' (aliases) with the same value if both are set.")
+
+    ma_windows_param = parameters.get('ma_windows')
+    ma_periods_param = parameters.get('ma_periods')
+    if ma_windows_param is None and ma_periods_param is not None:
+        ma_windows_param = ma_periods_param
+    elif ma_windows_param is not None and ma_periods_param is not None:
+        if [int(p) for p in ma_windows_param] != [int(p) for p in ma_periods_param]:
+            raise ValueError("Provide either 'ma_windows' or 'ma_periods' (aliases) with the same value if both are set.")
+
+    roc_periods = roc_windows_param if roc_windows_param is not None else (10, 15, 20, 30)
+    ma_periods = ma_windows_param if ma_windows_param is not None else (10, 10, 10, 15)
     weights = parameters.get('weights', (1, 2, 3, 4))
-    signal_period = int(parameters.get('signal', 9))
+
+    signal_window_param = parameters.get('signal_window')
+    signal_period_param = parameters.get('signal_period')
+    signal_param = parameters.get('signal')
+    if signal_window_param is None:
+        if signal_period_param is not None:
+            signal_window_param = signal_period_param
+        elif signal_param is not None:
+            signal_window_param = signal_param
+    else:
+        if signal_period_param is not None and int(signal_window_param) != int(signal_period_param):
+            raise ValueError("Provide either 'signal_window' or 'signal_period' (aliases) with the same value if both are set.")
+        if signal_param is not None and int(signal_window_param) != int(signal_param):
+            raise ValueError("Provide either 'signal_window' or 'signal' (aliases) with the same value if both are set.")
+    if signal_window_param is None and signal_period_param is not None and signal_param is not None:
+        if int(signal_period_param) != int(signal_param):
+            raise ValueError("Provide either 'signal_period' or 'signal' (aliases) with the same value if both are set.")
+    signal_period = int(signal_window_param if signal_window_param is not None else 9)
     close_col = columns.get('close_col', 'Close')
 
     roc_periods = [int(p) for p in roc_periods]
@@ -125,7 +158,23 @@ def strategy_kst(
     if parameters is None:
         parameters = {}
     
-    signal_period = int(parameters.get('signal', 9))
+    signal_window_param = parameters.get('signal_window')
+    signal_period_param = parameters.get('signal_period')
+    signal_param = parameters.get('signal')
+    if signal_window_param is None:
+        if signal_period_param is not None:
+            signal_window_param = signal_period_param
+        elif signal_param is not None:
+            signal_window_param = signal_param
+    else:
+        if signal_period_param is not None and int(signal_window_param) != int(signal_period_param):
+            raise ValueError("Provide either 'signal_window' or 'signal_period' (aliases) with the same value if both are set.")
+        if signal_param is not None and int(signal_window_param) != int(signal_param):
+            raise ValueError("Provide either 'signal_window' or 'signal' (aliases) with the same value if both are set.")
+    if signal_window_param is None and signal_period_param is not None and signal_param is not None:
+        if int(signal_period_param) != int(signal_param):
+            raise ValueError("Provide either 'signal_period' or 'signal' (aliases) with the same value if both are set.")
+    signal_period = int(signal_window_param if signal_window_param is not None else 9)
     
     indicator_params = {"signal": signal_period}
     short_window_indicator = 'KST'

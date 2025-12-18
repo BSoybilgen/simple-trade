@@ -53,9 +53,33 @@ def pvo(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    fast_period = parameters.get('fast_period', 12)
-    slow_period = parameters.get('slow_period', 26)
-    signal_period = parameters.get('signal_period', 9)
+    fast_window_param = parameters.get('fast_window')
+    fast_period_param = parameters.get('fast_period')
+    if fast_window_param is None and fast_period_param is not None:
+        fast_window_param = fast_period_param
+    elif fast_window_param is not None and fast_period_param is not None:
+        if int(fast_window_param) != int(fast_period_param):
+            raise ValueError("Provide either 'fast_window' or 'fast_period' (aliases) with the same value if both are set.")
+
+    slow_window_param = parameters.get('slow_window')
+    slow_period_param = parameters.get('slow_period')
+    if slow_window_param is None and slow_period_param is not None:
+        slow_window_param = slow_period_param
+    elif slow_window_param is not None and slow_period_param is not None:
+        if int(slow_window_param) != int(slow_period_param):
+            raise ValueError("Provide either 'slow_window' or 'slow_period' (aliases) with the same value if both are set.")
+
+    signal_window_param = parameters.get('signal_window')
+    signal_period_param = parameters.get('signal_period')
+    if signal_window_param is None and signal_period_param is not None:
+        signal_window_param = signal_period_param
+    elif signal_window_param is not None and signal_period_param is not None:
+        if int(signal_window_param) != int(signal_period_param):
+            raise ValueError("Provide either 'signal_window' or 'signal_period' (aliases) with the same value if both are set.")
+
+    fast_period = int(fast_window_param if fast_window_param is not None else 12)
+    slow_period = int(slow_window_param if slow_window_param is not None else 26)
+    signal_period = int(signal_window_param if signal_window_param is not None else 9)
     volume_col = columns.get('volume_col', 'Volume')
     
     volume = df[volume_col]
@@ -125,9 +149,33 @@ def strategy_pvo(
     if parameters is None:
         parameters = {}
     
-    fast_period = int(parameters.get('fast_period', 12))
-    slow_period = int(parameters.get('slow_period', 26))
-    signal_period = int(parameters.get('signal_period', 9))
+    fast_window_param = parameters.get('fast_window')
+    fast_period_param = parameters.get('fast_period')
+    if fast_window_param is None and fast_period_param is not None:
+        fast_window_param = fast_period_param
+    elif fast_window_param is not None and fast_period_param is not None:
+        if int(fast_window_param) != int(fast_period_param):
+            raise ValueError("Provide either 'fast_window' or 'fast_period' (aliases) with the same value if both are set.")
+
+    slow_window_param = parameters.get('slow_window')
+    slow_period_param = parameters.get('slow_period')
+    if slow_window_param is None and slow_period_param is not None:
+        slow_window_param = slow_period_param
+    elif slow_window_param is not None and slow_period_param is not None:
+        if int(slow_window_param) != int(slow_period_param):
+            raise ValueError("Provide either 'slow_window' or 'slow_period' (aliases) with the same value if both are set.")
+
+    signal_window_param = parameters.get('signal_window')
+    signal_period_param = parameters.get('signal_period')
+    if signal_window_param is None and signal_period_param is not None:
+        signal_window_param = signal_period_param
+    elif signal_window_param is not None and signal_period_param is not None:
+        if int(signal_window_param) != int(signal_period_param):
+            raise ValueError("Provide either 'signal_window' or 'signal_period' (aliases) with the same value if both are set.")
+
+    fast_period = int(fast_window_param if fast_window_param is not None else 12)
+    slow_period = int(slow_window_param if slow_window_param is not None else 26)
+    signal_period = int(signal_window_param if signal_window_param is not None else 9)
     price_col = 'Close'
     pvo_col = f'PVO_{fast_period}_{slow_period}'
     signal_col = f'PVO_SIGNAL_{signal_period}'

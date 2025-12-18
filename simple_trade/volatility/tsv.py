@@ -49,9 +49,33 @@ def tsv(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
         
-    atr_period = int(parameters.get('atr_period', 14))
-    long_period = int(parameters.get('long_period', 25))
-    short_period = int(parameters.get('short_period', 13))
+    atr_window_param = parameters.get('atr_window')
+    atr_period_param = parameters.get('atr_period')
+    if atr_window_param is None and atr_period_param is not None:
+        atr_window_param = atr_period_param
+    elif atr_window_param is not None and atr_period_param is not None:
+        if int(atr_window_param) != int(atr_period_param):
+            raise ValueError("Provide either 'atr_window' or 'atr_period' (aliases) with the same value if both are set.")
+
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    atr_period = int(atr_window_param if atr_window_param is not None else 14)
+    long_period = int(long_window_param if long_window_param is not None else 25)
+    short_period = int(short_window_param if short_window_param is not None else 13)
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')
@@ -136,9 +160,33 @@ def strategy_tsv(
     if parameters is None:
         parameters = {}
     
-    atr_period = int(parameters.get('atr_period', 14))
-    long_period = int(parameters.get('long_period', 25))
-    short_period = int(parameters.get('short_period', 13))
+    atr_window_param = parameters.get('atr_window')
+    atr_period_param = parameters.get('atr_period')
+    if atr_window_param is None and atr_period_param is not None:
+        atr_window_param = atr_period_param
+    elif atr_window_param is not None and atr_period_param is not None:
+        if int(atr_window_param) != int(atr_period_param):
+            raise ValueError("Provide either 'atr_window' or 'atr_period' (aliases) with the same value if both are set.")
+
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    atr_period = int(atr_window_param if atr_window_param is not None else 14)
+    long_period = int(long_window_param if long_window_param is not None else 25)
+    short_period = int(short_window_param if short_window_param is not None else 13)
     upper = float(parameters.get('upper', 25))
     lower = float(parameters.get('lower', -25))
     price_col = 'Close'
