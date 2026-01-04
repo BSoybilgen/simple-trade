@@ -40,7 +40,7 @@ def compute_indicator(
     # Create a copy to avoid modifying the original DataFrame
     df = data.copy()
     indicator_func = INDICATORS[indicator]
-    print(f"Computing {indicator.upper()}...")
+    # print(f"Computing {indicator.upper()}...")
 
     try:
         # Delegate to specific handler based on indicator type

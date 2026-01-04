@@ -51,6 +51,7 @@ from .optimize_premade_strategies import premade_optimizer
 from .run_premade_strategies import run_premade_trade, list_premade_strategies
 from .compute_fibonacci_retracement import calculate_fibonacci_levels, plot_fibonacci_retracement
 from .compute_resistance_support import find_pivot_points, find_resistance_support_lines, plot_resistance_support
+from .compute_trendlines import find_best_trendlines, plot_trendlines
 
 # Import plotting functions
 from .plot_ind import plot_indicator
@@ -91,6 +92,8 @@ __all__ = [
     "find_resistance_support_lines",
     "plot_fibonacci_retracement",
     "plot_resistance_support",
+    "find_best_trendlines",
+    "plot_trendlines",
 
     # Data functions
     "compute_indicator", "download_data", "list_indicators",
