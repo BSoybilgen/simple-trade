@@ -54,7 +54,16 @@ def vid(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
 
     window = int(window_param if window_param is not None else 21)
-    cmo_window = int(parameters.get('cmo_window', 9))
+
+    cmo_window_param = parameters.get('cmo_window')
+    cmo_period_param = parameters.get('cmo_period')
+    if cmo_window_param is None and cmo_period_param is not None:
+        cmo_window_param = cmo_period_param
+    elif cmo_window_param is not None and cmo_period_param is not None:
+        if int(cmo_window_param) != int(cmo_period_param):
+            raise ValueError("Provide either 'cmo_window' or 'cmo_period' (aliases) with the same value if both are set.")
+
+    cmo_window = int(cmo_window_param if cmo_window_param is not None else 9)
     close_col = columns.get('close_col', 'Close')
 
     series = df[close_col]
