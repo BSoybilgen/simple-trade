@@ -79,7 +79,15 @@ def bbw(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    window = int(parameters.get('window', 20))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else 20)
     num_std = float(parameters.get('num_std', 2.0))
     normalize = bool(parameters.get('normalize', True))
     close_col = columns.get('close_col', 'Close')
@@ -151,7 +159,15 @@ def strategy_bbw(
     if parameters is None:
         parameters = {}
     
-    window = int(parameters.get('window', 20))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else 20)
     num_std = float(parameters.get('num_std', 2.0))
     upper = float(parameters.get('upper', 10.0))
     lower = float(parameters.get('lower', 4.0))

@@ -66,7 +66,15 @@ def adx(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     close_col = columns.get('close_col', 'Close')
-    window = int(parameters.get('window', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else 14)
 
     high = df[high_col]
     low = df[low_col]
@@ -119,7 +127,7 @@ def strategy_adx(
     
     Args:
         data: DataFrame with OHLCV data
-        parameters: Dict with 'window' (default 14)
+        parameters: Dict with 'window' (default 14) or 'period' (alias)
         config: BacktestConfig object for backtest settings
         trading_type: 'long', 'short', or 'both'
         day1_position: Initial position ('none', 'long', 'short')
@@ -136,7 +144,15 @@ def strategy_adx(
     if parameters is None:
         parameters = {}
     
-    window = int(parameters.get('window', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else 14)
     adx_col = f'ADX_{window}'
     price_col = 'Close'
     

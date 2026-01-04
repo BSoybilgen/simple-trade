@@ -54,7 +54,13 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    period = int(parameters.get('period', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else (period_param if period_param is not None else 14))
     multiplier = float(parameters.get('multiplier', 3.0))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
@@ -71,7 +77,7 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     tr = pd.concat([hl, hc, lc], axis=1).max(axis=1, skipna=False)
     
     # Calculate ATR
-    atr = tr.rolling(window=period, min_periods=1).mean() # Use min_periods=1 for ATR
+    atr = tr.rolling(window=window, min_periods=1).mean() # Use min_periods=1 for ATR
     
     # Calculate basic bands
     mid_price = (high + low) / 2 # Though not directly used in final ST, useful for initial band calc
@@ -86,18 +92,18 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     result['STR'] = np.nan
     result['Direction'] = 0  # 1 for uptrend, -1 for downtrend, 0 for undetermined
 
-    # The first 'period-1' ATR values might be less reliable or NaN if min_periods=period.
+    # The first 'window-1' ATR values might be less reliable or NaN if min_periods=window.
     # We start calculations from the first valid ATR.
     # With min_periods=1 for ATR, we can start earlier, but Supertrend logic itself needs a previous ST value.
     # Iterative calculation for SuperTrend
     for i in range(len(df)):
-        if i < period -1 : # ATR might not be stable enough or is NaN. Or first period elements for rolling
+        if i < window -1 : # ATR might not be stable enough or is NaN. Or first window elements for rolling
             result.loc[result.index[i], 'STR'] = np.nan # Or some initial value if preferred
             result.loc[result.index[i], 'Direction'] = 0
             continue
 
-        # Initial SuperTrend and direction value (e.g., at index `period-1` or first calculable)
-        if i == period -1: # First point where ATR is based on `period` lookback
+        # Initial SuperTrend and direction value (e.g., at index `window-1` or first calculable)
+        if i == window -1: # First point where ATR is based on `window` lookback
                            # or first point to set an initial trend
             if close.iloc[i] > result.loc[result.index[i], 'Basic_low_band']:
                 result.loc[result.index[i], 'Direction'] = 1
@@ -128,8 +134,8 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
             if curr_close > curr_supertrend: # Price crossed above ST line
                 curr_direction = 1 # Change trend to UP
                 curr_supertrend = curr_basic_low_band # New ST is the lower band
-        else: # Previous direction was 0 (e.g. initial state before period-1)
-            # This case should ideally be handled by the i == period-1 block
+        else: # Previous direction was 0 (e.g. initial state before window-1)
+            # This case should ideally be handled by the i == window-1 block
             # For robustness, re-evaluate based on current price vs bands
             if curr_close > curr_basic_low_band:
                 curr_direction = 1
@@ -142,21 +148,21 @@ def str(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         result.loc[result.index[i], 'STR'] = curr_supertrend
 
         df = result[['STR', 'Direction']].copy()
-        df.rename(columns={'STR': f'STR_{period}_{multiplier}', 
-                           'Direction': f'Direction_{period}_{multiplier}'},
+        df.rename(columns={'STR': f'STR_{window}_{multiplier}', 
+                           'Direction': f'Direction_{window}_{multiplier}'},
                            inplace=True)
 
         # Initialize Bullish and Bearish SuperTrend values
-        df[f'STR_Bullish_{period}_{multiplier}'] = np.nan
-        df[f'STR_Bearish_{period}_{multiplier}'] = np.nan
+        df[f'STR_Bullish_{window}_{multiplier}'] = np.nan
+        df[f'STR_Bearish_{window}_{multiplier}'] = np.nan
         
         # Set Bullish and Bearish values directly
-        df.loc[df[f'Direction_{period}_{multiplier}'] == 1, f'STR_Bullish_{period}_{multiplier}'] = df.loc[df[f'Direction_{period}_{multiplier}'] == 1, f'STR_{period}_{multiplier}']
-        df.loc[df[f'Direction_{period}_{multiplier}'] == -1, f'STR_Bearish_{period}_{multiplier}'] = df.loc[df[f'Direction_{period}_{multiplier}'] == -1, f'STR_{period}_{multiplier}']
+        df.loc[df[f'Direction_{window}_{multiplier}'] == 1, f'STR_Bullish_{window}_{multiplier}'] = df.loc[df[f'Direction_{window}_{multiplier}'] == 1, f'STR_{window}_{multiplier}']
+        df.loc[df[f'Direction_{window}_{multiplier}'] == -1, f'STR_Bearish_{window}_{multiplier}'] = df.loc[df[f'Direction_{window}_{multiplier}'] == -1, f'STR_{window}_{multiplier}']
         
         # Fill NaN values with scaled close prices
-        df[f'STR_Bullish_{period}_{multiplier}'] = df[f'STR_Bullish_{period}_{multiplier}'].fillna(close * 1.5)
-        df[f'STR_Bearish_{period}_{multiplier}'] = df[f'STR_Bearish_{period}_{multiplier}'].fillna(close * 0.5)
+        df[f'STR_Bullish_{window}_{multiplier}'] = df[f'STR_Bullish_{window}_{multiplier}'].fillna(close * 1.5)
+        df[f'STR_Bearish_{window}_{multiplier}'] = df[f'STR_Bearish_{window}_{multiplier}'].fillna(close * 0.5)
         
     columns_list = list(df.columns)
     return df, columns_list
@@ -184,7 +190,7 @@ def strategy_str(
     
     Args:
         data: DataFrame with OHLCV data
-        parameters: Dict with 'period' (default 14), 'multiplier' (default 3.0)
+        parameters: Dict with 'window' (default 14), 'period' (alias for window, default 14), 'multiplier' (default 3.0)
         config: BacktestConfig object for backtest settings
         trading_type: 'long', 'short', or 'both'
         day1_position: Initial position ('none', 'long', 'short')
@@ -201,19 +207,25 @@ def strategy_str(
     if parameters is None:
         parameters = {}
     
-    period = int(parameters.get('period', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else (period_param if period_param is not None else 14))
     multiplier = float(parameters.get('multiplier', 3.0))
     price_col = 'Close'
     
     data, _, _ = compute_indicator(
         data=data,
         indicator='str',
-        parameters={"period": period, "multiplier": multiplier},
+        parameters={"window": window, "multiplier": multiplier},
         figure=False
     )
     
     short_window_indicator = 'Close'
-    long_window_indicator = f'STR_{period}_{multiplier}'
+    long_window_indicator = f'STR_{window}_{multiplier}'
     
     results, portfolio = run_cross_trade(
         data=data,

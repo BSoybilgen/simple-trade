@@ -51,9 +51,33 @@ def ult(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
 
-    short_window = int(parameters.get('short_window', 7))
-    medium_window = int(parameters.get('medium_window', 14))
-    long_window = int(parameters.get('long_window', 28))
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    medium_window_param = parameters.get('medium_window')
+    medium_period_param = parameters.get('medium_period')
+    if medium_window_param is None and medium_period_param is not None:
+        medium_window_param = medium_period_param
+    elif medium_window_param is not None and medium_period_param is not None:
+        if int(medium_window_param) != int(medium_period_param):
+            raise ValueError("Provide either 'medium_window' or 'medium_period' (aliases) with the same value if both are set.")
+
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_window = int(short_window_param if short_window_param is not None else 7)
+    medium_window = int(medium_window_param if medium_window_param is not None else 14)
+    long_window = int(long_window_param if long_window_param is not None else 28)
 
     close_col = columns.get('close_col', 'Close')
     high_col = columns.get('high_col', 'High')
@@ -126,9 +150,33 @@ def strategy_ult(
     if parameters is None:
         parameters = {}
     
-    short_window = int(parameters.get('short_window', 7))
-    medium_window = int(parameters.get('medium_window', 14))
-    long_window = int(parameters.get('long_window', 28))
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    medium_window_param = parameters.get('medium_window')
+    medium_period_param = parameters.get('medium_period')
+    if medium_window_param is None and medium_period_param is not None:
+        medium_window_param = medium_period_param
+    elif medium_window_param is not None and medium_period_param is not None:
+        if int(medium_window_param) != int(medium_period_param):
+            raise ValueError("Provide either 'medium_window' or 'medium_period' (aliases) with the same value if both are set.")
+
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_window = int(short_window_param if short_window_param is not None else 7)
+    medium_window = int(medium_window_param if medium_window_param is not None else 14)
+    long_window = int(long_window_param if long_window_param is not None else 28)
     upper = int(parameters.get('upper', 70))
     lower = int(parameters.get('lower', 30))
     

@@ -46,12 +46,49 @@ def gma(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
 
     close_col = columns.get('close_col', 'Close')
-    short_windows = _normalize_windows(
-        parameters.get('short_windows', (3, 5, 8, 10, 12, 15))
-    )
-    long_windows = _normalize_windows(
-        parameters.get('long_windows', (30, 35, 40, 45, 50, 60))
-    )
+
+    if parameters.get('short_windows') is None and parameters.get('short_periods') is not None:
+        parameters['short_windows'] = parameters.get('short_periods')
+    if parameters.get('long_windows') is None and parameters.get('long_periods') is not None:
+        parameters['long_windows'] = parameters.get('long_periods')
+
+    short_windows_param = parameters.get('short_windows')
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    long_windows_param = parameters.get('long_windows')
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_windows_default = (3, 5, 8, 10, 12, 15)
+    if short_windows_param is None:
+        short_windows = _normalize_windows(short_window_param if short_window_param is not None else short_windows_default)
+    else:
+        short_windows = _normalize_windows(short_windows_param)
+        if short_window_param is not None:
+            short_window_value = int(short_window_param)
+            if len(short_windows) != 1 or int(short_windows[0]) != short_window_value:
+                raise ValueError("Provide either 'short_windows' or 'short_window'/'short_period' (aliases). If both are set, 'short_windows' must contain exactly that value.")
+
+    long_windows_default = (30, 35, 40, 45, 50, 60)
+    if long_windows_param is None:
+        long_windows = _normalize_windows(long_window_param if long_window_param is not None else long_windows_default)
+    else:
+        long_windows = _normalize_windows(long_windows_param)
+        if long_window_param is not None:
+            long_window_value = int(long_window_param)
+            if len(long_windows) != 1 or int(long_windows[0]) != long_window_value:
+                raise ValueError("Provide either 'long_windows' or 'long_window'/'long_period' (aliases). If both are set, 'long_windows' must contain exactly that value.")
 
     close = df[close_col]
 
@@ -134,6 +171,11 @@ def strategy_gma(
         parameters = {}
     
     price_col = 'Close'
+
+    if parameters.get('short_windows') is None and parameters.get('short_periods') is not None:
+        parameters['short_windows'] = parameters.get('short_periods')
+    if parameters.get('long_windows') is None and parameters.get('long_periods') is not None:
+        parameters['long_windows'] = parameters.get('long_periods')
     
     data, columns, _ = compute_indicator(
         data=data,

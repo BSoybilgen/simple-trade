@@ -47,7 +47,15 @@ def ads(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
 
     close_col = columns.get('close_col', 'Close')
-    window = int(parameters.get('window', 20))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else 20)
     sensitivity = float(parameters.get('sensitivity', 0.5))
 
     series = df[close_col].copy()
@@ -129,9 +137,25 @@ def strategy_ads(
     
     if parameters is None:
         parameters = {}
-    
-    short_window = int(parameters.get('short_window', 10))
-    long_window = int(parameters.get('long_window', 30))
+
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_window = int(short_window_param if short_window_param is not None else 10)
+    long_window = int(long_window_param if long_window_param is not None else 30)
     price_col = 'Close'
     
     # If short_window is 0, use actual price instead of indicator

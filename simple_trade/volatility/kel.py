@@ -49,8 +49,24 @@ def kel(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    ema_window = int(parameters.get('ema_window', 20))
-    atr_window = int(parameters.get('atr_window', 10))
+    ema_window_param = parameters.get('ema_window')
+    ema_period_param = parameters.get('ema_period')
+    if ema_window_param is None and ema_period_param is not None:
+        ema_window_param = ema_period_param
+    elif ema_window_param is not None and ema_period_param is not None:
+        if int(ema_window_param) != int(ema_period_param):
+            raise ValueError("Provide either 'ema_window' or 'ema_period' (aliases) with the same value if both are set.")
+
+    atr_window_param = parameters.get('atr_window')
+    atr_period_param = parameters.get('atr_period')
+    if atr_window_param is None and atr_period_param is not None:
+        atr_window_param = atr_period_param
+    elif atr_window_param is not None and atr_period_param is not None:
+        if int(atr_window_param) != int(atr_period_param):
+            raise ValueError("Provide either 'atr_window' or 'atr_period' (aliases) with the same value if both are set.")
+
+    ema_window = int(ema_window_param if ema_window_param is not None else 20)
+    atr_window = int(atr_window_param if atr_window_param is not None else 10)
     atr_multiplier = float(parameters.get('atr_multiplier', 2.0))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
@@ -124,8 +140,24 @@ def strategy_kel(
     if parameters is None:
         parameters = {}
     
-    ema_window = int(parameters.get('ema_window', 20))
-    atr_window = int(parameters.get('atr_window', 10))
+    ema_window_param = parameters.get('ema_window')
+    ema_period_param = parameters.get('ema_period')
+    if ema_window_param is None and ema_period_param is not None:
+        ema_window_param = ema_period_param
+    elif ema_window_param is not None and ema_period_param is not None:
+        if int(ema_window_param) != int(ema_period_param):
+            raise ValueError("Provide either 'ema_window' or 'ema_period' (aliases) with the same value if both are set.")
+
+    atr_window_param = parameters.get('atr_window')
+    atr_period_param = parameters.get('atr_period')
+    if atr_window_param is None and atr_period_param is not None:
+        atr_window_param = atr_period_param
+    elif atr_window_param is not None and atr_period_param is not None:
+        if int(atr_window_param) != int(atr_period_param):
+            raise ValueError("Provide either 'atr_window' or 'atr_period' (aliases) with the same value if both are set.")
+
+    ema_window = int(ema_window_param if ema_window_param is not None else 20)
+    atr_window = int(atr_window_param if atr_window_param is not None else 10)
     atr_multiplier = float(parameters.get('atr_multiplier', 2.0))
     price_col = 'Close'
     

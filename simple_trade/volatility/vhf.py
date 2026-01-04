@@ -46,7 +46,13 @@ def vhf(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
         
-    period = int(parameters.get('period', 28))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else (period_param if period_param is not None else 28))
     close_col = columns.get('close_col', 'Close')
     
     close = df[close_col]
@@ -110,7 +116,13 @@ def strategy_vhf(
     if parameters is None:
         parameters = {}
     
-    period = int(parameters.get('period', 28))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else (period_param if period_param is not None else 28))
     upper = float(parameters.get('upper', 0.40))
     lower = float(parameters.get('lower', 0.25))
     price_col = 'Close'

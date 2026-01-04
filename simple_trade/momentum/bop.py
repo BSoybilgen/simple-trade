@@ -50,7 +50,14 @@ def bop(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
 
-    window = int(parameters.get('window', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+    window = int(window_param if window_param is not None else 14)
     smooth = parameters.get('smooth', True)
     open_col = columns.get('open_col', 'Open')
     high_col = columns.get('high_col', 'High')
@@ -116,7 +123,14 @@ def strategy_bop(
     if parameters is None:
         parameters = {}
     
-    window = int(parameters.get('window', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+    window = int(window_param if window_param is not None else 14)
     smooth = parameters.get('smooth', True)
     
     indicator_params = {"window": window, "smooth": smooth}

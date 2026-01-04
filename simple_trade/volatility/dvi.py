@@ -51,9 +51,33 @@ def dvi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    magnitude_period = int(parameters.get('magnitude_period', 5))
-    stretch_period = int(parameters.get('stretch_period', 100))
-    smooth_period = int(parameters.get('smooth_period', 3))
+    magnitude_window_param = parameters.get('magnitude_window')
+    magnitude_period_param = parameters.get('magnitude_period')
+    if magnitude_window_param is None and magnitude_period_param is not None:
+        magnitude_window_param = magnitude_period_param
+    elif magnitude_window_param is not None and magnitude_period_param is not None:
+        if int(magnitude_window_param) != int(magnitude_period_param):
+            raise ValueError("Provide either 'magnitude_window' or 'magnitude_period' (aliases) with the same value if both are set.")
+
+    stretch_window_param = parameters.get('stretch_window')
+    stretch_period_param = parameters.get('stretch_period')
+    if stretch_window_param is None and stretch_period_param is not None:
+        stretch_window_param = stretch_period_param
+    elif stretch_window_param is not None and stretch_period_param is not None:
+        if int(stretch_window_param) != int(stretch_period_param):
+            raise ValueError("Provide either 'stretch_window' or 'stretch_period' (aliases) with the same value if both are set.")
+
+    smooth_window_param = parameters.get('smooth_window')
+    smooth_period_param = parameters.get('smooth_period')
+    if smooth_window_param is None and smooth_period_param is not None:
+        smooth_window_param = smooth_period_param
+    elif smooth_window_param is not None and smooth_period_param is not None:
+        if int(smooth_window_param) != int(smooth_period_param):
+            raise ValueError("Provide either 'smooth_window' or 'smooth_period' (aliases) with the same value if both are set.")
+
+    magnitude_period = int(magnitude_window_param if magnitude_window_param is not None else 5)
+    stretch_period = int(stretch_window_param if stretch_window_param is not None else 100)
+    smooth_period = int(smooth_window_param if smooth_window_param is not None else 3)
     close_col = columns.get('close_col', 'Close')
     
     close = df[close_col]
@@ -162,9 +186,33 @@ def strategy_dvi(
     if parameters is None:
         parameters = {}
     
-    magnitude_period = int(parameters.get('magnitude_period', 5))
-    stretch_period = int(parameters.get('stretch_period', 100))
-    smooth_period = int(parameters.get('smooth_period', 3))
+    magnitude_window_param = parameters.get('magnitude_window')
+    magnitude_period_param = parameters.get('magnitude_period')
+    if magnitude_window_param is None and magnitude_period_param is not None:
+        magnitude_window_param = magnitude_period_param
+    elif magnitude_window_param is not None and magnitude_period_param is not None:
+        if int(magnitude_window_param) != int(magnitude_period_param):
+            raise ValueError("Provide either 'magnitude_window' or 'magnitude_period' (aliases) with the same value if both are set.")
+
+    stretch_window_param = parameters.get('stretch_window')
+    stretch_period_param = parameters.get('stretch_period')
+    if stretch_window_param is None and stretch_period_param is not None:
+        stretch_window_param = stretch_period_param
+    elif stretch_window_param is not None and stretch_period_param is not None:
+        if int(stretch_window_param) != int(stretch_period_param):
+            raise ValueError("Provide either 'stretch_window' or 'stretch_period' (aliases) with the same value if both are set.")
+
+    smooth_window_param = parameters.get('smooth_window')
+    smooth_period_param = parameters.get('smooth_period')
+    if smooth_window_param is None and smooth_period_param is not None:
+        smooth_window_param = smooth_period_param
+    elif smooth_window_param is not None and smooth_period_param is not None:
+        if int(smooth_window_param) != int(smooth_period_param):
+            raise ValueError("Provide either 'smooth_window' or 'smooth_period' (aliases) with the same value if both are set.")
+
+    magnitude_period = int(magnitude_window_param if magnitude_window_param is not None else 5)
+    stretch_period = int(stretch_window_param if stretch_window_param is not None else 100)
+    smooth_period = int(smooth_window_param if smooth_window_param is not None else 3)
     upper = float(parameters.get('upper', 70))
     lower = float(parameters.get('lower', 30))
     price_col = 'Close'

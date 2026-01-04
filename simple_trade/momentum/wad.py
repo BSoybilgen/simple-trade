@@ -125,7 +125,14 @@ def strategy_wad(
     if parameters is None:
         parameters = {}
     
-    sma_period = int(parameters.get('sma_period', 20))
+    sma_window_param = parameters.get('sma_window')
+    sma_period_param = parameters.get('sma_period')
+    if sma_window_param is None and sma_period_param is not None:
+        sma_window_param = sma_period_param
+    elif sma_window_param is not None and sma_period_param is not None:
+        if int(sma_window_param) != int(sma_period_param):
+            raise ValueError("Provide either 'sma_window' or 'sma_period' (aliases) with the same value if both are set.")
+    sma_period = int(sma_window_param if sma_window_param is not None else 20)
     price_col = 'Close'
     
     data, _, _ = compute_indicator(

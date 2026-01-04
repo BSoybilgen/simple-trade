@@ -62,7 +62,13 @@ def hav(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    period = int(parameters.get('period', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else (period_param if period_param is not None else 14))
     method = parameters.get('method', 'atr').lower()
     open_col = columns.get('open_col', 'Open')
     high_col = columns.get('high_col', 'High')
@@ -159,7 +165,13 @@ def strategy_hav(
     if parameters is None:
         parameters = {}
     
-    period = int(parameters.get('period', 14))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else (period_param if period_param is not None else 14))
     method = parameters.get('method', 'atr').upper()
     upper_pct = float(parameters.get('upper_pct', 80))
     lower_pct = float(parameters.get('lower_pct', 20))

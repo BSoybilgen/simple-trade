@@ -61,7 +61,15 @@ def vfi(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
         
-    period = parameters.get('period', 130)
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else 130)
     coef = parameters.get('coef', 0.2)
     vcoef = parameters.get('vcoef', 2.5)
     smoothing_period = parameters.get('smoothing_period', 3)
@@ -157,7 +165,15 @@ def strategy_vfi(
     if parameters is None:
         parameters = {}
     
-    period = int(parameters.get('period', 130))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    period = int(window_param if window_param is not None else 130)
     price_col = 'Close'
     indicator_col = f'VFI_{period}'
     

@@ -123,9 +123,40 @@ def strategy_jma(
     
     if parameters is None:
         parameters = {}
-    
-    short_length = int(parameters.get('short_length', 10))
-    long_length = int(parameters.get('long_length', 21))
+
+    short_window_param = parameters.get('short_window')
+    short_period_param = parameters.get('short_period')
+    if short_window_param is None and short_period_param is not None:
+        short_window_param = short_period_param
+    elif short_window_param is not None and short_period_param is not None:
+        if int(short_window_param) != int(short_period_param):
+            raise ValueError("Provide either 'short_window' or 'short_period' (aliases) with the same value if both are set.")
+
+    long_window_param = parameters.get('long_window')
+    long_period_param = parameters.get('long_period')
+    if long_window_param is None and long_period_param is not None:
+        long_window_param = long_period_param
+    elif long_window_param is not None and long_period_param is not None:
+        if int(long_window_param) != int(long_period_param):
+            raise ValueError("Provide either 'long_window' or 'long_period' (aliases) with the same value if both are set.")
+
+    short_length_param = parameters.get('short_length')
+    long_length_param = parameters.get('long_length')
+
+    if short_length_param is None and short_window_param is not None:
+        short_length_param = short_window_param
+    elif short_length_param is not None and short_window_param is not None:
+        if int(short_length_param) != int(short_window_param):
+            raise ValueError("Provide either 'short_length' or 'short_window'/'short_period' (aliases) with the same value if both are set.")
+
+    if long_length_param is None and long_window_param is not None:
+        long_length_param = long_window_param
+    elif long_length_param is not None and long_window_param is not None:
+        if int(long_length_param) != int(long_window_param):
+            raise ValueError("Provide either 'long_length' or 'long_window'/'long_period' (aliases) with the same value if both are set.")
+
+    short_length = int(short_length_param if short_length_param is not None else 10)
+    long_length = int(long_length_param if long_length_param is not None else 21)
     price_col = 'Close'
     
     if short_length == 0:

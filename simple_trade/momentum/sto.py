@@ -51,8 +51,24 @@ def sto(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    k_period = int(parameters.get('k_period', 14))
-    d_period = int(parameters.get('d_period', 3))
+    k_window_param = parameters.get('k_window')
+    k_period_param = parameters.get('k_period')
+    if k_window_param is None and k_period_param is not None:
+        k_window_param = k_period_param
+    elif k_window_param is not None and k_period_param is not None:
+        if int(k_window_param) != int(k_period_param):
+            raise ValueError("Provide either 'k_window' or 'k_period' (aliases) with the same value if both are set.")
+
+    d_window_param = parameters.get('d_window')
+    d_period_param = parameters.get('d_period')
+    if d_window_param is None and d_period_param is not None:
+        d_window_param = d_period_param
+    elif d_window_param is not None and d_period_param is not None:
+        if int(d_window_param) != int(d_period_param):
+            raise ValueError("Provide either 'd_window' or 'd_period' (aliases) with the same value if both are set.")
+
+    k_period = int(k_window_param if k_window_param is not None else 14)
+    d_period = int(d_window_param if d_window_param is not None else 3)
     smooth_k = int(parameters.get('smooth_k', 3))
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
@@ -124,11 +140,30 @@ def strategy_sto(
     if parameters is None:
         parameters = {}
     
-    k_period = int(parameters.get('k_period', 14))
-    d_period = int(parameters.get('d_period', 3))
+    k_window_param = parameters.get('k_window')
+    k_period_param = parameters.get('k_period')
+    if k_window_param is None and k_period_param is not None:
+        k_window_param = k_period_param
+    elif k_window_param is not None and k_period_param is not None:
+        if int(k_window_param) != int(k_period_param):
+            raise ValueError("Provide either 'k_window' or 'k_period' (aliases) with the same value if both are set.")
+
+    d_window_param = parameters.get('d_window')
+    d_period_param = parameters.get('d_period')
+    if d_window_param is None and d_period_param is not None:
+        d_window_param = d_period_param
+    elif d_window_param is not None and d_period_param is not None:
+        if int(d_window_param) != int(d_period_param):
+            raise ValueError("Provide either 'd_window' or 'd_period' (aliases) with the same value if both are set.")
+
+    k_window = int(k_window_param if k_window_param is not None else 14)
+    d_window = int(d_window_param if d_window_param is not None else 3)
     smooth_k = int(parameters.get('smooth_k', 3))
     upper = int(parameters.get('upper', 80))
     lower = int(parameters.get('lower', 20))
+
+    k_period = k_window
+    d_period = d_window
     
     indicator_params = {
         "k_period": k_period,

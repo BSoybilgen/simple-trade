@@ -51,10 +51,42 @@ def sri(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
     if columns is None:
         columns = {}
 
-    rsi_window = int(parameters.get('rsi_window', 14))
-    stoch_window = int(parameters.get('stoch_window', 14))
-    k_window = int(parameters.get('k_window', 3))
-    d_window = int(parameters.get('d_window', 3))
+    rsi_window_param = parameters.get('rsi_window')
+    rsi_period_param = parameters.get('rsi_period')
+    if rsi_window_param is None and rsi_period_param is not None:
+        rsi_window_param = rsi_period_param
+    elif rsi_window_param is not None and rsi_period_param is not None:
+        if int(rsi_window_param) != int(rsi_period_param):
+            raise ValueError("Provide either 'rsi_window' or 'rsi_period' (aliases) with the same value if both are set.")
+
+    stoch_window_param = parameters.get('stoch_window')
+    stoch_period_param = parameters.get('stoch_period')
+    if stoch_window_param is None and stoch_period_param is not None:
+        stoch_window_param = stoch_period_param
+    elif stoch_window_param is not None and stoch_period_param is not None:
+        if int(stoch_window_param) != int(stoch_period_param):
+            raise ValueError("Provide either 'stoch_window' or 'stoch_period' (aliases) with the same value if both are set.")
+
+    k_window_param = parameters.get('k_window')
+    k_period_param = parameters.get('k_period')
+    if k_window_param is None and k_period_param is not None:
+        k_window_param = k_period_param
+    elif k_window_param is not None and k_period_param is not None:
+        if int(k_window_param) != int(k_period_param):
+            raise ValueError("Provide either 'k_window' or 'k_period' (aliases) with the same value if both are set.")
+
+    d_window_param = parameters.get('d_window')
+    d_period_param = parameters.get('d_period')
+    if d_window_param is None and d_period_param is not None:
+        d_window_param = d_period_param
+    elif d_window_param is not None and d_period_param is not None:
+        if int(d_window_param) != int(d_period_param):
+            raise ValueError("Provide either 'd_window' or 'd_period' (aliases) with the same value if both are set.")
+
+    rsi_window = int(rsi_window_param if rsi_window_param is not None else 14)
+    stoch_window = int(stoch_window_param if stoch_window_param is not None else 14)
+    k_window = int(k_window_param if k_window_param is not None else 3)
+    d_window = int(d_window_param if d_window_param is not None else 3)
     close_col = columns.get('close_col', 'Close')
 
     close = df[close_col]
@@ -131,11 +163,43 @@ def strategy_sri(
     
     if parameters is None:
         parameters = {}
-    
-    rsi_window = int(parameters.get('rsi_window', 14))
-    stoch_window = int(parameters.get('stoch_window', 14))
-    k_window = int(parameters.get('k_window', 3))
-    d_window = int(parameters.get('d_window', 3))
+
+    rsi_window_param = parameters.get('rsi_window')
+    rsi_period_param = parameters.get('rsi_period')
+    if rsi_window_param is None and rsi_period_param is not None:
+        rsi_window_param = rsi_period_param
+    elif rsi_window_param is not None and rsi_period_param is not None:
+        if int(rsi_window_param) != int(rsi_period_param):
+            raise ValueError("Provide either 'rsi_window' or 'rsi_period' (aliases) with the same value if both are set.")
+
+    stoch_window_param = parameters.get('stoch_window')
+    stoch_period_param = parameters.get('stoch_period')
+    if stoch_window_param is None and stoch_period_param is not None:
+        stoch_window_param = stoch_period_param
+    elif stoch_window_param is not None and stoch_period_param is not None:
+        if int(stoch_window_param) != int(stoch_period_param):
+            raise ValueError("Provide either 'stoch_window' or 'stoch_period' (aliases) with the same value if both are set.")
+
+    k_window_param = parameters.get('k_window')
+    k_period_param = parameters.get('k_period')
+    if k_window_param is None and k_period_param is not None:
+        k_window_param = k_period_param
+    elif k_window_param is not None and k_period_param is not None:
+        if int(k_window_param) != int(k_period_param):
+            raise ValueError("Provide either 'k_window' or 'k_period' (aliases) with the same value if both are set.")
+
+    d_window_param = parameters.get('d_window')
+    d_period_param = parameters.get('d_period')
+    if d_window_param is None and d_period_param is not None:
+        d_window_param = d_period_param
+    elif d_window_param is not None and d_period_param is not None:
+        if int(d_window_param) != int(d_period_param):
+            raise ValueError("Provide either 'd_window' or 'd_period' (aliases) with the same value if both are set.")
+
+    rsi_window = int(rsi_window_param if rsi_window_param is not None else 14)
+    stoch_window = int(stoch_window_param if stoch_window_param is not None else 14)
+    k_window = int(k_window_param if k_window_param is not None else 3)
+    d_window = int(d_window_param if d_window_param is not None else 3)
     upper = int(parameters.get('upper', 80))
     lower = int(parameters.get('lower', 20))
     

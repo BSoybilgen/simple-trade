@@ -42,7 +42,15 @@ def mab(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    window = int(parameters.get('window', 20))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else 20)
     close_col = columns.get('close_col', 'Close')
     
     close = df[close_col]
@@ -99,7 +107,15 @@ def strategy_mab(
     if parameters is None:
         parameters = {}
     
-    window = int(parameters.get('window', 20))
+    window_param = parameters.get('window')
+    period_param = parameters.get('period')
+    if window_param is None and period_param is not None:
+        window_param = period_param
+    elif window_param is not None and period_param is not None:
+        if int(window_param) != int(period_param):
+            raise ValueError("Provide either 'window' or 'period' (aliases) with the same value if both are set.")
+
+    window = int(window_param if window_param is not None else 20)
     upper_pct = float(parameters.get('upper_pct', 80))
     lower_pct = float(parameters.get('lower_pct', 20))
     lookback = int(parameters.get('lookback', 100))

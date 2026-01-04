@@ -47,8 +47,24 @@ def mai(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         columns = {}
         
     # Extract parameters with defaults
-    ema_period = int(parameters.get('ema_period', 9))
-    sum_period = int(parameters.get('sum_period', 25))
+    ema_window_param = parameters.get('ema_window')
+    ema_period_param = parameters.get('ema_period')
+    if ema_window_param is None and ema_period_param is not None:
+        ema_window_param = ema_period_param
+    elif ema_window_param is not None and ema_period_param is not None:
+        if int(ema_window_param) != int(ema_period_param):
+            raise ValueError("Provide either 'ema_window' or 'ema_period' (aliases) with the same value if both are set.")
+
+    sum_window_param = parameters.get('sum_window')
+    sum_period_param = parameters.get('sum_period')
+    if sum_window_param is None and sum_period_param is not None:
+        sum_window_param = sum_period_param
+    elif sum_window_param is not None and sum_period_param is not None:
+        if int(sum_window_param) != int(sum_period_param):
+            raise ValueError("Provide either 'sum_window' or 'sum_period' (aliases) with the same value if both are set.")
+
+    ema_period = int(ema_window_param if ema_window_param is not None else 9)
+    sum_period = int(sum_window_param if sum_window_param is not None else 25)
     high_col = columns.get('high_col', 'High')
     low_col = columns.get('low_col', 'Low')
     
@@ -115,8 +131,24 @@ def strategy_mai(
     if parameters is None:
         parameters = {}
     
-    ema_period = int(parameters.get('ema_period', 9))
-    sum_period = int(parameters.get('sum_period', 25))
+    ema_window_param = parameters.get('ema_window')
+    ema_period_param = parameters.get('ema_period')
+    if ema_window_param is None and ema_period_param is not None:
+        ema_window_param = ema_period_param
+    elif ema_window_param is not None and ema_period_param is not None:
+        if int(ema_window_param) != int(ema_period_param):
+            raise ValueError("Provide either 'ema_window' or 'ema_period' (aliases) with the same value if both are set.")
+
+    sum_window_param = parameters.get('sum_window')
+    sum_period_param = parameters.get('sum_period')
+    if sum_window_param is None and sum_period_param is not None:
+        sum_window_param = sum_period_param
+    elif sum_window_param is not None and sum_period_param is not None:
+        if int(sum_window_param) != int(sum_period_param):
+            raise ValueError("Provide either 'sum_window' or 'sum_period' (aliases) with the same value if both are set.")
+
+    ema_period = int(ema_window_param if ema_window_param is not None else 9)
+    sum_period = int(sum_window_param if sum_window_param is not None else 25)
     upper = float(parameters.get('upper', 27))
     lower = float(parameters.get('lower', 26.5))
     price_col = 'Close'
