@@ -75,9 +75,20 @@ def aro(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         highest_high = high_window.max()
         lowest_low = low_window.min()
         
+        # Skip if we have NaN values
+        if pd.isna(highest_high) or pd.isna(lowest_low):
+            continue
+        
         # Find the periods since highest high and lowest low
-        periods_since_highest = period - 1 - np.where(high_window.values == highest_high)[0][-1]
-        periods_since_lowest = period - 1 - np.where(low_window.values == lowest_low)[0][-1]
+        high_matches = np.where(high_window.values == highest_high)[0]
+        low_matches = np.where(low_window.values == lowest_low)[0]
+        
+        # Skip if no matches found (shouldn't happen but safety check)
+        if len(high_matches) == 0 or len(low_matches) == 0:
+            continue
+        
+        periods_since_highest = period - 1 - high_matches[-1]
+        periods_since_lowest = period - 1 - low_matches[-1]
         
         # Calculate ARO Up and ARO Down
         aro_up.iloc[i+period-1] = ((period - periods_since_highest) / period) * 100
