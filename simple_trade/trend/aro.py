@@ -1,5 +1,5 @@
 import pandas as pd
-
+import numpy as np
 
 def aro(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tuple:
     """
@@ -76,10 +76,8 @@ def aro(df: pd.DataFrame, parameters: dict = None, columns: dict = None) -> tupl
         lowest_low = low_window.min()
         
         # Find the periods since highest high and lowest low
-        high_positions = (high_window == highest_high).values
-        periods_since_highest = period - 1 - (len(high_positions) - 1 - high_positions[::-1].argmax())
-        low_positions = (low_window == lowest_low).values  
-        periods_since_lowest = period - 1 - (len(low_positions) - 1 - low_positions[::-1].argmax())
+        periods_since_highest = period - 1 - np.where(high_window.values == highest_high)[0][-1]
+        periods_since_lowest = period - 1 - np.where(low_window.values == lowest_low)[0][-1]
         
         # Calculate ARO Up and ARO Down
         aro_up.iloc[i+period-1] = ((period - periods_since_highest) / period) * 100
